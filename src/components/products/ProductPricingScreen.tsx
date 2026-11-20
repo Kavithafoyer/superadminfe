@@ -432,7 +432,7 @@ export function ProductPricingScreen() {
         <Button
           type="button"
           onClick={() => handleOpenEditModal()}
-          className="bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium text-xs sm:text-sm h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
+          className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
           <span>Add Pricing</span>
@@ -499,7 +499,7 @@ export function ProductPricingScreen() {
             className={cn(
               'pb-3 font-semibold transition-all relative cursor-pointer',
               activeTab === 'rules'
-                ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
                 : 'text-slate-500 hover:text-slate-800'
             )}
           >
@@ -511,7 +511,7 @@ export function ProductPricingScreen() {
             className={cn(
               'pb-3 font-medium transition-all relative cursor-pointer',
               activeTab === 'matrix'
-                ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
                 : 'text-slate-500 hover:text-slate-800'
             )}
           >
@@ -523,7 +523,7 @@ export function ProductPricingScreen() {
             className={cn(
               'pb-3 font-medium transition-all relative cursor-pointer',
               activeTab === 'bulk'
-                ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
                 : 'text-slate-500 hover:text-slate-800'
             )}
           >
@@ -535,7 +535,7 @@ export function ProductPricingScreen() {
             className={cn(
               'pb-3 font-medium transition-all relative cursor-pointer',
               activeTab === 'history'
-                ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
                 : 'text-slate-500 hover:text-slate-800'
             )}
           >
@@ -556,7 +556,7 @@ export function ProductPricingScreen() {
               <select
                 value={filterProduct}
                 onChange={(e) => setFilterProduct(e.target.value)}
-                className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option value="All">All Products</option>
                 <option value="Pegatto CRM">Pegatto CRM</option>
@@ -574,7 +574,7 @@ export function ProductPricingScreen() {
               <select
                 value={filterEdition}
                 onChange={(e) => setFilterEdition(e.target.value)}
-                className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option value="All">All Editions</option>
                 <option value="Professional">Professional</option>
@@ -592,7 +592,7 @@ export function ProductPricingScreen() {
               <select
                 value={filterPlan}
                 onChange={(e) => setFilterPlan(e.target.value)}
-                className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option value="All Plans">All Plans</option>
                 <option value="Standard">Standard</option>
@@ -610,7 +610,7 @@ export function ProductPricingScreen() {
               <select
                 value={filterCountry}
                 onChange={(e) => setFilterCountry(e.target.value)}
-                className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option value="All Countries">All Countries</option>
                 <option value="India">India</option>
@@ -628,7 +628,7 @@ export function ProductPricingScreen() {
               <select
                 value={filterCurrency}
                 onChange={(e) => setFilterCurrency(e.target.value)}
-                className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option value="All Currencies">All Currencies</option>
                 <option value="INR">INR (₹)</option>
@@ -646,7 +646,7 @@ export function ProductPricingScreen() {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option value="Active">Active</option>
                 <option value="Scheduled">Scheduled</option>
@@ -670,7 +670,7 @@ export function ProductPricingScreen() {
           <Button
             type="button"
             onClick={() => toast.success('Pricing filters applied')}
-            className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs h-8 px-4 rounded-lg font-medium shadow-2xs"
+            className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs h-8 px-4 rounded-lg font-medium shadow-2xs"
           >
             Apply
           </Button>
@@ -734,7 +734,7 @@ export function ProductPricingScreen() {
                           selectedRowIds.length === filteredRules.length
                         }
                         onChange={handleSelectAll}
-                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5 cursor-pointer"
+                        className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-3.5 w-3.5 cursor-pointer"
                       />
                     </th>
                     <th className="py-3 px-3 font-semibold text-slate-800">Product</th>
@@ -761,7 +761,7 @@ export function ProductPricingScreen() {
                         className={cn(
                           'transition-colors cursor-pointer',
                           isCurrentDetail
-                            ? 'bg-[#f6f4fe] border-l-2 border-l-[#4F46E5]'
+                            ? 'bg-[#edf5ff] border-l-2 border-l-[#1574fe]'
                             : 'hover:bg-slate-50/70'
                         )}
                       >
@@ -777,7 +777,7 @@ export function ProductPricingScreen() {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => {}}
-                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5 cursor-pointer"
+                            className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-3.5 w-3.5 cursor-pointer"
                           />
                         </td>
 
@@ -846,7 +846,7 @@ export function ProductPricingScreen() {
                             <button
                               type="button"
                               onClick={() => handleOpenEditModal(rule)}
-                              className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors"
+                              className="p-1 rounded text-slate-400 hover:text-[#1574fe] hover:bg-slate-100 transition-colors"
                               title="Edit Pricing"
                             >
                               <Edit2 className="h-3.5 w-3.5" />
@@ -904,7 +904,7 @@ export function ProductPricingScreen() {
                   </button>
                   <button
                     type="button"
-                    className="h-6 w-6 rounded bg-[#4F46E5] text-white font-semibold text-xs flex items-center justify-center shadow-xs"
+                    className="h-6 w-6 rounded bg-[#1574fe] text-white font-semibold text-xs flex items-center justify-center shadow-xs"
                   >
                     1
                   </button>
@@ -1002,7 +1002,7 @@ export function ProductPricingScreen() {
                   className={cn(
                     'pb-2 font-semibold transition-all relative',
                     detailsTab === 'overview'
-                      ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                      ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
                       : 'text-slate-500 hover:text-slate-800'
                   )}
                 >
@@ -1014,7 +1014,7 @@ export function ProductPricingScreen() {
                   className={cn(
                     'pb-2 transition-all relative',
                     detailsTab === 'applicability'
-                      ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                      ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
                       : 'text-slate-500 hover:text-slate-800'
                   )}
                 >
@@ -1026,7 +1026,7 @@ export function ProductPricingScreen() {
                   className={cn(
                     'pb-2 transition-all relative',
                     detailsTab === 'taxes'
-                      ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                      ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
                       : 'text-slate-500 hover:text-slate-800'
                   )}
                 >
@@ -1038,7 +1038,7 @@ export function ProductPricingScreen() {
                   className={cn(
                     'pb-2 transition-all relative',
                     detailsTab === 'history'
-                      ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                      ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
                       : 'text-slate-500 hover:text-slate-800'
                   )}
                 >
@@ -1113,7 +1113,7 @@ export function ProductPricingScreen() {
                 type="button"
                 variant="outline"
                 onClick={() => handleOpenEditModal(selectedRule)}
-                className="bg-white hover:bg-purple-50 text-[#4F46E5] border-[#4F46E5] text-xs h-9 rounded-xl font-semibold gap-1.5 shadow-2xs"
+                className="bg-white hover:bg-blue-50 text-[#1574fe] border-[#1574fe] text-xs h-9 rounded-xl font-semibold gap-1.5 shadow-2xs"
               >
                 <Edit2 className="h-3.5 w-3.5" />
                 <span>Edit Pricing</span>
@@ -1260,7 +1260,7 @@ export function ProductPricingScreen() {
             <Button
               type="button"
               onClick={handleSaveModal}
-              className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-semibold"
+              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold"
             >
               {modalMode === 'add' ? 'Create Pricing' : 'Save Changes'}
             </Button>
@@ -1316,7 +1316,7 @@ export function ProductPricingScreen() {
                 setIsScheduleModalOpen(false);
                 toast.success('Price revision successfully scheduled!');
               }}
-              className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-semibold"
+              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold"
             >
               Schedule Price
             </Button>

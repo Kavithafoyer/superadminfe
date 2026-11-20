@@ -205,7 +205,7 @@ export function CustomerMasterListScreen() {
           </Button>
           <Button
             onClick={() => router.push('/customer/master/create')}
-            className="h-9 gap-1.5 bg-[#5046e5] hover:bg-[#4338ca] text-white text-xs font-semibold shadow-xs"
+            className="h-9 gap-1.5 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs"
           >
             <Plus className="h-3.5 w-3.5" />
             Add Customer
@@ -232,7 +232,7 @@ export function CustomerMasterListScreen() {
               <select
                 value={filterIndustry}
                 onChange={(e) => setFilterIndustry(e.target.value)}
-                className="h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#5046e5] cursor-pointer"
+                className="h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
               >
                 <option>All Industries</option>
                 <option>Textiles &amp; Manufacturing</option>
@@ -252,7 +252,7 @@ export function CustomerMasterListScreen() {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#5046e5] cursor-pointer"
+                className="h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
               >
                 <option>All Statuses</option>
                 <option>Active</option>
@@ -270,7 +270,7 @@ export function CustomerMasterListScreen() {
         <div className="p-3.5 border-b border-slate-200 bg-slate-50/60 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-900 tracking-tight">Customer Accounts</span>
-            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-[#5046e5] border border-indigo-100">
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#1574fe] border border-blue-100">
               {filteredCustomers.length} Accounts
             </span>
           </div>
@@ -304,7 +304,7 @@ export function CustomerMasterListScreen() {
                     className="hover:bg-slate-50/70 transition-colors cursor-pointer group"
                     onClick={() => router.push(`/customer/master/view/${c.id}`)}
                   >
-                    <td className="py-3.5 px-4 font-mono font-bold text-[#5046e5] whitespace-nowrap">
+                    <td className="py-3.5 px-4 font-mono font-bold text-[#1574fe] whitespace-nowrap">
                       {c.customerId}
                     </td>
                     <td className="py-3.5 px-4 font-semibold text-slate-900 whitespace-nowrap">
@@ -317,7 +317,7 @@ export function CustomerMasterListScreen() {
                       {c.contactPerson}
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-50 text-[#5046e5] border border-purple-100">
+                      <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-50 text-[#1574fe] border border-purple-100">
                         {c.product}
                       </span>
                     </td>
@@ -336,7 +336,7 @@ export function CustomerMasterListScreen() {
                           c.status === 'Expiring' &&
                             'bg-amber-50 text-amber-700 border border-amber-200',
                           c.status === 'Prospect' &&
-                            'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                            'bg-blue-50 text-[#1574fe] border border-blue-200'
                         )}
                       >
                         <span
@@ -344,7 +344,7 @@ export function CustomerMasterListScreen() {
                             'h-1.5 w-1.5 rounded-full',
                             c.status === 'Active' && 'bg-emerald-500',
                             c.status === 'Expiring' && 'bg-amber-500',
-                            c.status === 'Prospect' && 'bg-indigo-500'
+                            c.status === 'Prospect' && 'bg-blue-500'
                           )}
                         />
                         {c.status}
@@ -427,7 +427,7 @@ export function CustomerMasterListScreen() {
               <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400">
                 <ChevronLeft className="h-3.5 w-3.5" />
               </Button>
-              <span className="px-2 py-0.5 bg-[#5046e5] text-white rounded text-xs font-semibold">
+              <span className="px-2 py-0.5 bg-[#1574fe] text-white rounded text-xs font-semibold">
                 1
               </span>
               <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400">

@@ -237,12 +237,12 @@ export function TieredPricingScreen() {
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
-                className="hover:text-purple-600 transition-colors"
+                className="hover:text-[#1574fe] transition-colors"
               >
                 Tiered Pricing
               </button>
               <span>&gt;</span>
-              <span className="text-purple-600 dark:text-purple-400 font-medium">
+              <span className="text-[#1574fe] dark:text-purple-400 font-medium">
                 {isEditing ? 'Edit Tiered Plan' : 'Create Tiered Plan'}
               </span>
             </div>
@@ -290,7 +290,7 @@ export function TieredPricingScreen() {
           {/* Card Header Strip */}
           <div className="bg-gradient-to-r from-purple-50/80 via-indigo-50/40 to-slate-50/60 dark:from-purple-950/40 dark:via-slate-900 dark:to-slate-900 px-6 py-4 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-950 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
+              <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-[#1574fe] flex items-center justify-center text-[#1574fe] dark:text-purple-400 font-bold">
                 <Percent className="h-4 w-4" />
               </div>
               <div>
@@ -432,7 +432,7 @@ export function TieredPricingScreen() {
                   variant="outline"
                   size="sm"
                   onClick={handleAddTierRow}
-                  className="text-xs border-purple-200 text-purple-700 hover:bg-purple-50 h-8"
+                  className="text-xs border-blue-200 text-[#1574fe] hover:bg-blue-50 h-8"
                 >
                   <Plus className="h-3 w-3 mr-1" />
                   Add Tier
@@ -442,7 +442,7 @@ export function TieredPricingScreen() {
               <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/40 dark:bg-slate-900/40">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-purple-50/50 dark:bg-purple-950/30 text-slate-600 dark:text-slate-300 text-[11px] font-semibold">
+                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-blue-50/50 dark:bg-blue-950/30 text-slate-600 dark:text-slate-300 text-[11px] font-semibold">
                       <th className="py-2.5 px-4 text-left">Tier Label</th>
                       <th className="py-2.5 px-4 text-left">Usage Range</th>
                       <th className="py-2.5 px-4 text-left">Rate / Unit (₹)</th>
@@ -503,7 +503,7 @@ export function TieredPricingScreen() {
                             onChange={(e) =>
                               handleUpdateTierRow(idx, { discount: e.target.value })
                             }
-                            className="h-8 w-20 text-xs text-purple-700 font-semibold"
+                            className="h-8 w-20 text-xs text-[#1574fe] font-semibold"
                           />
                         </td>
                         <td className="py-3 px-4 text-center">
@@ -577,12 +577,12 @@ export function TieredPricingScreen() {
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
-                className="hover:text-purple-600 transition-colors"
+                className="hover:text-[#1574fe] transition-colors"
               >
                 Tiered Pricing
               </button>
               <span>&gt;</span>
-              <span className="text-purple-600 dark:text-purple-400 font-medium">
+              <span className="text-[#1574fe] dark:text-purple-400 font-medium">
                 {plan.name}
               </span>
             </div>
@@ -592,7 +592,7 @@ export function TieredPricingScreen() {
               </h1>
               <Badge
                 variant="outline"
-                className="font-mono text-xs border-purple-200 bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                className="font-mono text-xs border-blue-200 bg-blue-50 text-[#1574fe] dark:bg-blue-950 dark:text-blue-300"
               >
                 {plan.code}
               </Badge>
@@ -632,12 +632,12 @@ export function TieredPricingScreen() {
 
         {/* 4 Light KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl border border-purple-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm">
-            <p className="text-xs font-medium text-purple-900 dark:text-purple-300">Target Add-on</p>
+          <div className="p-4 rounded-xl border border-blue-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm">
+            <p className="text-xs font-medium text-purple-900 dark:text-blue-300">Target Add-on</p>
             <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1 truncate">
               {plan.addonName}
             </p>
-            <p className="text-[11px] text-purple-600 dark:text-purple-400 mt-1">Consumption model</p>
+            <p className="text-[11px] text-[#1574fe] dark:text-purple-400 mt-1">Consumption model</p>
           </div>
 
           <div className="p-4 rounded-xl border border-emerald-200/80 dark:border-emerald-800/40 bg-gradient-to-br from-emerald-50 via-emerald-50/40 to-white dark:from-emerald-950/30 dark:via-emerald-900/10 dark:to-slate-900 shadow-sm">
@@ -692,7 +692,7 @@ export function TieredPricingScreen() {
                     <td className="py-3 px-4 font-mono text-slate-700 dark:text-slate-300">
                       {t.usageRange}
                     </td>
-                    <td className="py-3 px-4 font-mono text-purple-600 dark:text-purple-400 font-bold">
+                    <td className="py-3 px-4 font-mono text-[#1574fe] dark:text-purple-400 font-bold">
                       ₹{t.pricePerUnit}
                     </td>
                     <td className="py-3 px-4 font-bold text-slate-900 dark:text-slate-100">
@@ -722,7 +722,7 @@ export function TieredPricingScreen() {
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
             <span>Add-on Marketplace</span>
             <span>&gt;</span>
-            <span className="text-purple-600 dark:text-purple-400 font-medium">Tiered Pricing</span>
+            <span className="text-[#1574fe] dark:text-purple-400 font-medium">Tiered Pricing</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Tiered Pricing ({totalCount})
@@ -764,12 +764,12 @@ export function TieredPricingScreen() {
 
       {/* 4 Light-Colored KPI Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl border border-purple-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
+        <div className="p-4 rounded-xl border border-blue-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-purple-900 dark:text-purple-300">Total Plans</p>
+            <p className="text-xs font-medium text-purple-900 dark:text-blue-300">Total Plans</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{totalCount}</p>
           </div>
-          <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-purple-600 dark:text-purple-300">
+          <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/60 text-[#1574fe] flex items-center justify-center text-[#1574fe] dark:text-blue-300">
             <Layers className="h-5 w-5" />
           </div>
         </div>
@@ -911,7 +911,7 @@ export function TieredPricingScreen() {
             </h3>
             <Badge
               variant="secondary"
-              className="bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 text-xs"
+              className="bg-blue-50 text-[#1574fe] dark:bg-blue-950 dark:text-blue-300 text-xs"
             >
               {filteredPlans.length} Plans
             </Badge>
@@ -980,7 +980,7 @@ export function TieredPricingScreen() {
                         className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       />
                     </td>
-                    <td className="py-3.5 px-4 font-mono font-medium text-purple-700 dark:text-purple-300">
+                    <td className="py-3.5 px-4 font-mono font-medium text-[#1574fe] dark:text-blue-300">
                       <button
                         type="button"
                         onClick={() => handleOpenOverview(plan)}
@@ -1023,7 +1023,7 @@ export function TieredPricingScreen() {
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(plan)}
-                          className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-purple-600 transition-colors"
+                          className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-[#1574fe] transition-colors"
                           title="Quick Edit"
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -1047,7 +1047,7 @@ export function TieredPricingScreen() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenOverview(plan)}
-                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition-colors"
+                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-[#1574fe] transition-colors"
                               >
                                 <Eye className="h-3.5 w-3.5 text-slate-400" />
                                 Overview
@@ -1055,7 +1055,7 @@ export function TieredPricingScreen() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenEdit(plan)}
-                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition-colors"
+                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-[#1574fe] transition-colors"
                               >
                                 <Pencil className="h-3.5 w-3.5 text-slate-400" />
                                 Edit

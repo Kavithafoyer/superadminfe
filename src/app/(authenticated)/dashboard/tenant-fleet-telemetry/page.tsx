@@ -267,8 +267,8 @@ export default function TenantFleetTelemetryPage() {
       isPositive: true,
       subtext: 'Active tenant allocations',
       icon: Users,
-      iconColor: 'text-indigo-600 dark:text-indigo-400',
-      cardBg: 'bg-indigo-50/80 dark:bg-indigo-950/30 border-indigo-200/90 dark:border-indigo-800/60',
+      iconColor: 'text-[#1574fe] dark:text-indigo-400',
+      cardBg: 'bg-blue-50/80 dark:bg-blue-950/30 border-indigo-200/90 dark:border-indigo-800/60',
     },
     {
       title: 'Database Fleet Storage',
@@ -309,7 +309,7 @@ export default function TenantFleetTelemetryPage() {
       ══════════════════════════════════════════════════════════════════════ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 shadow-xs">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#1574fe] dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 shadow-xs">
             <Server className="h-6 w-6 stroke-[2.2]" />
           </div>
           <div>
@@ -464,7 +464,7 @@ export default function TenantFleetTelemetryPage() {
             <div className="flex items-center gap-2">
               <Button
                 onClick={handleApplyFilters}
-                className="h-8 px-4 text-xs font-semibold bg-[#5046e5] hover:bg-[#4338ca] text-white shadow-xs cursor-pointer rounded-lg"
+                className="h-8 px-4 text-xs font-semibold bg-[#1574fe] hover:bg-[#0d62e0] text-white shadow-xs cursor-pointer rounded-lg"
               >
                 <Filter className="h-3 w-3 mr-1" />
                 Apply

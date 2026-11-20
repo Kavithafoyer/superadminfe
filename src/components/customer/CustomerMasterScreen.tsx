@@ -88,7 +88,7 @@ export function CustomerMasterScreen() {
       case 'retail':
         return <ShoppingCart className="h-4 w-4 text-rose-600" />;
       case 'real-estate':
-        return <Building2 className="h-4 w-4 text-indigo-600" />;
+        return <Building2 className="h-4 w-4 text-[#1574fe]" />;
       case 'people':
       default:
         return <Users className="h-4 w-4 text-purple-600" />;
@@ -100,8 +100,8 @@ export function CustomerMasterScreen() {
       {/* 1. Header Bar matching Image 2 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-0.5">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl shadow-xs">
-            <Users className="h-7 w-7 text-indigo-600" />
+          <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
+            <Users className="h-7 w-7 text-[#1574fe]" />
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -118,7 +118,7 @@ export function CustomerMasterScreen() {
           <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-xs">
             <span className="text-slate-400 font-medium">Product</span>
             <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-              <GraduationCap className="h-4 w-4 text-indigo-600" />
+              <GraduationCap className="h-4 w-4 text-[#1574fe]" />
               <select
                 value={selectedProductFilter}
                 onChange={(e) => setSelectedProductFilter(e.target.value)}
@@ -136,7 +136,7 @@ export function CustomerMasterScreen() {
 
           <Button
             onClick={() => toast.success('Add Customer dialog opened')}
-            className="bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Add Customer</span>
@@ -148,7 +148,7 @@ export function CustomerMasterScreen() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
         {/* Metric 1: Total Customers */}
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
-          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
+          <div className="p-2.5 bg-blue-50 text-[#1574fe] rounded-xl shrink-0">
             <Users className="h-5 w-5" />
           </div>
           <div>
@@ -197,7 +197,7 @@ export function CustomerMasterScreen() {
 
         {/* Metric 5: Total ARR */}
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
-          <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
+          <div className="p-2.5 bg-blue-50 text-[#1574fe] rounded-xl shrink-0">
             <Layers className="h-5 w-5" />
           </div>
           <div>
@@ -233,7 +233,7 @@ export function CustomerMasterScreen() {
               className={cn(
                 'px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer',
                 isActive
-                  ? 'bg-[#4F46E5] text-white shadow-xs'
+                  ? 'bg-[#1574fe] text-white shadow-xs'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
               )}
             >
@@ -249,7 +249,7 @@ export function CustomerMasterScreen() {
         {/* Table Top Controls Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-indigo-600" />
+            <Users className="h-5 w-5 text-[#1574fe]" />
             <h3 className="text-base font-bold text-slate-900">
               Customers ({filteredCustomers.length > 5 ? '286' : filteredCustomers.length})
             </h3>
@@ -262,7 +262,7 @@ export function CustomerMasterScreen() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by customer name, domain, or contact..."
-                className="pl-9 pr-3 py-1.5 text-xs h-8.5 bg-white border-slate-200 rounded-lg placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-indigo-500"
+                className="pl-9 pr-3 py-1.5 text-xs h-8.5 bg-white border-slate-200 rounded-lg placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#1574fe]"
               />
             </div>
             <Button
@@ -272,7 +272,7 @@ export function CustomerMasterScreen() {
               onClick={() => toast.info('Advanced filter dialog')}
               className="h-8.5 px-3 text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 gap-1.5 rounded-lg shrink-0"
             >
-              <Filter className="h-3.5 w-3.5 text-indigo-600" />
+              <Filter className="h-3.5 w-3.5 text-[#1574fe]" />
               <span>Filters</span>
             </Button>
           </div>
@@ -291,7 +291,7 @@ export function CustomerMasterScreen() {
                       selectedCustomerIds.length === filteredCustomers.length
                     }
                     onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5"
+                    className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-3.5 w-3.5"
                   />
                 </th>
                 <th className="py-2.5 px-2.5 w-8 text-center">#</th>
@@ -321,14 +321,14 @@ export function CustomerMasterScreen() {
                       type="checkbox"
                       checked={selectedCustomerIds.includes(cust.id)}
                       onChange={() => handleSelectOne(cust.id)}
-                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5"
+                      className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-3.5 w-3.5"
                     />
                   </td>
                   <td className="py-2.5 px-2.5 text-center text-slate-500 font-semibold text-[11px]">
                     {idx + 1}
                   </td>
                   <td className="py-2.5 px-3 font-semibold text-slate-900">
-                    <span className="hover:text-indigo-600 transition-colors">
+                    <span className="hover:text-[#1574fe] transition-colors">
                       {cust.name}
                     </span>
                   </td>
@@ -377,15 +377,15 @@ export function CustomerMasterScreen() {
                       <button
                         type="button"
                         onClick={() => router.push(`/customer/overview?id=${cust.id}`)}
-                        className="p-1 rounded-md text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                        className="p-1 rounded-md text-slate-500 hover:text-[#1574fe] hover:bg-slate-100 transition-colors cursor-pointer"
                         title="View Customer Overview"
                       >
-                        <Eye className="h-3.5 w-3.5 text-indigo-600" />
+                        <Eye className="h-3.5 w-3.5 text-[#1574fe]" />
                       </button>
                       <button
                         type="button"
                         onClick={() => toast.info(`Editing ${cust.name}`)}
-                        className="p-1 rounded-md text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                        className="p-1 rounded-md text-slate-500 hover:text-[#1574fe] hover:bg-slate-100 transition-colors cursor-pointer"
                         title="Edit Customer"
                       >
                         <Edit2 className="h-3.5 w-3.5" />
@@ -412,7 +412,7 @@ export function CustomerMasterScreen() {
         {/* Card 1: Customer Overview Donut Chart */}
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <BarChart2 className="h-4.5 w-4.5 text-indigo-600" />
+            <BarChart2 className="h-4.5 w-4.5 text-[#1574fe]" />
             <h4 className="text-sm font-bold text-slate-900">Customer Overview</h4>
           </div>
 
@@ -486,7 +486,7 @@ export function CustomerMasterScreen() {
         {/* Card 2: Products Adoption (Active Customers) */}
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3.5">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Layers className="h-4.5 w-4.5 text-indigo-600" />
+            <Layers className="h-4.5 w-4.5 text-[#1574fe]" />
             <h4 className="text-sm font-bold text-slate-900">
               Products Adoption (Active Customers)
             </h4>
@@ -504,12 +504,12 @@ export function CustomerMasterScreen() {
               return (
                 <div key={p.label} className="flex items-center gap-2.5">
                   <div className="w-24 flex items-center gap-1.5 shrink-0 text-slate-700 font-medium">
-                    <Icon className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                    <Icon className="h-3.5 w-3.5 text-[#1574fe] shrink-0" />
                     <span className="truncate">{p.label}</span>
                   </div>
                   <div className="flex-1 bg-slate-100 rounded-full h-3 overflow-hidden">
                     <div
-                      className="bg-[#4F46E5] h-full rounded-full transition-all duration-500"
+                      className="bg-[#1574fe] h-full rounded-full transition-all duration-500"
                       style={{ width: `${p.pct}%` }}
                     />
                   </div>
@@ -525,7 +525,7 @@ export function CustomerMasterScreen() {
         {/* Card 3: Quick Actions */}
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3 flex flex-col justify-between">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Zap className="h-4.5 w-4.5 text-indigo-600" />
+            <Zap className="h-4.5 w-4.5 text-[#1574fe]" />
             <h4 className="text-sm font-bold text-slate-900">Quick Actions</h4>
           </div>
 
@@ -536,7 +536,7 @@ export function CustomerMasterScreen() {
               onClick={() => toast.info('Manage Subscriptions modal')}
               className="w-full h-8.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-800 justify-start gap-2 rounded-lg"
             >
-              <Layers className="h-4 w-4 text-indigo-600" />
+              <Layers className="h-4 w-4 text-[#1574fe]" />
               <span>Manage Subscription</span>
             </Button>
 
@@ -546,7 +546,7 @@ export function CustomerMasterScreen() {
               onClick={() => toast.info('Send Renewal Reminder modal')}
               className="w-full h-8.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-800 justify-start gap-2 rounded-lg"
             >
-              <Calendar className="h-4 w-4 text-indigo-600" />
+              <Calendar className="h-4 w-4 text-[#1574fe]" />
               <span>Renewal Reminder</span>
             </Button>
 
@@ -556,7 +556,7 @@ export function CustomerMasterScreen() {
               onClick={() => router.push('/customer/usage')}
               className="w-full h-8.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-800 justify-start gap-2 rounded-lg"
             >
-              <BarChart2 className="h-4 w-4 text-indigo-600" />
+              <BarChart2 className="h-4 w-4 text-[#1574fe]" />
               <span>View Usage</span>
             </Button>
 
@@ -566,7 +566,7 @@ export function CustomerMasterScreen() {
               onClick={() => toast.success('Customer list exported as CSV')}
               className="w-full h-8.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-800 justify-start gap-2 rounded-lg"
             >
-              <Download className="h-4 w-4 text-indigo-600" />
+              <Download className="h-4 w-4 text-[#1574fe]" />
               <span>Download Customer List</span>
             </Button>
           </div>

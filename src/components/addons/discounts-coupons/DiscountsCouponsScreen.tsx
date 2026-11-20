@@ -225,12 +225,12 @@ export function DiscountsCouponsScreen() {
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
-                className="hover:text-purple-600 transition-colors"
+                className="hover:text-[#1574fe] transition-colors"
               >
                 Discounts & Coupons
               </button>
               <span>&gt;</span>
-              <span className="text-purple-600 dark:text-purple-400 font-medium">
+              <span className="text-[#1574fe] dark:text-purple-400 font-medium">
                 {isEditing ? 'Edit Promotion' : 'Create Promotion'}
               </span>
             </div>
@@ -278,7 +278,7 @@ export function DiscountsCouponsScreen() {
           {/* Card Header Strip */}
           <div className="bg-gradient-to-r from-purple-50/80 via-indigo-50/40 to-slate-50/60 dark:from-purple-950/40 dark:via-slate-900 dark:to-slate-900 px-6 py-4 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-950 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
+              <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-[#1574fe] flex items-center justify-center text-[#1574fe] dark:text-purple-400 font-bold">
                 <Gift className="h-4 w-4" />
               </div>
               <div>
@@ -472,7 +472,7 @@ export function DiscountsCouponsScreen() {
             </div>
 
             {/* Light Colored Usage Limits Box */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-4 rounded-lg bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-4 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-purple-100 dark:border-purple-900/40">
               <div>
                 <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 block mb-1">
                   Global Redemption Cap
@@ -562,12 +562,12 @@ export function DiscountsCouponsScreen() {
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
-                className="hover:text-purple-600 transition-colors"
+                className="hover:text-[#1574fe] transition-colors"
               >
                 Discounts & Coupons
               </button>
               <span>&gt;</span>
-              <span className="text-purple-600 dark:text-purple-400 font-medium">
+              <span className="text-[#1574fe] dark:text-purple-400 font-medium">
                 {item.name}
               </span>
             </div>
@@ -577,7 +577,7 @@ export function DiscountsCouponsScreen() {
               </h1>
               <Badge
                 variant="outline"
-                className="font-bold text-xs border-purple-200 bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                className="font-bold text-xs border-blue-200 bg-blue-50 text-[#1574fe] dark:bg-blue-950 dark:text-blue-300"
               >
                 {item.discountValue} Off
               </Badge>
@@ -617,12 +617,12 @@ export function DiscountsCouponsScreen() {
 
         {/* 4 Light KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl border border-purple-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm">
-            <p className="text-xs font-medium text-purple-900 dark:text-purple-300">Discount Value</p>
+          <div className="p-4 rounded-xl border border-blue-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm">
+            <p className="text-xs font-medium text-purple-900 dark:text-blue-300">Discount Value</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
               {item.discountValue}
             </p>
-            <p className="text-[11px] text-purple-600 dark:text-purple-400 mt-1">Type: {item.type}</p>
+            <p className="text-[11px] text-[#1574fe] dark:text-purple-400 mt-1">Type: {item.type}</p>
           </div>
 
           <div className="p-4 rounded-xl border border-emerald-200/80 dark:border-emerald-800/40 bg-gradient-to-br from-emerald-50 via-emerald-50/40 to-white dark:from-emerald-950/30 dark:via-emerald-900/10 dark:to-slate-900 shadow-sm">
@@ -695,7 +695,7 @@ export function DiscountsCouponsScreen() {
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
             <span>Add-on Marketplace</span>
             <span>&gt;</span>
-            <span className="text-purple-600 dark:text-purple-400 font-medium">Discounts & Coupons</span>
+            <span className="text-[#1574fe] dark:text-purple-400 font-medium">Discounts & Coupons</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Discounts & Coupons ({totalDiscounts})
@@ -737,12 +737,12 @@ export function DiscountsCouponsScreen() {
 
       {/* 4 Light-Colored KPI Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl border border-purple-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
+        <div className="p-4 rounded-xl border border-blue-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-purple-900 dark:text-purple-300">Active Discounts</p>
+            <p className="text-xs font-medium text-purple-900 dark:text-blue-300">Active Discounts</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{activeDiscounts}</p>
           </div>
-          <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-purple-600 dark:text-purple-300">
+          <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/60 text-[#1574fe] flex items-center justify-center text-[#1574fe] dark:text-blue-300">
             <Tag className="h-5 w-5" />
           </div>
         </div>
@@ -881,7 +881,7 @@ export function DiscountsCouponsScreen() {
             </h3>
             <Badge
               variant="secondary"
-              className="bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 text-xs"
+              className="bg-blue-50 text-[#1574fe] dark:bg-blue-950 dark:text-blue-300 text-xs"
             >
               {filteredDiscounts.length} Discounts
             </Badge>
@@ -948,7 +948,7 @@ export function DiscountsCouponsScreen() {
                       <button
                         type="button"
                         onClick={() => handleOpenOverview(item)}
-                        className="hover:underline hover:text-purple-600 font-semibold"
+                        className="hover:underline hover:text-[#1574fe] font-semibold"
                       >
                         {item.name}
                       </button>
@@ -959,7 +959,7 @@ export function DiscountsCouponsScreen() {
                     <td className="py-3.5 px-4">
                       <Badge
                         variant="outline"
-                        className="text-[11px] border-purple-200 bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                        className="text-[11px] border-blue-200 bg-blue-50 text-[#1574fe] dark:bg-blue-950 dark:text-blue-300"
                       >
                         {item.applicability}
                       </Badge>
@@ -995,7 +995,7 @@ export function DiscountsCouponsScreen() {
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-purple-600 transition-colors"
+                          className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-[#1574fe] transition-colors"
                           title="Quick Edit"
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -1019,7 +1019,7 @@ export function DiscountsCouponsScreen() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenOverview(item)}
-                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition-colors"
+                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-[#1574fe] transition-colors"
                               >
                                 <Eye className="h-3.5 w-3.5 text-slate-400" />
                                 Overview
@@ -1027,7 +1027,7 @@ export function DiscountsCouponsScreen() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenEdit(item)}
-                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition-colors"
+                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-[#1574fe] transition-colors"
                               >
                                 <Pencil className="h-3.5 w-3.5 text-slate-400" />
                                 Edit

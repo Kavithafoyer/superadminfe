@@ -6,7 +6,7 @@ import { SubMenuTab } from './purchaseActivationTypes';
 import { cn } from '@/lib/utils';
 
 interface Props {
-  activeTab?: SubMenuTab;
+  activeTab: SubMenuTab;
   onTabChange?: (tab: SubMenuTab) => void;
   navigateOnTabChange?: boolean;
 }
@@ -17,6 +17,7 @@ export const TAB_ROUTE_MAP: Record<SubMenuTab, string> = {
   'Activation Queue': '/purchase-activation/activation-queue',
   'Payment Transactions': '/purchase-activation/payment-transactions',
   Invoices: '/purchase-activation/invoices',
+  Usage: '/usage',
 };
 
 const TABS: SubMenuTab[] = [
@@ -25,10 +26,11 @@ const TABS: SubMenuTab[] = [
   'Activation Queue',
   'Payment Transactions',
   'Invoices',
+  'Usage',
 ];
 
 export function PurchaseActivationTabs({
-  activeTab = 'Purchases',
+  activeTab,
   onTabChange,
   navigateOnTabChange = true,
 }: Props) {
@@ -44,7 +46,7 @@ export function PurchaseActivationTabs({
   };
 
   return (
-    <div className="flex items-center gap-1 border-b border-slate-200 dark:border-slate-800 text-sm font-medium overflow-x-auto scrollbar-none pb-0 mb-4">
+    <div className="flex items-center gap-6 border-b border-slate-200 dark:border-slate-800 text-sm overflow-x-auto scrollbar-none pb-0 mb-4">
       {TABS.map((tab) => {
         const isActive = activeTab === tab;
         return (
@@ -53,15 +55,15 @@ export function PurchaseActivationTabs({
             type="button"
             onClick={() => handleSelect(tab)}
             className={cn(
-              'px-4 py-2.5 font-semibold text-xs sm:text-sm transition-all relative whitespace-nowrap cursor-pointer rounded-t-md',
+              'pb-3 font-semibold text-xs sm:text-sm transition-all relative whitespace-nowrap cursor-pointer',
               isActive
-                ? 'text-[#6d28d9] dark:text-[#a78bfa]'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                ? 'text-[#6222cc] dark:text-[#a78bfa] font-bold'
+                : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
             )}
           >
-            {tab}
+            <span>{tab}</span>
             {isActive && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6d28d9] dark:bg-[#a78bfa] rounded-full" />
+              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#6222cc] dark:bg-[#a78bfa] rounded-t-full" />
             )}
           </button>
         );

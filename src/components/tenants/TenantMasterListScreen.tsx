@@ -233,7 +233,7 @@ export function TenantMasterListScreen() {
           </Button>
           <Button
             onClick={() => router.push('/tenant-management/create')}
-            className="h-9 gap-1.5 bg-[#5046e5] hover:bg-[#4338ca] text-white text-xs font-semibold shadow-xs"
+            className="h-9 gap-1.5 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs"
           >
             <Plus className="h-3.5 w-3.5" />
             Add Tenant
@@ -260,7 +260,7 @@ export function TenantMasterListScreen() {
               <select
                 value={filterProduct}
                 onChange={(e) => setFilterProduct(e.target.value)}
-                className="h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#5046e5] cursor-pointer"
+                className="h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
               >
                 <option>All Products</option>
                 <option>Pegatto CRM</option>
@@ -280,7 +280,7 @@ export function TenantMasterListScreen() {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#5046e5] cursor-pointer"
+                className="h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
               >
                 <option>All Statuses</option>
                 <option>Active</option>
@@ -299,7 +299,7 @@ export function TenantMasterListScreen() {
         <div className="p-3.5 border-b border-slate-200 bg-slate-50/60 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-900 tracking-tight">Active Tenants</span>
-            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-[#5046e5] border border-indigo-100">
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#1574fe] border border-blue-100">
               {filteredTenants.length} Tenants
             </span>
           </div>
@@ -333,7 +333,7 @@ export function TenantMasterListScreen() {
                     className="hover:bg-slate-50/70 transition-colors cursor-pointer group"
                     onClick={() => router.push(`/tenant-management/view/${t.id}`)}
                   >
-                    <td className="py-3.5 px-4 font-mono font-bold text-[#5046e5] whitespace-nowrap">
+                    <td className="py-3.5 px-4 font-mono font-bold text-[#1574fe] whitespace-nowrap">
                       {t.code}
                     </td>
                     <td className="py-3.5 px-4 font-semibold text-slate-900 whitespace-nowrap">
@@ -343,7 +343,7 @@ export function TenantMasterListScreen() {
                       {t.product}
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-50 text-[#5046e5] border border-indigo-100">
+                      <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-[#1574fe] border border-blue-100">
                         {t.plan}
                       </span>
                     </td>
@@ -370,7 +370,7 @@ export function TenantMasterListScreen() {
                           t.status === 'Trial' &&
                             'bg-blue-50 text-blue-700 border border-blue-200',
                           t.status === 'Onboarding' &&
-                            'bg-indigo-50 text-indigo-700 border border-indigo-200',
+                            'bg-blue-50 text-[#1574fe] border border-blue-200',
                           t.status === 'Suspended' &&
                             'bg-rose-50 text-rose-700 border border-rose-200'
                         )}
@@ -380,7 +380,7 @@ export function TenantMasterListScreen() {
                             'h-1.5 w-1.5 rounded-full',
                             t.status === 'Active' && 'bg-emerald-500',
                             t.status === 'Trial' && 'bg-blue-500',
-                            t.status === 'Onboarding' && 'bg-indigo-500',
+                            t.status === 'Onboarding' && 'bg-blue-500',
                             t.status === 'Suspended' && 'bg-rose-500'
                           )}
                         />
@@ -464,7 +464,7 @@ export function TenantMasterListScreen() {
               <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400">
                 <ChevronLeft className="h-3.5 w-3.5" />
               </Button>
-              <span className="px-2 py-0.5 bg-[#5046e5] text-white rounded text-xs font-semibold">
+              <span className="px-2 py-0.5 bg-[#1574fe] text-white rounded text-xs font-semibold">
                 1
               </span>
               <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400">

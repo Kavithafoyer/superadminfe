@@ -246,7 +246,7 @@ export default function CustomerPartnerKPIsPage() {
       ══════════════════════════════════════════════════════════════════════ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 shadow-xs">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#1574fe] dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 shadow-xs">
             <Users className="h-6 w-6 stroke-[2.2]" />
           </div>
           <div>
@@ -264,7 +264,7 @@ export default function CustomerPartnerKPIsPage() {
           <button
             type="button"
             onClick={() => router.push('/dashboard')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer bg-[#5046e5] text-white hover:bg-[#4338ca] shadow-indigo-500/20"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer bg-[#1574fe] text-white hover:bg-[#0d62e0] shadow-blue-500/20"
           >
             <TrendingUp className="h-4 w-4" />
             Executive Dashboard
@@ -401,7 +401,7 @@ export default function CustomerPartnerKPIsPage() {
               <Button
                 onClick={handleApply}
                 disabled={isApplying}
-                className="bg-[#5046e5] hover:bg-[#4338ca] text-white font-semibold text-xs h-8 px-4 rounded-lg shadow-xs cursor-pointer gap-1.5"
+                className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-semibold text-xs h-8 px-4 rounded-lg shadow-xs cursor-pointer gap-1.5"
               >
                 <Filter className={`h-3.5 w-3.5 ${isApplying ? 'animate-spin' : ''}`} />
                 Apply
@@ -409,7 +409,7 @@ export default function CustomerPartnerKPIsPage() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="text-xs font-semibold text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 px-2 py-1.5 cursor-pointer transition-colors"
+                className="text-xs font-semibold text-slate-600 hover:text-[#1574fe] dark:text-slate-400 dark:hover:text-indigo-400 px-2 py-1.5 cursor-pointer transition-colors"
               >
                 Reset
               </button>
@@ -425,7 +425,7 @@ export default function CustomerPartnerKPIsPage() {
         {/* Row 1: Customer KPIs Container (4 cards in one line) */}
         <Card className="border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-row items-center gap-2 pb-2.5 pt-3.5 px-4 md:px-5 border-b border-slate-100 dark:border-slate-800/60">
-            <Users className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+            <Users className="h-4 w-4 text-[#1574fe] dark:text-indigo-400" />
             <CardTitle className="text-sm font-bold text-slate-900 dark:text-slate-100">
               Customer KPIs
             </CardTitle>
@@ -467,7 +467,7 @@ export default function CustomerPartnerKPIsPage() {
         {/* Row 2: Partner KPIs Container (in another line, 4 cards across) */}
         <Card className="border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-row items-center gap-2 pb-2.5 pt-3.5 px-4 md:px-5 border-b border-slate-100 dark:border-slate-800/60">
-            <Handshake className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+            <Handshake className="h-4 w-4 text-[#1574fe] dark:text-indigo-400" />
             <CardTitle className="text-sm font-bold text-slate-900 dark:text-slate-100">
               Partner KPIs
             </CardTitle>
@@ -515,7 +515,7 @@ export default function CustomerPartnerKPIsPage() {
         <Card className="border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4 px-4 border-b border-slate-100 dark:border-slate-800/60">
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <Users className="h-4 w-4 text-[#1574fe] dark:text-indigo-400" />
               <CardTitle className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
                 Customer Growth Trend
               </CardTitle>
@@ -576,7 +576,7 @@ export default function CustomerPartnerKPIsPage() {
         <Card className="border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4 px-4 border-b border-slate-100 dark:border-slate-800/60">
             <div className="flex items-center gap-2">
-              <Handshake className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <Handshake className="h-4 w-4 text-[#1574fe] dark:text-indigo-400" />
               <CardTitle className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
                 Partner Acquisition & Certification Trend
               </CardTitle>
@@ -640,7 +640,7 @@ export default function CustomerPartnerKPIsPage() {
         {/* Customer Segmentation Donut */}
         <Card className="lg:col-span-4 border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-row items-center gap-2 pb-2 pt-4 px-4 border-b border-slate-100 dark:border-slate-800/60">
-            <Users className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+            <Users className="h-4 w-4 text-[#1574fe] dark:text-indigo-400" />
             <CardTitle className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
               Customer Segmentation
             </CardTitle>
@@ -708,7 +708,7 @@ export default function CustomerPartnerKPIsPage() {
         {/* Partner Segmentation Donut */}
         <Card className="lg:col-span-4 border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-row items-center gap-2 pb-2 pt-4 px-4 border-b border-slate-100 dark:border-slate-800/60">
-            <Handshake className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+            <Handshake className="h-4 w-4 text-[#1574fe] dark:text-indigo-400" />
             <CardTitle className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
               Partner Segmentation
             </CardTitle>
@@ -776,7 +776,7 @@ export default function CustomerPartnerKPIsPage() {
         {/* Key Conversion & Performance Metrics */}
         <Card className="lg:col-span-4 border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-row items-center gap-2 pb-2 pt-4 px-4 border-b border-slate-100 dark:border-slate-800/60">
-            <BarChart2 className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+            <BarChart2 className="h-4 w-4 text-[#1574fe] dark:text-indigo-400" />
             <CardTitle className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
               Key Conversion & Performance Metrics
             </CardTitle>
@@ -818,7 +818,7 @@ export default function CustomerPartnerKPIsPage() {
         {/* Top 5 Customers (by ARR) */}
         <Card className="border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-row items-center gap-2 pb-3 pt-4 px-4 md:px-5 border-b border-slate-100 dark:border-slate-800/60">
-            <Users className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+            <Users className="h-4 w-4 text-[#1574fe] dark:text-indigo-400" />
             <CardTitle className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
               Top 5 Customers (by ARR)
             </CardTitle>
@@ -856,7 +856,7 @@ export default function CustomerPartnerKPIsPage() {
         {/* Top 5 Partners (by Revenue Contribution) */}
         <Card className="border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-row items-center gap-2 pb-3 pt-4 px-4 md:px-5 border-b border-slate-100 dark:border-slate-800/60">
-            <Handshake className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+            <Handshake className="h-4 w-4 text-[#1574fe] dark:text-indigo-400" />
             <CardTitle className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
               Top 5 Partners (by Revenue Contribution)
             </CardTitle>

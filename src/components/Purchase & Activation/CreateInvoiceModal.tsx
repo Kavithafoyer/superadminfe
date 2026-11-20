@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { X, Receipt, Check } from 'lucide-react';
@@ -15,7 +15,7 @@ interface Props {
 
 export function CreateInvoiceModal({ isOpen, onClose, onSuccess }: Props) {
   const [customerTenant, setCustomerTenant] = useState('');
-  const [productPlan, setProductPlan] = useState('Pegatto CRM – Professional');
+  const [productPlan, setProductPlan] = useState('Pegatto CRM â€“ Professional');
   const [amount, setAmount] = useState('49900');
   const [status, setStatus] = useState<'Paid' | 'Pending' | 'Draft'>('Pending');
 
@@ -65,7 +65,7 @@ export function CreateInvoiceModal({ isOpen, onClose, onSuccess }: Props) {
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-purple-50 dark:bg-purple-950/50 text-[#7c3aed] rounded-lg">
+            <div className="p-2 bg-blue-50 dark:bg-blue-950/50 text-[#1574fe] rounded-lg">
               <Receipt className="h-5 w-5" />
             </div>
             <div>
@@ -102,14 +102,14 @@ export function CreateInvoiceModal({ isOpen, onClose, onSuccess }: Props) {
             <Input
               value={productPlan}
               onChange={(e) => setProductPlan(e.target.value)}
-              placeholder="Pegatto CRM – Professional"
+              placeholder="Pegatto CRM â€“ Professional"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Total Amount (₹)
+                Total Amount (â‚¹)
               </label>
               <Input
                 type="number"
@@ -125,7 +125,7 @@ export function CreateInvoiceModal({ isOpen, onClose, onSuccess }: Props) {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as any)}
-                className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-purple-500"
+                className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 <option value="Paid">Paid</option>
                 <option value="Pending">Pending</option>
@@ -140,7 +140,7 @@ export function CreateInvoiceModal({ isOpen, onClose, onSuccess }: Props) {
             </Button>
             <Button
               type="submit"
-              className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium"
+              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium"
             >
               Generate Invoice
             </Button>

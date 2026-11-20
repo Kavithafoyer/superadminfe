@@ -273,7 +273,7 @@ export default function SystemHealthAlertsPage() {
       ══════════════════════════════════════════════════════════════════════ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 shadow-xs">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#1574fe] dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 shadow-xs">
             <Activity className="h-6 w-6 stroke-[2.2]" />
           </div>
           <div>
@@ -291,7 +291,7 @@ export default function SystemHealthAlertsPage() {
           <button
             type="button"
             onClick={() => router.push('/dashboard')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer bg-[#5046e5] text-white hover:bg-[#4338ca] shadow-indigo-500/20"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer bg-[#1574fe] text-white hover:bg-[#0d62e0] shadow-blue-500/20"
           >
             <TrendingUp className="h-4 w-4" />
             Executive Dashboard
@@ -409,7 +409,7 @@ export default function SystemHealthAlertsPage() {
         <Card className="lg:col-span-8 border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 pt-4 px-4 md:px-5 border-b border-slate-100 dark:border-slate-800/60">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/60 text-[#1574fe] dark:text-indigo-400 border border-indigo-200">
                 <Server className="h-4.5 w-4.5" />
               </div>
               <CardTitle className="text-sm font-bold text-slate-900 dark:text-slate-100">
@@ -427,7 +427,7 @@ export default function SystemHealthAlertsPage() {
                 disabled={isRefreshing}
                 className="gap-1.5 h-8 text-xs font-semibold border-slate-200 dark:border-slate-700 cursor-pointer shadow-xs"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin text-indigo-600' : 'text-slate-500'}`} />
+                <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin text-[#1574fe]' : 'text-slate-500'}`} />
                 Refresh
               </Button>
             </div>
@@ -534,7 +534,7 @@ export default function SystemHealthAlertsPage() {
             <button
               type="button"
               onClick={() => toast.info('Navigating to full alert center')}
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 cursor-pointer"
+              className="text-xs font-semibold text-[#1574fe] hover:text-indigo-700 cursor-pointer"
             >
               View All →
             </button>
@@ -566,7 +566,7 @@ export default function SystemHealthAlertsPage() {
                     <button
                       type="button"
                       onClick={() => toast.info(`Viewing details for ${alert.title}`)}
-                      className="text-indigo-600 font-semibold hover:underline cursor-pointer"
+                      className="text-[#1574fe] font-semibold hover:underline cursor-pointer"
                     >
                       View
                     </button>

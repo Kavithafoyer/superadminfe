@@ -8,7 +8,8 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 
 const colors = [
-  { name: 'Blue', value: '#0565FD' },
+  { name: 'Royal Blue (Default)', value: '#1574fe' },
+  { name: 'Sky Blue', value: '#0565FD' },
   { name: 'Indigo', value: '#6366f1' },
   { name: 'Violet', value: '#8b5cf6' },
   { name: 'Emerald', value: '#10b981' },

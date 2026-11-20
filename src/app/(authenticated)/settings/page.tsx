@@ -86,7 +86,7 @@ export default function SettingsHubPage() {
   ];
 
   const colors = [
-    { name: 'Pegatto Purple', value: '#7c3aed' },
+    { name: 'Pegatto Purple', value: '#1574fe' },
     { name: 'Classic Blue', value: '#0565FD' },
     { name: 'Indigo', value: '#6366f1' },
     { name: 'Emerald', value: '#10b981' },

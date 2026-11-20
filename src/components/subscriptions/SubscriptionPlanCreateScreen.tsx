@@ -56,7 +56,7 @@ const AVAILABLE_PLATFORM_FEATURES = [
   'Automated Nightly Backups',
 ];
 
-const PRESET_COLORS = ['#5046e5', '#2563eb', '#0d9488', '#16a34a', '#d97706', '#9333ea', '#e11d48'];
+const PRESET_COLORS = ['#1574fe', '#2563eb', '#0d9488', '#16a34a', '#d97706', '#9333ea', '#e11d48'];
 
 const INITIAL_SUB_FORM: SubscriptionPlanFormData = {
   code: 'SUB-PLN-02',
@@ -80,7 +80,7 @@ const INITIAL_SUB_FORM: SubscriptionPlanFormData = {
     'Dedicated Cloud Storage',
   ],
   planBadge: 'Most Popular',
-  planColor: '#5046e5',
+  planColor: '#1574fe',
   status: 'Active',
   trialDays: 14,
   gracePeriodDays: 7,
@@ -118,7 +118,7 @@ export function SubscriptionPlanCreateScreen({
       apiCallQuota: '10,000 Calls / Day',
       features: ['Multi-Tenant Fleet Management', 'Advanced RBAC & Roles'],
       planBadge: '',
-      planColor: '#5046e5',
+      planColor: '#1574fe',
       status: 'Active',
       trialDays: 14,
       gracePeriodDays: 7,
@@ -191,7 +191,7 @@ export function SubscriptionPlanCreateScreen({
           <Button
             type="button"
             onClick={handleSave}
-            className="h-9 px-5 bg-[#5046e5] hover:bg-[#4338ca] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
+            className="h-9 px-5 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
           >
             <Save className="h-4 w-4" />
             {mode === 'create' ? 'Save Plan' : 'Save Changes'}
@@ -203,7 +203,7 @@ export function SubscriptionPlanCreateScreen({
         {/* CARD 1: PLAN BASIC INFORMATION */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-[#5046e5]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
               <Layers className="h-4 w-4" />
             </span>
             <span>1. Plan Basic Information</span>
@@ -241,7 +241,7 @@ export function SubscriptionPlanCreateScreen({
               <select
                 value={formData.targetPlatform}
                 onChange={(e) => setFormData({ ...formData, targetPlatform: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#5046e5]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option>SaaS Hub Platform</option>
                 <option>Multi-Product Enterprise Suite</option>
@@ -265,7 +265,7 @@ export function SubscriptionPlanCreateScreen({
         {/* CARD 2: COMMERCIAL & PRICING MODEL */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-[#5046e5]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
               <DollarSign className="h-4 w-4" />
             </span>
             <span>2. Commercial &amp; Pricing Model</span>
@@ -277,7 +277,7 @@ export function SubscriptionPlanCreateScreen({
               <select
                 value={formData.currency}
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#5046e5]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option>USD ($)</option>
                 <option>INR (₹)</option>
@@ -323,7 +323,7 @@ export function SubscriptionPlanCreateScreen({
         {/* CARD 3: QUOTAS & RESOURCE LIMITS */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-[#5046e5]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
               <Users className="h-4 w-4" />
             </span>
             <span>3. Quotas &amp; Resource Limits</span>
@@ -377,7 +377,7 @@ export function SubscriptionPlanCreateScreen({
         {/* CARD 4: INCLUDED PLATFORM FEATURES */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-[#5046e5]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
               <Sparkles className="h-4 w-4" />
             </span>
             <span>4. Included Platform Features &amp; Entitlements</span>
@@ -398,7 +398,7 @@ export function SubscriptionPlanCreateScreen({
                     className={cn(
                       'p-2.5 rounded-lg text-left text-xs font-medium border transition-all cursor-pointer flex items-center justify-between',
                       isSelected
-                        ? 'bg-purple-50/70 text-[#5046e5] border-indigo-200 font-semibold'
+                        ? 'bg-purple-50/70 text-[#1574fe] border-blue-200 font-semibold'
                         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                     )}
                   >
@@ -407,7 +407,7 @@ export function SubscriptionPlanCreateScreen({
                       className={cn(
                         'h-4 w-4 rounded flex items-center justify-center border shrink-0 ml-1.5',
                         isSelected
-                          ? 'bg-[#5046e5] border-[#5046e5] text-white'
+                          ? 'bg-[#1574fe] border-[#1574fe] text-white'
                           : 'border-slate-300 bg-white'
                       )}
                     >
@@ -423,7 +423,7 @@ export function SubscriptionPlanCreateScreen({
         {/* CARD 5: BADGE, COLOR & STATUS */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-[#5046e5]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
               <Palette className="h-4 w-4" />
             </span>
             <span>5. Badge, Color &amp; Status</span>
@@ -467,7 +467,7 @@ export function SubscriptionPlanCreateScreen({
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#5046e5]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option value="Active">Active (Visible in Pricing)</option>
                 <option value="Draft">Draft (Internal Only)</option>
@@ -479,7 +479,7 @@ export function SubscriptionPlanCreateScreen({
         {/* CARD 6: BILLING POLICIES & GRACE RULES */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-[#5046e5]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
               <Sliders className="h-4 w-4" />
             </span>
             <span>6. Billing Policies &amp; Grace Settings</span>
@@ -517,7 +517,7 @@ export function SubscriptionPlanCreateScreen({
                 type="checkbox"
                 checked={formData.autoRenewDefault}
                 onChange={(e) => setFormData({ ...formData, autoRenewDefault: e.target.checked })}
-                className="rounded border-slate-300 text-[#5046e5] focus:ring-[#5046e5] h-4 w-4"
+                className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
               />
             </div>
           </div>
@@ -535,7 +535,7 @@ export function SubscriptionPlanCreateScreen({
           </Button>
           <Button
             type="submit"
-            className="h-9 px-5 bg-[#5046e5] hover:bg-[#4338ca] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
+            className="h-9 px-5 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
           >
             <Save className="h-4 w-4" />
             {mode === 'create' ? 'Save Plan' : 'Save Changes'}

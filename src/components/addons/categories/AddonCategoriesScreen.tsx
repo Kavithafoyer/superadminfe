@@ -199,7 +199,7 @@ export function AddonCategoriesScreen() {
   const renderIcon = (iconName: string) => {
     switch (iconName) {
       case 'cpu':
-        return <Cpu className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+        return <Cpu className="h-4 w-4 text-[#1574fe] dark:text-purple-400" />;
       case 'message':
         return <MessageSquare className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />;
       case 'chart':
@@ -207,13 +207,13 @@ export function AddonCategoriesScreen() {
       case 'shield':
         return <ShieldCheck className="h-4 w-4 text-rose-600 dark:text-rose-400" />;
       case 'link':
-        return <Link2 className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />;
+        return <Link2 className="h-4 w-4 text-[#1574fe] dark:text-indigo-400" />;
       case 'users':
         return <Users className="h-4 w-4 text-amber-600 dark:text-amber-400" />;
       case 'grad':
         return <GraduationCap className="h-4 w-4 text-teal-600 dark:text-teal-400" />;
       default:
-        return <Layers className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+        return <Layers className="h-4 w-4 text-[#1574fe] dark:text-purple-400" />;
     }
   };
 
@@ -234,12 +234,12 @@ export function AddonCategoriesScreen() {
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
-                className="hover:text-purple-600 transition-colors"
+                className="hover:text-[#1574fe] transition-colors"
               >
                 Add-on Categories
               </button>
               <span>&gt;</span>
-              <span className="text-purple-600 dark:text-purple-400 font-medium">
+              <span className="text-[#1574fe] dark:text-purple-400 font-medium">
                 {isEditing ? 'Edit Category' : 'Create Category'}
               </span>
             </div>
@@ -287,7 +287,7 @@ export function AddonCategoriesScreen() {
           {/* Card Header Strip with light gradient */}
           <div className="bg-gradient-to-r from-purple-50/80 via-indigo-50/40 to-slate-50/60 dark:from-purple-950/40 dark:via-slate-900 dark:to-slate-900 px-6 py-4 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-950 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
+              <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-[#1574fe] flex items-center justify-center text-[#1574fe] dark:text-purple-400 font-bold">
                 <Layers className="h-4 w-4" />
               </div>
               <div>
@@ -411,7 +411,7 @@ export function AddonCategoriesScreen() {
                   Category Icon
                 </label>
                 <div className="flex items-center gap-2">
-                  <div className="h-10 w-10 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 flex items-center justify-center shrink-0">
+                  <div className="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-purple-800 flex items-center justify-center shrink-0">
                     {renderIcon(formData.icon || 'cpu')}
                   </div>
                   <select
@@ -435,7 +435,7 @@ export function AddonCategoriesScreen() {
             </div>
 
             {/* Light Colored Settings Box */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-4 rounded-lg bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-4 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-purple-100 dark:border-purple-900/40">
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
@@ -444,7 +444,7 @@ export function AddonCategoriesScreen() {
                   onChange={(e) =>
                     setFormData({ ...formData, showInMarketplace: e.target.checked })
                   }
-                  className="h-4 w-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                  className="h-4 w-4 rounded border-slate-300 text-[#1574fe] focus:ring-purple-500"
                 />
                 <div>
                   <label
@@ -470,7 +470,7 @@ export function AddonCategoriesScreen() {
                       status: e.target.checked ? 'Active' : 'Inactive',
                     })
                   }
-                  className="h-4 w-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                  className="h-4 w-4 rounded border-slate-300 text-[#1574fe] focus:ring-purple-500"
                 />
                 <div>
                   <label
@@ -555,12 +555,12 @@ export function AddonCategoriesScreen() {
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
-                className="hover:text-purple-600 transition-colors"
+                className="hover:text-[#1574fe] transition-colors"
               >
                 Add-on Categories
               </button>
               <span>&gt;</span>
-              <span className="text-purple-600 dark:text-purple-400 font-medium">
+              <span className="text-[#1574fe] dark:text-purple-400 font-medium">
                 {cat.name}
               </span>
             </div>
@@ -570,7 +570,7 @@ export function AddonCategoriesScreen() {
               </h1>
               <Badge
                 variant="outline"
-                className="font-mono text-xs border-purple-200 bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                className="font-mono text-xs border-blue-200 bg-blue-50 text-[#1574fe] dark:bg-blue-950 dark:text-blue-300"
               >
                 {cat.code}
               </Badge>
@@ -612,19 +612,19 @@ export function AddonCategoriesScreen() {
 
         {/* 4 Light KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl border border-purple-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm">
+          <div className="p-4 rounded-xl border border-blue-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-purple-900 dark:text-purple-300">
+              <span className="text-xs font-medium text-purple-900 dark:text-blue-300">
                 Mapped Add-ons
               </span>
-              <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-purple-600 dark:text-purple-300">
+              <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/60 text-[#1574fe] flex items-center justify-center text-[#1574fe] dark:text-blue-300">
                 <Package className="h-4 w-4" />
               </div>
             </div>
             <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               {cat.addonsCount} Modules
             </div>
-            <p className="text-[11px] text-purple-600 dark:text-purple-400 mt-1">
+            <p className="text-[11px] text-[#1574fe] dark:text-purple-400 mt-1">
               Active extensions in catalog
             </p>
           </div>
@@ -695,7 +695,7 @@ export function AddonCategoriesScreen() {
             </div>
             <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
               <span className="text-slate-500">Category Code:</span>
-              <span className="font-mono text-purple-600 dark:text-purple-400">{cat.code}</span>
+              <span className="font-mono text-[#1574fe] dark:text-purple-400">{cat.code}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
               <span className="text-slate-500">Parent Category:</span>
@@ -724,7 +724,7 @@ export function AddonCategoriesScreen() {
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
             <span>Add-on Marketplace</span>
             <span>&gt;</span>
-            <span className="text-purple-600 dark:text-purple-400 font-medium">Add-on Categories</span>
+            <span className="text-[#1574fe] dark:text-purple-400 font-medium">Add-on Categories</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Add-on Categories ({totalCount})
@@ -765,12 +765,12 @@ export function AddonCategoriesScreen() {
 
       {/* 4 Light-Colored KPI Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl border border-purple-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
+        <div className="p-4 rounded-xl border border-blue-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-purple-900 dark:text-purple-300">Total Categories</p>
+            <p className="text-xs font-medium text-purple-900 dark:text-blue-300">Total Categories</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{totalCount}</p>
           </div>
-          <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-purple-600 dark:text-purple-300">
+          <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/60 text-[#1574fe] flex items-center justify-center text-[#1574fe] dark:text-blue-300">
             <Layers className="h-5 w-5" />
           </div>
         </div>
@@ -908,7 +908,7 @@ export function AddonCategoriesScreen() {
             </h3>
             <Badge
               variant="secondary"
-              className="bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 text-xs"
+              className="bg-blue-50 text-[#1574fe] dark:bg-blue-950 dark:text-blue-300 text-xs"
             >
               {filteredCategories.length} Categories
             </Badge>
@@ -977,7 +977,7 @@ export function AddonCategoriesScreen() {
                         className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       />
                     </td>
-                    <td className="py-3.5 px-4 font-mono font-medium text-purple-700 dark:text-purple-300">
+                    <td className="py-3.5 px-4 font-mono font-medium text-[#1574fe] dark:text-blue-300">
                       <div className="flex items-center gap-2">
                         {renderIcon(cat.icon || 'cpu')}
                         <button
@@ -1030,7 +1030,7 @@ export function AddonCategoriesScreen() {
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(cat)}
-                          className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-purple-600 transition-colors"
+                          className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-[#1574fe] transition-colors"
                           title="Quick Edit"
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -1054,7 +1054,7 @@ export function AddonCategoriesScreen() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenOverview(cat)}
-                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition-colors"
+                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-[#1574fe] transition-colors"
                               >
                                 <Eye className="h-3.5 w-3.5 text-slate-400" />
                                 Overview
@@ -1062,7 +1062,7 @@ export function AddonCategoriesScreen() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenEdit(cat)}
-                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition-colors"
+                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-[#1574fe] transition-colors"
                               >
                                 <Pencil className="h-3.5 w-3.5 text-slate-400" />
                                 Edit

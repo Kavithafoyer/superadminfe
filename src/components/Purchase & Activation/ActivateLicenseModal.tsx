@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { X, Key, Check } from 'lucide-react';
@@ -38,7 +38,7 @@ export function ActivateLicenseModal({ isOpen, onClose, onSuccess }: Props) {
       product,
       planEdition,
       activatedOn: `${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}, 10:24 AM`,
-      validity: '19 Nov 2026 – 18 Nov 2027',
+      validity: '19 Nov 2026 â€“ 18 Nov 2027',
       status: 'Active',
       purchaseId: `PUR-${Math.floor(100000 + Math.random() * 900000)}`,
       licenseKey: randomKey,
@@ -65,7 +65,7 @@ export function ActivateLicenseModal({ isOpen, onClose, onSuccess }: Props) {
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-purple-50 dark:bg-purple-950/50 text-[#7c3aed] rounded-lg">
+            <div className="p-2 bg-blue-50 dark:bg-blue-950/50 text-[#1574fe] rounded-lg">
               <Key className="h-5 w-5" />
             </div>
             <div>
@@ -103,7 +103,7 @@ export function ActivateLicenseModal({ isOpen, onClose, onSuccess }: Props) {
               <select
                 value={product}
                 onChange={(e) => setProduct(e.target.value as ProductType)}
-                className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-purple-500"
+                className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 <option value="Pegatto CRM">Pegatto CRM</option>
                 <option value="Pegatto Education">Pegatto Education</option>
@@ -121,7 +121,7 @@ export function ActivateLicenseModal({ isOpen, onClose, onSuccess }: Props) {
               <select
                 value={planEdition}
                 onChange={(e) => setPlanEdition(e.target.value as PlanEdition)}
-                className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-purple-500"
+                className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 <option value="Standard">Standard</option>
                 <option value="Professional">Professional</option>
@@ -159,7 +159,7 @@ export function ActivateLicenseModal({ isOpen, onClose, onSuccess }: Props) {
             </Button>
             <Button
               type="submit"
-              className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium"
+              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium"
             >
               Issue & Activate License
             </Button>

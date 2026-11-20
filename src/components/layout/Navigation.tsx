@@ -21,7 +21,6 @@ import {
   Cpu,
   UserPlus,
   Package,
-  PackagePlus,
   HardDrive,
   CalendarClock,
   UserMinus,
@@ -38,6 +37,7 @@ import {
   Activity,
   TrendingUp,
   ShoppingCart,
+  PackagePlus,
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { cn } from '@/lib/utils';
@@ -689,22 +689,22 @@ export function Navigation({ collapsed = false, onNavigate }: { collapsed?: bool
                   );
                 }
 
-                  return (
-                    <NavLink
-                      key={`${item.label}-${item.path}`}
-                      href={item.path}
-                      icon={Icon}
-                      collapsed={collapsed}
-                      onClick={onNavigate}
-                      active={isItemActive}
-                    >
-                      {item.label}
-                    </NavLink>
-                  );
-                })}
+                return (
+                  <NavLink
+                    key={`${item.label}-${item.path}`}
+                    href={item.path}
+                    icon={Icon}
+                    collapsed={collapsed}
+                    onClick={onNavigate}
+                    active={isItemActive}
+                  >
+                    {item.label}
+                  </NavLink>
+                );
+              })}
             </div>
           </div>
         ))}
       </nav>
     );
-  }
+}

@@ -52,7 +52,7 @@ export interface CustomerFormData {
   notes: string;
 }
 
-const PRESET_COLORS = ['#5046e5', '#2563eb', '#0d9488', '#16a34a', '#d97706', '#9333ea', '#e11d48'];
+const PRESET_COLORS = ['#1574fe', '#2563eb', '#0d9488', '#16a34a', '#d97706', '#9333ea', '#e11d48'];
 
 const INITIAL_CUSTOMER_FORM: CustomerFormData = {
   customerId: 'CUST-8812',
@@ -71,7 +71,7 @@ const INITIAL_CUSTOMER_FORM: CustomerFormData = {
   paymentTerms: 'Net 30 Days',
   creditLimit: '₹25,00,000',
   taxId: '24AAACE1234F1Z5',
-  customerColor: '#5046e5',
+  customerColor: '#1574fe',
   customerTag: 'Tier 1 Strategic',
   status: 'Active',
   msaRef: 'MSA-2025-ET-09',
@@ -112,7 +112,7 @@ export function CustomerCreateScreen({
       paymentTerms: 'Net 30 Days',
       creditLimit: '₹10,00,000',
       taxId: '',
-      customerColor: '#5046e5',
+      customerColor: '#1574fe',
       customerTag: 'Corporate Account',
       status: 'Active',
       msaRef: '',
@@ -178,7 +178,7 @@ export function CustomerCreateScreen({
           <Button
             type="button"
             onClick={handleSave}
-            className="h-9 px-5 bg-[#5046e5] hover:bg-[#4338ca] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
+            className="h-9 px-5 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
           >
             <Save className="h-4 w-4" />
             {mode === 'create' ? 'Save Customer' : 'Save Changes'}
@@ -190,7 +190,7 @@ export function CustomerCreateScreen({
         {/* CARD 1: CUSTOMER ACCOUNT PROFILE */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-[#5046e5]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
               <Building2 className="h-4 w-4" />
             </span>
             <span>1. Customer Account Profile</span>
@@ -228,7 +228,7 @@ export function CustomerCreateScreen({
               <select
                 value={formData.industry}
                 onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#5046e5]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option>Textiles &amp; Manufacturing</option>
                 <option>Information Technology</option>
@@ -244,7 +244,7 @@ export function CustomerCreateScreen({
               <select
                 value={formData.accountType}
                 onChange={(e) => setFormData({ ...formData, accountType: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#5046e5]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option>Enterprise</option>
                 <option>Mid-Market</option>
@@ -258,7 +258,7 @@ export function CustomerCreateScreen({
         {/* CARD 2: PRIMARY CONTACT & HEADQUARTERS */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-[#5046e5]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
               <Users className="h-4 w-4" />
             </span>
             <span>2. Primary Contact &amp; Headquarters</span>
@@ -326,7 +326,7 @@ export function CustomerCreateScreen({
         {/* CARD 3: ACCOUNT MANAGEMENT & SLA */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-[#5046e5]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
               <ShieldCheck className="h-4 w-4" />
             </span>
             <span>3. Account Management &amp; Support SLA</span>
@@ -347,7 +347,7 @@ export function CustomerCreateScreen({
               <select
                 value={formData.slaTier}
                 onChange={(e) => setFormData({ ...formData, slaTier: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#5046e5]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option>24/7 Mission-Critical Gold</option>
                 <option>Priority Silver</option>
@@ -364,7 +364,7 @@ export function CustomerCreateScreen({
                 type="checkbox"
                 checked={formData.slackConnect}
                 onChange={(e) => setFormData({ ...formData, slackConnect: e.target.checked })}
-                className="rounded border-slate-300 text-[#5046e5] focus:ring-[#5046e5] h-4 w-4"
+                className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
               />
             </div>
           </div>
@@ -373,7 +373,7 @@ export function CustomerCreateScreen({
         {/* CARD 4: COMMERCIAL & PAYMENT TERMS */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-[#5046e5]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
               <DollarSign className="h-4 w-4" />
             </span>
             <span>4. Commercial &amp; Payment Terms</span>
@@ -385,7 +385,7 @@ export function CustomerCreateScreen({
               <select
                 value={formData.currency}
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#5046e5]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option>INR (₹)</option>
                 <option>USD ($)</option>
@@ -399,7 +399,7 @@ export function CustomerCreateScreen({
               <select
                 value={formData.paymentTerms}
                 onChange={(e) => setFormData({ ...formData, paymentTerms: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#5046e5]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option>Net 30 Days</option>
                 <option>Net 15 Days</option>
@@ -432,7 +432,7 @@ export function CustomerCreateScreen({
         {/* CARD 5: CUSTOMER COLOR & TAG */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-[#5046e5]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
               <Palette className="h-4 w-4" />
             </span>
             <span>5. Customer Color &amp; Tag</span>
@@ -476,7 +476,7 @@ export function CustomerCreateScreen({
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#5046e5]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
               >
                 <option value="Active">Active (Good Standing)</option>
                 <option value="Expiring">Expiring (Renewal Required)</option>
@@ -489,7 +489,7 @@ export function CustomerCreateScreen({
         {/* CARD 6: CONTRACTS & GOVERNANCE */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-[#5046e5]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
               <Sliders className="h-4 w-4" />
             </span>
             <span>6. Contracts &amp; Governance Agreements</span>
@@ -515,7 +515,7 @@ export function CustomerCreateScreen({
                 type="checkbox"
                 checked={formData.ndaSigned}
                 onChange={(e) => setFormData({ ...formData, ndaSigned: e.target.checked })}
-                className="rounded border-slate-300 text-[#5046e5] focus:ring-[#5046e5] h-4 w-4"
+                className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
               />
             </div>
 
@@ -528,7 +528,7 @@ export function CustomerCreateScreen({
                 type="checkbox"
                 checked={formData.autoInvoice}
                 onChange={(e) => setFormData({ ...formData, autoInvoice: e.target.checked })}
-                className="rounded border-slate-300 text-[#5046e5] focus:ring-[#5046e5] h-4 w-4"
+                className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
               />
             </div>
 
@@ -557,7 +557,7 @@ export function CustomerCreateScreen({
           </Button>
           <Button
             type="submit"
-            className="h-9 px-5 bg-[#5046e5] hover:bg-[#4338ca] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
+            className="h-9 px-5 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
           >
             <Save className="h-4 w-4" />
             {mode === 'create' ? 'Save Customer' : 'Save Changes'}

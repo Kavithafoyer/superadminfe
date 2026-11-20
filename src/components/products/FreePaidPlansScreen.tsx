@@ -311,8 +311,8 @@ export function FreePaidPlansScreen() {
         );
       case 'zap':
         return (
-          <div className="p-2.5 bg-purple-100 text-[#4F46E5] rounded-xl border border-purple-200/60 shadow-2xs">
-            <Zap className="h-5 w-5 stroke-[2] fill-[#4F46E5]/10" />
+          <div className="p-2.5 bg-purple-100 text-[#1574fe] rounded-xl border border-purple-200/60 shadow-2xs">
+            <Zap className="h-5 w-5 stroke-[2] fill-[#1574fe]/10" />
           </div>
         );
       case 'building':
@@ -357,7 +357,7 @@ export function FreePaidPlansScreen() {
           className={cn(
             'inline-block px-2.5 py-0.5 rounded-full text-[11px] font-medium leading-tight',
             isAddon
-              ? 'bg-[#f5f3ff] text-[#6d28d9] border border-purple-200/80'
+              ? 'bg-[#edf5ff] text-[#0d62e0] border border-blue-200/80'
               : 'bg-slate-100 text-slate-700'
           )}
         >
@@ -483,7 +483,7 @@ export function FreePaidPlansScreen() {
                   setSelectedProduct(e.target.value);
                   toast.info(`Switched product to ${e.target.value}`);
                 }}
-                className="appearance-none bg-white border border-slate-200/90 hover:border-slate-300 text-slate-800 text-xs font-medium rounded-lg pl-3 pr-8 py-2 shadow-2xs focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all cursor-pointer min-w-[150px]"
+                className="appearance-none bg-white border border-slate-200/90 hover:border-slate-300 text-slate-800 text-xs font-medium rounded-lg pl-3 pr-8 py-2 shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#1574fe] transition-all cursor-pointer min-w-[150px]"
               >
                 {PRODUCTS_LIST.map((prod) => (
                   <option key={prod} value={prod}>
@@ -499,7 +499,7 @@ export function FreePaidPlansScreen() {
           <Button
             type="button"
             onClick={() => handleOpenPlanModal()}
-            className="bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium text-xs sm:text-sm h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+            className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Create / Edit Plan</span>
@@ -518,7 +518,7 @@ export function FreePaidPlansScreen() {
             className={cn(
               'pb-3 font-semibold transition-all relative cursor-pointer',
               activeTab === 'overview'
-                ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
                 : 'text-slate-500 hover:text-slate-800'
             )}
           >
@@ -531,7 +531,7 @@ export function FreePaidPlansScreen() {
             className={cn(
               'pb-3 font-medium transition-all relative cursor-pointer',
               activeTab === 'comparison'
-                ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
                 : 'text-slate-500 hover:text-slate-800'
             )}
           >
@@ -544,7 +544,7 @@ export function FreePaidPlansScreen() {
             className={cn(
               'pb-3 font-medium transition-all relative cursor-pointer',
               activeTab === 'limits'
-                ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
                 : 'text-slate-500 hover:text-slate-800'
             )}
           >
@@ -557,7 +557,7 @@ export function FreePaidPlansScreen() {
             className={cn(
               'pb-3 font-medium transition-all relative cursor-pointer',
               activeTab === 'configuration'
-                ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
                 : 'text-slate-500 hover:text-slate-800'
             )}
           >
@@ -582,14 +582,14 @@ export function FreePaidPlansScreen() {
                   className={cn(
                     'relative rounded-2xl p-5 flex flex-col justify-between transition-all duration-200',
                     isPopular
-                      ? 'bg-[#fcfaff] border-2 border-[#6366F1] shadow-md shadow-indigo-500/10'
+                      ? 'bg-[#fcfaff] border-2 border-[#6366F1] shadow-md shadow-blue-500/10'
                       : 'bg-white border border-slate-200/90 shadow-2xs hover:border-slate-300'
                   )}
                 >
                   {/* "Most Popular" Top Badge */}
                   {isPopular && (
                     <div className="absolute -top-3.5 right-6 z-10">
-                      <span className="bg-[#4F46E5] text-white text-[11px] font-bold px-3 py-1 rounded-t-lg rounded-b-sm shadow-xs tracking-wide">
+                      <span className="bg-[#1574fe] text-white text-[11px] font-bold px-3 py-1 rounded-t-lg rounded-b-sm shadow-xs tracking-wide">
                         Most Popular
                       </span>
                     </div>
@@ -662,7 +662,7 @@ export function FreePaidPlansScreen() {
                       <Button
                         type="button"
                         onClick={() => handleOpenPlanModal(plan)}
-                        className="w-full bg-[#4F46E5] hover:bg-[#4338CA] text-white font-semibold text-xs h-9 rounded-lg shadow-xs transition-all cursor-pointer"
+                        className="w-full bg-[#1574fe] hover:bg-[#0d62e0] text-white font-semibold text-xs h-9 rounded-lg shadow-xs transition-all cursor-pointer"
                       >
                         {plan.buttonLabel}
                       </Button>
@@ -677,7 +677,7 @@ export function FreePaidPlansScreen() {
                             handleOpenPlanModal(plan);
                           }
                         }}
-                        className="w-full bg-white hover:bg-purple-50/70 border border-[#4F46E5] text-[#4F46E5] font-semibold text-xs h-9 rounded-lg shadow-2xs transition-all cursor-pointer"
+                        className="w-full bg-white hover:bg-blue-50/70 border border-[#1574fe] text-[#1574fe] font-semibold text-xs h-9 rounded-lg shadow-2xs transition-all cursor-pointer"
                       >
                         {plan.buttonLabel}
                       </Button>
@@ -754,13 +754,13 @@ export function FreePaidPlansScreen() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-1">
             {/* Left Info Note */}
             <div className="flex items-center gap-2 text-xs text-slate-600">
-              <Info className="h-4 w-4 text-[#4F46E5] shrink-0" />
+              <Info className="h-4 w-4 text-[#1574fe] shrink-0" />
               <span>
                 Note: You can configure features, limits, and add-on eligibility for each plan under{' '}
                 <button
                   type="button"
                   onClick={() => setActiveTab('configuration')}
-                  className="font-medium text-[#4F46E5] hover:underline cursor-pointer"
+                  className="font-medium text-[#1574fe] hover:underline cursor-pointer"
                 >
                   Plan Configuration
                 </button>
@@ -775,7 +775,7 @@ export function FreePaidPlansScreen() {
                 variant="outline"
                 disabled={isDownloading}
                 onClick={handleDownloadComparison}
-                className="bg-white hover:bg-slate-50 border border-[#4F46E5] text-[#4F46E5] font-semibold text-xs h-9 px-4 rounded-lg shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
+                className="bg-white hover:bg-slate-50 border border-[#1574fe] text-[#1574fe] font-semibold text-xs h-9 px-4 rounded-lg shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <Download className="h-3.5 w-3.5" />
                 <span>{isDownloading ? 'Downloading...' : 'Download Comparison'}</span>
@@ -784,7 +784,7 @@ export function FreePaidPlansScreen() {
               <Button
                 type="button"
                 onClick={() => setIsPublishDialogOpen(true)}
-                className="bg-[#4F46E5] hover:bg-[#4338CA] text-white font-semibold text-xs h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-semibold text-xs h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <UploadCloud className="h-4 w-4" />
                 <span>Publish Plans</span>
@@ -811,7 +811,7 @@ export function FreePaidPlansScreen() {
               variant="outline"
               size="sm"
               onClick={handleDownloadComparison}
-              className="text-xs border-[#4F46E5] text-[#4F46E5]"
+              className="text-xs border-[#1574fe] text-[#1574fe]"
             >
               <Download className="h-3.5 w-3.5 mr-1" />
               Export Matrix
@@ -923,7 +923,7 @@ export function FreePaidPlansScreen() {
             <Button
               type="button"
               onClick={() => toast.success('Configuration settings saved')}
-              className="bg-[#4F46E5] text-white text-xs h-8.5 px-3 rounded-lg"
+              className="bg-[#1574fe] text-white text-xs h-8.5 px-3 rounded-lg"
             >
               Save Configuration
             </Button>
@@ -1078,7 +1078,7 @@ export function FreePaidPlansScreen() {
                     onChange={(e) =>
                       setEditingPlan({ ...editingPlan, isPopular: e.target.checked })
                     }
-                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                    className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
                   />
                   <label htmlFor="chk-popular" className="font-semibold text-slate-700 cursor-pointer">
                     Highlight as &ldquo;Most Popular&rdquo;
@@ -1100,7 +1100,7 @@ export function FreePaidPlansScreen() {
             <Button
               type="button"
               onClick={handleSavePlan}
-              className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs"
+              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs"
             >
               Save Plan
             </Button>
@@ -1140,7 +1140,7 @@ export function FreePaidPlansScreen() {
             <Button
               type="button"
               onClick={handlePublishPlans}
-              className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-semibold"
+              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold"
             >
               Confirm &amp; Publish
             </Button>

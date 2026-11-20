@@ -46,7 +46,7 @@ export function TenantUsageLimitsScreen() {
       case 'students':
         return <GraduationCap className="h-4 w-4 text-blue-600" />;
       case 'storage':
-        return <Database className="h-4 w-4 text-indigo-600" />;
+        return <Database className="h-4 w-4 text-[#1574fe]" />;
       case 'api':
         return <Code className="h-4 w-4 text-purple-600" />;
       case 'addons':
@@ -62,8 +62,8 @@ export function TenantUsageLimitsScreen() {
       {/* Header Bar matching Image 4 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl shadow-xs">
-            <Cloud className="h-7 w-7 text-indigo-600" />
+          <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
+            <Cloud className="h-7 w-7 text-[#1574fe]" />
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -81,7 +81,7 @@ export function TenantUsageLimitsScreen() {
           <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-xs">
             <span className="text-slate-400 font-medium">Product</span>
             <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-              <GraduationCap className="h-4 w-4 text-indigo-600" />
+              <GraduationCap className="h-4 w-4 text-[#1574fe]" />
               <select
                 value={selectedProduct}
                 onChange={(e) => setSelectedProduct(e.target.value)}
@@ -111,7 +111,7 @@ export function TenantUsageLimitsScreen() {
 
           {/* Date Range */}
           <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-xs font-semibold text-slate-800">
-            <Calendar className="h-4 w-4 text-indigo-600" />
+            <Calendar className="h-4 w-4 text-[#1574fe]" />
             <select
               value={selectedDateRange}
               onChange={(e) => setSelectedDateRange(e.target.value)}
@@ -130,8 +130,8 @@ export function TenantUsageLimitsScreen() {
         <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6">
           {/* Left: School Photo / Badge & Details */}
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-50 border border-indigo-200 flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
-              <Building2 className="h-10 w-10 text-indigo-600" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-50 border border-blue-200 flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
+              <Building2 className="h-10 w-10 text-[#1574fe]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -145,7 +145,7 @@ export function TenantUsageLimitsScreen() {
                 <span className="font-semibold text-slate-700">01 Mar 2024</span>
               </p>
               <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                Plan: <span className="font-bold text-indigo-700">Professional</span>
+                Plan: <span className="font-bold text-[#1574fe]">Professional</span>
               </p>
             </div>
           </div>
@@ -154,14 +154,14 @@ export function TenantUsageLimitsScreen() {
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 w-full xl:w-auto border-t xl:border-t-0 pt-3 xl:pt-0">
             {/* Users */}
             <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 text-center min-w-[110px]">
-              <Users className="h-4 w-4 text-indigo-600 mx-auto" />
+              <Users className="h-4 w-4 text-[#1574fe] mx-auto" />
               <div className="text-[11px] font-semibold text-slate-500 mt-1">Users</div>
               <div className="text-sm sm:text-base font-bold text-slate-900 mt-0.5">142 / 150</div>
             </div>
 
             {/* Students */}
             <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 text-center min-w-[110px]">
-              <GraduationCap className="h-4 w-4 text-indigo-600 mx-auto" />
+              <GraduationCap className="h-4 w-4 text-[#1574fe] mx-auto" />
               <div className="text-[11px] font-semibold text-slate-500 mt-1">Students</div>
               <div className="text-sm sm:text-base font-bold text-slate-900 mt-0.5">
                 2,436 / 3,000
@@ -170,7 +170,7 @@ export function TenantUsageLimitsScreen() {
 
             {/* Storage */}
             <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 text-center min-w-[110px]">
-              <Database className="h-4 w-4 text-indigo-600 mx-auto" />
+              <Database className="h-4 w-4 text-[#1574fe] mx-auto" />
               <div className="text-[11px] font-semibold text-slate-500 mt-1">Storage</div>
               <div className="text-sm sm:text-base font-bold text-slate-900 mt-0.5">
                 180 GB / 200 GB
@@ -179,7 +179,7 @@ export function TenantUsageLimitsScreen() {
 
             {/* API Calls */}
             <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 text-center min-w-[110px]">
-              <Code className="h-4 w-4 text-indigo-600 mx-auto" />
+              <Code className="h-4 w-4 text-[#1574fe] mx-auto" />
               <div className="text-[11px] font-semibold text-slate-500 mt-1">API Calls</div>
               <div className="text-sm sm:text-base font-bold text-slate-900 mt-0.5">
                 48,500 / 100,000
@@ -188,7 +188,7 @@ export function TenantUsageLimitsScreen() {
 
             {/* Add-ons */}
             <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3 text-center min-w-[110px] col-span-2 sm:col-span-1">
-              <Puzzle className="h-4 w-4 text-indigo-600 mx-auto" />
+              <Puzzle className="h-4 w-4 text-[#1574fe] mx-auto" />
               <div className="text-[11px] font-semibold text-slate-500 mt-1">Add-ons</div>
               <div className="text-sm sm:text-base font-bold text-slate-900 mt-0.5">6 / 10</div>
             </div>
@@ -216,7 +216,7 @@ export function TenantUsageLimitsScreen() {
               className={cn(
                 'px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg flex items-center gap-2 transition-all cursor-pointer shadow-xs whitespace-nowrap',
                 isActive
-                  ? 'bg-[#4F46E5] text-white'
+                  ? 'bg-[#1574fe] text-white'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
               )}
             >
@@ -232,7 +232,7 @@ export function TenantUsageLimitsScreen() {
         {/* Card 1: Overall Usage (Donut Chart) */}
         <div className="md:col-span-4 bg-white border border-slate-200/90 rounded-xl p-4 shadow-xs space-y-3">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
-            <TrendingUp className="h-4 w-4 text-indigo-600" />
+            <TrendingUp className="h-4 w-4 text-[#1574fe]" />
             <h3 className="text-sm font-bold text-slate-900">Overall Usage</h3>
           </div>
 
@@ -287,7 +287,7 @@ export function TenantUsageLimitsScreen() {
         {/* Card 2: Usage by Resource */}
         <div className="md:col-span-5 bg-white border border-slate-200/90 rounded-xl p-4 shadow-xs space-y-3">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
-            <Layers className="h-4 w-4 text-indigo-600" />
+            <Layers className="h-4 w-4 text-[#1574fe]" />
             <h3 className="text-sm font-bold text-slate-900">Usage by Resource</h3>
           </div>
 
@@ -301,7 +301,7 @@ export function TenantUsageLimitsScreen() {
                 <span className="font-bold text-slate-900">142 / 150 (95%)</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#4F46E5] h-full rounded-full" style={{ width: '95%' }} />
+                <div className="bg-[#1574fe] h-full rounded-full" style={{ width: '95%' }} />
               </div>
             </div>
 
@@ -314,7 +314,7 @@ export function TenantUsageLimitsScreen() {
                 <span className="font-bold text-slate-900">2,436 / 3,000 (81%)</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#4F46E5] h-full rounded-full" style={{ width: '81%' }} />
+                <div className="bg-[#1574fe] h-full rounded-full" style={{ width: '81%' }} />
               </div>
             </div>
 
@@ -322,12 +322,12 @@ export function TenantUsageLimitsScreen() {
             <div>
               <div className="flex justify-between items-center mb-1">
                 <span className="font-medium text-slate-700 flex items-center gap-1.5">
-                  <Database className="h-3.5 w-3.5 text-indigo-600" /> Storage
+                  <Database className="h-3.5 w-3.5 text-[#1574fe]" /> Storage
                 </span>
                 <span className="font-bold text-slate-900">180 / 200 GB (90%)</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#4F46E5] h-full rounded-full" style={{ width: '90%' }} />
+                <div className="bg-[#1574fe] h-full rounded-full" style={{ width: '90%' }} />
               </div>
             </div>
 
@@ -340,7 +340,7 @@ export function TenantUsageLimitsScreen() {
                 <span className="font-bold text-slate-900">48,500 / 100,000 (49%)</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-indigo-300 h-full rounded-full" style={{ width: '49%' }} />
+                <div className="bg-blue-300 h-full rounded-full" style={{ width: '49%' }} />
               </div>
             </div>
 
@@ -353,7 +353,7 @@ export function TenantUsageLimitsScreen() {
                 <span className="font-bold text-slate-900">6 / 10 (60%)</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-[#4F46E5] h-full rounded-full" style={{ width: '60%' }} />
+                <div className="bg-[#1574fe] h-full rounded-full" style={{ width: '60%' }} />
               </div>
             </div>
           </div>
@@ -363,10 +363,10 @@ export function TenantUsageLimitsScreen() {
         <div className="md:col-span-3 bg-white border border-slate-200/90 rounded-xl p-4 shadow-xs space-y-3">
           <div className="flex items-center justify-between pb-1 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-indigo-600" />
+              <TrendingUp className="h-4 w-4 text-[#1574fe]" />
               <h3 className="text-sm font-bold text-slate-900">Usage Trend</h3>
             </div>
-            <span className="px-2 py-0.5 bg-indigo-600 text-white rounded-md font-bold text-xs shadow-xs">
+            <span className="px-2 py-0.5 bg-[#1574fe] text-white rounded-md font-bold text-xs shadow-xs">
               78%
             </span>
           </div>
@@ -378,8 +378,8 @@ export function TenantUsageLimitsScreen() {
             <svg viewBox="0 0 200 90" className="w-full h-24 overflow-visible">
               <defs>
                 <linearGradient id="trendGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#4F46E5" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#4F46E5" stopOpacity="0.0" />
+                  <stop offset="0%" stopColor="#1574fe" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="#1574fe" stopOpacity="0.0" />
                 </linearGradient>
               </defs>
               {/* Fill Area */}
@@ -391,17 +391,17 @@ export function TenantUsageLimitsScreen() {
               <path
                 d="M 10 65 L 45 60 L 80 50 L 115 42 L 150 35 L 185 20"
                 fill="none"
-                stroke="#4F46E5"
+                stroke="#1574fe"
                 strokeWidth="2.5"
                 strokeLinecap="round"
               />
               {/* Points */}
-              <circle cx="10" cy="65" r="3" fill="#4F46E5" />
-              <circle cx="45" cy="60" r="3" fill="#4F46E5" />
-              <circle cx="80" cy="50" r="3" fill="#4F46E5" />
-              <circle cx="115" cy="42" r="3" fill="#4F46E5" />
-              <circle cx="150" cy="35" r="3" fill="#4F46E5" />
-              <circle cx="185" cy="20" r="4" fill="#4F46E5" stroke="#fff" strokeWidth="2" />
+              <circle cx="10" cy="65" r="3" fill="#1574fe" />
+              <circle cx="45" cy="60" r="3" fill="#1574fe" />
+              <circle cx="80" cy="50" r="3" fill="#1574fe" />
+              <circle cx="115" cy="42" r="3" fill="#1574fe" />
+              <circle cx="150" cy="35" r="3" fill="#1574fe" />
+              <circle cx="185" cy="20" r="4" fill="#1574fe" stroke="#fff" strokeWidth="2" />
             </svg>
 
             <div className="flex justify-between text-[10px] font-semibold text-slate-400 mt-1">
@@ -421,7 +421,7 @@ export function TenantUsageLimitsScreen() {
         {/* Limits & Quotas Table (8 Cols) */}
         <div className="lg:col-span-8 bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-xs">
           <div className="flex items-center gap-2 p-3.5 border-b border-slate-100">
-            <Layers className="h-4 w-4 text-indigo-600" />
+            <Layers className="h-4 w-4 text-[#1574fe]" />
             <h3 className="text-sm font-bold text-slate-900">Limits & Quotas</h3>
           </div>
 
@@ -470,7 +470,7 @@ export function TenantUsageLimitsScreen() {
         {/* Quick Actions (4 Cols) */}
         <div className="lg:col-span-4 bg-white border border-slate-200/90 rounded-xl p-4 shadow-xs space-y-3">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
-            <Zap className="h-4 w-4 text-indigo-600" />
+            <Zap className="h-4 w-4 text-[#1574fe]" />
             <h3 className="text-sm font-bold text-slate-900">Quick Actions</h3>
           </div>
 
@@ -479,9 +479,9 @@ export function TenantUsageLimitsScreen() {
               type="button"
               variant="outline"
               onClick={() => toast.info('Opening Increase Limits dialog')}
-              className="h-11 flex items-center justify-start gap-2 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-indigo-50/50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
+              className="h-11 flex items-center justify-start gap-2 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#1574fe] hover:border-blue-200 transition-colors"
             >
-              <ArrowUp className="h-4 w-4 text-indigo-600 shrink-0" />
+              <ArrowUp className="h-4 w-4 text-[#1574fe] shrink-0" />
               <span>Increase Limits</span>
             </Button>
 
@@ -489,9 +489,9 @@ export function TenantUsageLimitsScreen() {
               type="button"
               variant="outline"
               onClick={() => toast.info('Navigating to Upgrade Plan')}
-              className="h-11 flex items-center justify-start gap-2 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-indigo-50/50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
+              className="h-11 flex items-center justify-start gap-2 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#1574fe] hover:border-blue-200 transition-colors"
             >
-              <Layers className="h-4 w-4 text-indigo-600 shrink-0" />
+              <Layers className="h-4 w-4 text-[#1574fe] shrink-0" />
               <span>Upgrade Plan</span>
             </Button>
 
@@ -499,9 +499,9 @@ export function TenantUsageLimitsScreen() {
               type="button"
               variant="outline"
               onClick={() => toast.info('Navigating to Manage Add-ons')}
-              className="h-11 flex items-center justify-start gap-2 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-indigo-50/50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
+              className="h-11 flex items-center justify-start gap-2 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#1574fe] hover:border-blue-200 transition-colors"
             >
-              <Puzzle className="h-4 w-4 text-indigo-600 shrink-0" />
+              <Puzzle className="h-4 w-4 text-[#1574fe] shrink-0" />
               <span>Manage Add-ons</span>
             </Button>
 
@@ -509,9 +509,9 @@ export function TenantUsageLimitsScreen() {
               type="button"
               variant="outline"
               onClick={() => toast.info('Fetching View Usage Logs')}
-              className="h-11 flex items-center justify-start gap-2 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-indigo-50/50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
+              className="h-11 flex items-center justify-start gap-2 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#1574fe] hover:border-blue-200 transition-colors"
             >
-              <FileText className="h-4 w-4 text-indigo-600 shrink-0" />
+              <FileText className="h-4 w-4 text-[#1574fe] shrink-0" />
               <span>View Usage Logs</span>
             </Button>
 
@@ -519,9 +519,9 @@ export function TenantUsageLimitsScreen() {
               type="button"
               variant="outline"
               onClick={() => toast.info('Opening Set Usage Alerts')}
-              className="h-11 flex items-center justify-start gap-2 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-indigo-50/50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
+              className="h-11 flex items-center justify-start gap-2 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#1574fe] hover:border-blue-200 transition-colors"
             >
-              <Bell className="h-4 w-4 text-indigo-600 shrink-0" />
+              <Bell className="h-4 w-4 text-[#1574fe] shrink-0" />
               <span>Set Usage Alerts</span>
             </Button>
 
@@ -529,9 +529,9 @@ export function TenantUsageLimitsScreen() {
               type="button"
               variant="outline"
               onClick={() => toast.success('Usage report download started!')}
-              className="h-11 flex items-center justify-start gap-2 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-indigo-50/50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
+              className="h-11 flex items-center justify-start gap-2 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#1574fe] hover:border-blue-200 transition-colors"
             >
-              <Download className="h-4 w-4 text-indigo-600 shrink-0" />
+              <Download className="h-4 w-4 text-[#1574fe] shrink-0" />
               <span>Download Usage Report</span>
             </Button>
           </div>

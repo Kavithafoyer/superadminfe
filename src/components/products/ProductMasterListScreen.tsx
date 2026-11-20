@@ -63,7 +63,7 @@ const INITIAL_CATALOG: ProductCatalogItem[] = [
     status: 'Active',
     activeTenants: 274,
     monthlyArr: '₹84,50,000',
-    color: '#5046e5',
+    color: '#1574fe',
   },
   {
     id: 'prd-edu',
@@ -211,7 +211,7 @@ export function ProductMasterListScreen() {
           </Button>
           <Button
             onClick={() => router.push('/products/master/create')}
-            className="h-9 gap-1.5 bg-[#5046e5] hover:bg-[#4338ca] text-white text-xs font-semibold shadow-xs"
+            className="h-9 gap-1.5 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs"
           >
             <Plus className="h-3.5 w-3.5" />
             Add Product
@@ -238,7 +238,7 @@ export function ProductMasterListScreen() {
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#5046e5] cursor-pointer"
+                className="h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
               >
                 <option>All Categories</option>
                 <option>Enterprise CRM &amp; Sales</option>
@@ -258,7 +258,7 @@ export function ProductMasterListScreen() {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#5046e5] cursor-pointer"
+                className="h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
               >
                 <option>All Statuses</option>
                 <option>Active</option>
@@ -277,7 +277,7 @@ export function ProductMasterListScreen() {
         <div className="p-3.5 border-b border-slate-200 bg-slate-50/60 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-900 tracking-tight">Product Catalog</span>
-            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-[#5046e5] border border-indigo-100">
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#1574fe] border border-blue-100">
               {filteredProducts.length} Products
             </span>
           </div>
@@ -312,7 +312,7 @@ export function ProductMasterListScreen() {
                     className="hover:bg-slate-50/70 transition-colors cursor-pointer group"
                     onClick={() => router.push(`/products/master/view/${p.id}`)}
                   >
-                    <td className="py-3.5 px-4 font-mono font-bold text-[#5046e5] whitespace-nowrap">
+                    <td className="py-3.5 px-4 font-mono font-bold text-[#1574fe] whitespace-nowrap">
                       {p.code}
                     </td>
                     <td className="py-3.5 px-4 font-semibold text-slate-900 whitespace-nowrap">
@@ -441,7 +441,7 @@ export function ProductMasterListScreen() {
               <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400">
                 <ChevronLeft className="h-3.5 w-3.5" />
               </Button>
-              <span className="px-2 py-0.5 bg-[#5046e5] text-white rounded text-xs font-semibold">
+              <span className="px-2 py-0.5 bg-[#1574fe] text-white rounded text-xs font-semibold">
                 1
               </span>
               <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400">

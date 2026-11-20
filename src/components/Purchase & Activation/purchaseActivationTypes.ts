@@ -21,7 +21,11 @@ export type SubMenuTab =
   | 'Activations'
   | 'Activation Queue'
   | 'Payment Transactions'
-  | 'Invoices';
+  | 'Invoices'
+  | 'Usage';
+
+export type QueueRecord = ActivationQueueRecord;
+export type PaymentTxnRecord = PaymentTransactionRecord;
 
 // 1. Purchase Item
 export interface PurchaseRecord {

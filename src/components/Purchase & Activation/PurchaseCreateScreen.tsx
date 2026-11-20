@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -157,7 +157,7 @@ export function PurchaseCreateScreen() {
           <Button
             type="button"
             onClick={handleSave}
-            className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-semibold text-xs sm:text-sm px-5 h-9 rounded-lg shadow-sm transition-all cursor-pointer"
+            className="bg-[#6222cc] hover:bg-[#5219b0] text-white font-semibold text-xs sm:text-sm px-5 h-9 rounded-lg shadow-sm transition-all cursor-pointer"
           >
             Save Purchase
           </Button>
@@ -168,7 +168,7 @@ export function PurchaseCreateScreen() {
         {/* Card 1: Customer & Tenant Information */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#7c3aed] text-xs font-bold">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#6222cc] text-xs font-bold">
               1
             </span>
             <span>Customer & Tenant Information</span>
@@ -230,7 +230,7 @@ export function PurchaseCreateScreen() {
         {/* Card 2: Subscription & Plan Specification */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#7c3aed] text-xs font-bold">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#6222cc] text-xs font-bold">
               2
             </span>
             <span>Product & Subscription Details</span>
@@ -314,7 +314,7 @@ export function PurchaseCreateScreen() {
         {/* Card 3: Add-ons & Entitlements Selection (Chips matching working days pattern) */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-3">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#7c3aed] text-xs font-bold">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#6222cc] text-xs font-bold">
               3
             </span>
             <span>Add-on Modules & Optional Extensions</span>
@@ -335,14 +335,14 @@ export function PurchaseCreateScreen() {
                   className={cn(
                     'px-3.5 py-2 rounded-lg text-xs font-medium border transition-all flex items-center gap-2 cursor-pointer',
                     isSelected
-                      ? 'bg-[#7c3aed] text-white border-[#7c3aed] shadow-xs'
+                      ? 'bg-[#6222cc] text-white border-[#6222cc] shadow-xs'
                       : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
                   )}
                 >
                   <span
                     className={cn(
                       'w-3.5 h-3.5 rounded-full flex items-center justify-center text-[10px]',
-                      isSelected ? 'bg-white text-[#7c3aed]' : 'border border-slate-400'
+                      isSelected ? 'bg-white text-[#6222cc]' : 'border border-slate-400'
                     )}
                   >
                     {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
@@ -360,7 +360,7 @@ export function PurchaseCreateScreen() {
         {/* Card 4: Payment & Commercial Terms */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#7c3aed] text-xs font-bold">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#6222cc] text-xs font-bold">
               4
             </span>
             <span>Payment & Commercial Breakdown</span>
@@ -442,7 +442,7 @@ export function PurchaseCreateScreen() {
             </div>
             <div className="border-l border-purple-200 dark:border-slate-700 pl-4">
               <span className="text-slate-500 font-semibold">Total Payable Amount:</span>
-              <p className="text-xl font-extrabold text-[#7c3aed] dark:text-purple-400">
+              <p className="text-xl font-extrabold text-[#6222cc] dark:text-purple-400">
                 ₹{grandTotal.toLocaleString('en-IN')}
               </p>
             </div>
@@ -452,7 +452,7 @@ export function PurchaseCreateScreen() {
         {/* Card 5: License Provisioning & Validity Policy */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#7c3aed] text-xs font-bold">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#6222cc] text-xs font-bold">
               5
             </span>
             <span>License Provisioning & Validity Policy</span>
@@ -511,7 +511,7 @@ export function PurchaseCreateScreen() {
                   onClick={() => setAutoProvision(!autoProvision)}
                   className={cn(
                     'w-11 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer',
-                    autoProvision ? 'bg-[#7c3aed]' : 'bg-slate-300 dark:bg-slate-700'
+                    autoProvision ? 'bg-[#6222cc]' : 'bg-slate-300 dark:bg-slate-700'
                   )}
                 >
                   <div
@@ -532,7 +532,7 @@ export function PurchaseCreateScreen() {
         {/* Card 6: Additional Settings & Notes */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#7c3aed] text-xs font-bold">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#6222cc] text-xs font-bold">
               6
             </span>
             <span>Additional Settings & Remarks</span>
@@ -574,7 +574,7 @@ export function PurchaseCreateScreen() {
           </Button>
           <Button
             type="submit"
-            className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-semibold text-xs sm:text-sm px-7 h-10 rounded-lg shadow-sm transition-all cursor-pointer"
+            className="bg-[#6222cc] hover:bg-[#5219b0] text-white font-semibold text-xs sm:text-sm px-7 h-10 rounded-lg shadow-sm transition-all cursor-pointer"
           >
             Register & Save Purchase
           </Button>

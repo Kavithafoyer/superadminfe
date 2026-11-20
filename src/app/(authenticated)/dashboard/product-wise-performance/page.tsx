@@ -222,7 +222,7 @@ const PRODUCT_TABLE_DATA = [
 // Product Adoption Donut
 const PRODUCT_ADOPTION_DONUT = [
   { name: 'Education', value: 32, color: '#2563eb' },
-  { name: 'CRM (Generic)', value: 22, color: '#7c3aed' },
+  { name: 'CRM (Generic)', value: 22, color: '#1574fe' },
   { name: 'IT', value: 14, color: '#06b6d4' },
   { name: 'People (HRMS)', value: 11, color: '#f59e0b' },
   { name: 'Retail', value: 9, color: '#ec4899' },
@@ -246,7 +246,7 @@ const CONVERSION_BY_PRODUCT = [
   { name: 'IT', rate: 16.4, color: '#06b6d4' },
   { name: 'People', rate: 16.7, color: '#f59e0b' },
   { name: 'Retail', rate: 16.3, color: '#ec4899' },
-  { name: 'Real Estate', rate: 18.6, color: '#4f46e5' },
+  { name: 'Real Estate', rate: 18.6, color: '#1574fe' },
 ];
 
 // Monthly Active Tenants by Product (Stacked Area)
@@ -313,7 +313,7 @@ export default function ProductWisePerformancePage() {
       ══════════════════════════════════════════════════════════════════════ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 shadow-xs">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#1574fe] dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 shadow-xs">
             <Activity className="h-6 w-6 stroke-[2.2]" />
           </div>
           <div>
@@ -331,7 +331,7 @@ export default function ProductWisePerformancePage() {
           <button
             type="button"
             onClick={() => router.push('/dashboard')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer bg-[#5046e5] text-white hover:bg-[#4338ca] shadow-indigo-500/20"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer bg-[#1574fe] text-white hover:bg-[#0d62e0] shadow-blue-500/20"
           >
             <TrendingUp className="h-4 w-4" />
             Executive Dashboard
@@ -445,7 +445,7 @@ export default function ProductWisePerformancePage() {
               <Button
                 onClick={handleApply}
                 disabled={isApplying}
-                className="bg-[#5046e5] hover:bg-[#4338ca] text-white font-semibold text-xs h-8 px-4 rounded-lg shadow-xs cursor-pointer gap-1.5"
+                className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-semibold text-xs h-8 px-4 rounded-lg shadow-xs cursor-pointer gap-1.5"
               >
                 <Filter className={`h-3.5 w-3.5 ${isApplying ? 'animate-spin' : ''}`} />
                 Apply
@@ -453,7 +453,7 @@ export default function ProductWisePerformancePage() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="text-xs font-semibold text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 px-2 py-1.5 cursor-pointer transition-colors"
+                className="text-xs font-semibold text-slate-600 hover:text-[#1574fe] dark:text-slate-400 dark:hover:text-indigo-400 px-2 py-1.5 cursor-pointer transition-colors"
               >
                 Reset
               </button>
@@ -836,7 +836,7 @@ export default function ProductWisePerformancePage() {
                     <Area type="monotone" dataKey="RealEstate" stackId="1" stroke="#0047AB" fill="#2563EB" fillOpacity={0.95} strokeWidth={1.5} />
                     <Area type="monotone" dataKey="Retail" stackId="1" stroke="#0284C7" fill="#0EA5E9" fillOpacity={0.95} strokeWidth={1.5} />
                     <Area type="monotone" dataKey="People" stackId="1" stroke="#059669" fill="#10B981" fillOpacity={0.95} strokeWidth={1.5} />
-                    <Area type="monotone" dataKey="IT" stackId="1" stroke="#7C3AED" fill="#8B5CF6" fillOpacity={0.95} strokeWidth={1.5} />
+                    <Area type="monotone" dataKey="IT" stackId="1" stroke="#1574fe" fill="#8B5CF6" fillOpacity={0.95} strokeWidth={1.5} />
                     <Area type="monotone" dataKey="CRM" stackId="1" stroke="#DB2777" fill="#EC4899" fillOpacity={0.95} strokeWidth={1.5} />
                     <Area type="monotone" dataKey="Education" stackId="1" stroke="#EA580C" fill="#F97316" fillOpacity={0.95} strokeWidth={1.5} />
                   </AreaChart>

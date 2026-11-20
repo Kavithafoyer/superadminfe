@@ -171,7 +171,7 @@ export default function TaskStatusPage() {
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
               Task Status Board
             </h1>
-            <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300">
+            <Badge variant="outline" className="bg-blue-50 text-indigo-700 border-indigo-200 dark:bg-blue-950/40 dark:text-indigo-300">
               {filteredTasks.length} Total Tasks
             </Badge>
           </div>
@@ -195,7 +195,7 @@ export default function TaskStatusPage() {
           <Button
             size="sm"
             onClick={() => handleOpenCreate('Not Started')}
-            className="h-9 gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+            className="h-9 gap-1.5 bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium"
           >
             <Plus className="h-4 w-4" />
             Add Task
@@ -260,7 +260,7 @@ export default function TaskStatusPage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleStatusChange(task, 'In Progress')}
-                    className="h-6 px-2 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                    className="h-6 px-2 text-xs text-[#1574fe] hover:text-indigo-700 hover:bg-blue-50"
                   >
                     Start <ArrowRight className="h-3 w-3 ml-1" />
                   </Button>
@@ -508,7 +508,7 @@ export default function TaskStatusPage() {
               <Button
                 type="submit"
                 disabled={isCreating}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="bg-[#1574fe] hover:bg-[#0d62e0] text-white"
               >
                 {isCreating ? 'Creating...' : 'Create Task'}
               </Button>

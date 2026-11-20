@@ -243,7 +243,7 @@ export function SubscriptionLifecycleScreen() {
         <Button
           type="button"
           onClick={handleCreateSubscription}
-          className="bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium text-xs sm:text-sm h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
+          className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
           <span>Create Subscription</span>
@@ -333,7 +333,7 @@ export function SubscriptionLifecycleScreen() {
               className={cn(
                 'pb-3 font-semibold transition-all relative cursor-pointer whitespace-nowrap',
                 activeTab === tab.id
-                  ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                  ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
                   : 'text-slate-500 hover:text-slate-800'
               )}
             >
@@ -354,7 +354,7 @@ export function SubscriptionLifecycleScreen() {
                 <select
                   value={filterProduct}
                   onChange={(e) => setFilterProduct(e.target.value)}
-                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
                 >
                   <option value="All Products">All Products</option>
                   <option value="Education">Education</option>
@@ -372,7 +372,7 @@ export function SubscriptionLifecycleScreen() {
                 <select
                   value={filterPlan}
                   onChange={(e) => setFilterPlan(e.target.value)}
-                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
                 >
                   <option value="All Plans">All Plans</option>
                   <option value="Standard">Standard</option>
@@ -390,7 +390,7 @@ export function SubscriptionLifecycleScreen() {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
                 >
                   <option value="All Status">All Status</option>
                   <option value="Active">Active</option>
@@ -409,7 +409,7 @@ export function SubscriptionLifecycleScreen() {
                 <select
                   value={filterCycle}
                   onChange={(e) => setFilterCycle(e.target.value)}
-                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
                 >
                   <option value="All Cycles">All Cycles</option>
                   <option value="Annual">Annual</option>
@@ -444,7 +444,7 @@ export function SubscriptionLifecycleScreen() {
             <Button
               type="button"
               onClick={() => toast.success('Subscription filters applied')}
-              className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs h-9 px-4 rounded-lg font-medium shadow-2xs"
+              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs h-9 px-4 rounded-lg font-medium shadow-2xs"
             >
               Apply
             </Button>
@@ -495,7 +495,7 @@ export function SubscriptionLifecycleScreen() {
                 <thead>
                   <tr className="bg-slate-50/80 text-slate-700 border-b border-slate-200 font-semibold text-[11px]">
                     <th className="py-3 px-3 w-8 text-center">
-                      <input type="checkbox" className="rounded border-slate-300 text-indigo-600 h-3.5 w-3.5" />
+                      <input type="checkbox" className="rounded border-slate-300 text-[#1574fe] h-3.5 w-3.5" />
                     </th>
                     <th className="py-3 px-3 font-semibold text-slate-800">Subscription No.</th>
                     <th className="py-3 px-3 font-semibold text-slate-800">Tenant / Customer</th>
@@ -518,7 +518,7 @@ export function SubscriptionLifecycleScreen() {
                         className={cn(
                           'transition-colors cursor-pointer',
                           isSelected
-                            ? 'bg-[#f6f4fe] border-l-2 border-l-[#4F46E5]'
+                            ? 'bg-[#edf5ff] border-l-2 border-l-[#1574fe]'
                             : 'hover:bg-slate-50/70'
                         )}
                       >
@@ -527,10 +527,10 @@ export function SubscriptionLifecycleScreen() {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => setSelectedSubId(sub.id)}
-                            className="rounded border-slate-300 text-indigo-600 h-3.5 w-3.5"
+                            className="rounded border-slate-300 text-[#1574fe] h-3.5 w-3.5"
                           />
                         </td>
-                        <td className="py-3 px-3 font-mono font-semibold text-[#4F46E5] underline decoration-[#4F46E5]/40 whitespace-nowrap">
+                        <td className="py-3 px-3 font-mono font-semibold text-[#1574fe] underline decoration-[#1574fe]/40 whitespace-nowrap">
                           {sub.subscriptionNo}
                         </td>
                         <td className="py-3 px-3 font-medium text-slate-900 whitespace-nowrap">
@@ -576,7 +576,7 @@ export function SubscriptionLifecycleScreen() {
                             <button
                               type="button"
                               onClick={() => setSelectedSubId(sub.id)}
-                              className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-slate-100"
+                              className="p-1 rounded text-slate-400 hover:text-[#1574fe] hover:bg-slate-100"
                               title="View details"
                             >
                               <Eye className="h-3.5 w-3.5" />
@@ -611,7 +611,7 @@ export function SubscriptionLifecycleScreen() {
                 <div className="flex items-center gap-1">
                   <button type="button" className="p-1 rounded hover:bg-slate-100 text-slate-400">«</button>
                   <button type="button" className="p-1 rounded hover:bg-slate-100 text-slate-400">&lt;</button>
-                  <button type="button" className="h-6 w-6 rounded bg-[#4F46E5] text-white font-semibold text-xs flex items-center justify-center shadow-xs">1</button>
+                  <button type="button" className="h-6 w-6 rounded bg-[#1574fe] text-white font-semibold text-xs flex items-center justify-center shadow-xs">1</button>
                   <button type="button" className="h-6 w-6 rounded hover:bg-slate-100 text-slate-600 font-medium text-xs flex items-center justify-center">2</button>
                   <button type="button" className="h-6 w-6 rounded hover:bg-slate-100 text-slate-600 font-medium text-xs flex items-center justify-center">3</button>
                   <span className="text-slate-400 text-xs px-1">...</span>
@@ -666,7 +666,7 @@ export function SubscriptionLifecycleScreen() {
                     className={cn(
                       'pb-2 font-semibold transition-all relative',
                       detailsTab === tab.id
-                        ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                        ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
                         : 'text-slate-500 hover:text-slate-800'
                     )}
                   >
@@ -783,7 +783,7 @@ export function SubscriptionLifecycleScreen() {
                 onClick={() => toast.info('Upgrade/Downgrade plan modal')}
                 className="text-xs h-9 px-1 gap-1 text-slate-700"
               >
-                <ArrowUpRight className="h-3.5 w-3.5 text-indigo-600" />
+                <ArrowUpRight className="h-3.5 w-3.5 text-[#1574fe]" />
                 <span>Change Plan</span>
               </Button>
               <Button
@@ -792,7 +792,7 @@ export function SubscriptionLifecycleScreen() {
                 onClick={() => toast.success(`Triggered renewal invoice for ${selectedSub.subscriptionNo}`)}
                 className="text-xs h-9 px-1 gap-1 text-slate-700"
               >
-                <RefreshCw className="h-3.5 w-3.5 text-indigo-600" />
+                <RefreshCw className="h-3.5 w-3.5 text-[#1574fe]" />
                 <span>Renew Now</span>
               </Button>
               <Button

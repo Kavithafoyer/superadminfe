@@ -254,7 +254,7 @@ export function AddonMasterScreen() {
   const getCategoryIcon = (cat: string) => {
     switch (cat) {
       case 'AI & Automation':
-        return <Bot className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+        return <Bot className="h-4 w-4 text-[#1574fe] dark:text-purple-400" />;
       case 'Communication':
         return <MessageSquare className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />;
       case 'Productivity':
@@ -262,7 +262,7 @@ export function AddonMasterScreen() {
       case 'Compliance':
         return <ShieldCheck className="h-4 w-4 text-rose-600 dark:text-rose-400" />;
       default:
-        return <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+        return <Sparkles className="h-4 w-4 text-[#1574fe] dark:text-purple-400" />;
     }
   };
 
@@ -283,12 +283,12 @@ export function AddonMasterScreen() {
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
-                className="hover:text-purple-600 transition-colors"
+                className="hover:text-[#1574fe] transition-colors"
               >
                 Add-on Master
               </button>
               <span>&gt;</span>
-              <span className="text-purple-600 dark:text-purple-400 font-medium">
+              <span className="text-[#1574fe] dark:text-purple-400 font-medium">
                 {isEditing ? 'Edit Add-on' : 'Create Add-on'}
               </span>
             </div>
@@ -336,7 +336,7 @@ export function AddonMasterScreen() {
           {/* Card Header Strip with light gradient */}
           <div className="bg-gradient-to-r from-purple-50/80 via-indigo-50/40 to-slate-50/60 dark:from-purple-950/40 dark:via-slate-900 dark:to-slate-900 px-6 py-4 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-950 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
+              <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-[#1574fe] flex items-center justify-center text-[#1574fe] dark:text-purple-400 font-bold">
                 <PackagePlus className="h-4 w-4" />
               </div>
               <div>
@@ -533,7 +533,7 @@ export function AddonMasterScreen() {
             </div>
 
             {/* Trial Settings Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 p-4 rounded-lg bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 p-4 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-purple-100 dark:border-purple-900/40">
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
@@ -542,7 +542,7 @@ export function AddonMasterScreen() {
                   onChange={(e) =>
                     setFormData({ ...formData, trialAvailable: e.target.checked })
                   }
-                  className="h-4 w-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                  className="h-4 w-4 rounded border-slate-300 text-[#1574fe] focus:ring-purple-500"
                 />
                 <div>
                   <label
@@ -573,7 +573,7 @@ export function AddonMasterScreen() {
               </div>
 
               <div className="flex items-center">
-                <p className="text-[11px] text-purple-700 dark:text-purple-300">
+                <p className="text-[11px] text-[#1574fe] dark:text-blue-300">
                   ⚡ New customers will receive full access for {formData.trialDays} days before billing starts.
                 </p>
               </div>
@@ -673,7 +673,7 @@ export function AddonMasterScreen() {
                   variant="outline"
                   size="sm"
                   onClick={handleAddFeatureTag}
-                  className="text-xs border-purple-200 text-purple-700 hover:bg-purple-50 shrink-0"
+                  className="text-xs border-blue-200 text-[#1574fe] hover:bg-blue-50 shrink-0"
                 >
                   <Plus className="h-3.5 w-3.5 mr-1" />
                   Add Feature
@@ -688,7 +688,7 @@ export function AddonMasterScreen() {
                 ]).map((feat, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-[#1574fe] dark:text-blue-300 border border-blue-200 dark:border-purple-800 text-xs"
                   >
                     • {feat}
                     <button
@@ -755,12 +755,12 @@ export function AddonMasterScreen() {
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
-                className="hover:text-purple-600 transition-colors"
+                className="hover:text-[#1574fe] transition-colors"
               >
                 Add-on Master
               </button>
               <span>&gt;</span>
-              <span className="text-purple-600 dark:text-purple-400 font-medium">
+              <span className="text-[#1574fe] dark:text-purple-400 font-medium">
                 {addon.name}
               </span>
             </div>
@@ -770,7 +770,7 @@ export function AddonMasterScreen() {
               </h1>
               <Badge
                 variant="outline"
-                className="font-mono text-xs border-purple-200 bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
+                className="font-mono text-xs border-blue-200 bg-blue-50 text-[#1574fe] dark:bg-blue-950 dark:text-blue-300"
               >
                 {addon.code}
               </Badge>
@@ -812,17 +812,17 @@ export function AddonMasterScreen() {
 
         {/* 4 Light-colored KPI Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl border border-purple-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm">
+          <div className="p-4 rounded-xl border border-blue-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-purple-900 dark:text-purple-300">
+              <span className="text-xs font-medium text-purple-900 dark:text-blue-300">
                 Active Tenants
               </span>
-              <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-purple-600 dark:text-purple-300">
+              <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/60 text-[#1574fe] flex items-center justify-center text-[#1574fe] dark:text-blue-300">
                 <Building className="h-4 w-4" />
               </div>
             </div>
             <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">128</div>
-            <p className="text-[11px] text-purple-600 dark:text-purple-400 mt-1">
+            <p className="text-[11px] text-[#1574fe] dark:text-purple-400 mt-1">
               Across CRM & Education
             </p>
           </div>
@@ -906,7 +906,7 @@ export function AddonMasterScreen() {
                 </div>
                 <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
                   <span className="text-slate-500">Starting Price:</span>
-                  <span className="font-semibold text-purple-600 dark:text-purple-400">
+                  <span className="font-semibold text-[#1574fe] dark:text-purple-400">
                     {addon.startingPrice}
                   </span>
                 </div>
@@ -936,7 +936,7 @@ export function AddonMasterScreen() {
                     <Badge
                       key={p}
                       variant="secondary"
-                      className="bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 text-xs"
+                      className="bg-blue-50 text-[#1574fe] dark:bg-blue-950 dark:text-blue-300 text-xs"
                     >
                       ✓ {p}
                     </Badge>
@@ -975,7 +975,7 @@ export function AddonMasterScreen() {
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
             <span>Add-on Marketplace</span>
             <span>&gt;</span>
-            <span className="text-purple-600 dark:text-purple-400 font-medium">Add-on Master</span>
+            <span className="text-[#1574fe] dark:text-purple-400 font-medium">Add-on Master</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Add-on Master ({totalCount})
@@ -1018,12 +1018,12 @@ export function AddonMasterScreen() {
 
       {/* 4 Light-Colored KPI Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl border border-purple-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
+        <div className="p-4 rounded-xl border border-blue-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-purple-900 dark:text-purple-300">Total Add-ons</p>
+            <p className="text-xs font-medium text-purple-900 dark:text-blue-300">Total Add-ons</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{totalCount}</p>
           </div>
-          <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-purple-600 dark:text-purple-300">
+          <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/60 text-[#1574fe] flex items-center justify-center text-[#1574fe] dark:text-blue-300">
             <PackagePlus className="h-5 w-5" />
           </div>
         </div>
@@ -1167,7 +1167,7 @@ export function AddonMasterScreen() {
             </h3>
             <Badge
               variant="secondary"
-              className="bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 text-xs"
+              className="bg-blue-50 text-[#1574fe] dark:bg-blue-950 dark:text-blue-300 text-xs"
             >
               {filteredAddons.length} Add-ons
             </Badge>
@@ -1190,7 +1190,7 @@ export function AddonMasterScreen() {
                       selectedRowIds.length === paginatedAddons.length
                     }
                     onChange={handleToggleSelectAll}
-                    className="h-3.5 w-3.5 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                    className="h-3.5 w-3.5 rounded border-slate-300 text-[#1574fe] focus:ring-purple-500"
                   />
                 </th>
                 <th className="py-3 px-4">
@@ -1231,8 +1231,8 @@ export function AddonMasterScreen() {
                 return (
                   <tr
                     key={addon.id}
-                    className={`transition-colors hover:bg-purple-50/30 dark:hover:bg-purple-950/20 ${
-                      isSelected ? 'bg-purple-50/50 dark:bg-purple-950/30' : ''
+                    className={`transition-colors hover:bg-blue-50/30 dark:hover:bg-blue-950/20 ${
+                      isSelected ? 'bg-blue-50/50 dark:bg-blue-950/30' : ''
                     }`}
                   >
                     <td className="py-3.5 px-4">
@@ -1240,10 +1240,10 @@ export function AddonMasterScreen() {
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => handleToggleRow(addon.id)}
-                        className="h-3.5 w-3.5 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                        className="h-3.5 w-3.5 rounded border-slate-300 text-[#1574fe] focus:ring-purple-500"
                       />
                     </td>
-                    <td className="py-3.5 px-4 font-mono font-medium text-purple-700 dark:text-purple-300">
+                    <td className="py-3.5 px-4 font-mono font-medium text-[#1574fe] dark:text-blue-300">
                       <button
                         type="button"
                         onClick={() => handleOpenOverview(addon)}
@@ -1313,7 +1313,7 @@ export function AddonMasterScreen() {
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(addon)}
-                          className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-purple-600 transition-colors"
+                          className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-[#1574fe] transition-colors"
                           title="Quick Edit"
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -1337,7 +1337,7 @@ export function AddonMasterScreen() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenOverview(addon)}
-                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition-colors"
+                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-[#1574fe] transition-colors"
                               >
                                 <Eye className="h-3.5 w-3.5 text-slate-400" />
                                 Overview
@@ -1345,7 +1345,7 @@ export function AddonMasterScreen() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenEdit(addon)}
-                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition-colors"
+                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-[#1574fe] transition-colors"
                               >
                                 <Pencil className="h-3.5 w-3.5 text-slate-400" />
                                 Edit
