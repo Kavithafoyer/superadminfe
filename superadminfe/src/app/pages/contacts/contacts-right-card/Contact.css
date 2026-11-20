@@ -1,0 +1,122 @@
+#head {
+    padding: 15px !important;
+    background-color: #efefef !important;
+    border-radius: 5px;
+}
+
+#heads {
+    padding: 15px !important;
+    background-color: #efefef !important;
+    border-radius: 5px;
+}
+
+.css-lekmnu-MuiButtonBase-root-MuiButton-root {
+    background-color: #03346E !important;
+    text-transform: unset !important;
+}
+
+.css-gcc2o7-MuiButton-startIcon>*:nth-of-type(1) {
+    color: #fff !important;
+}
+
+.css-1sq3u84-MuiButtonBase-root-MuiButton-root {
+    background-color: #217a6e !important;
+    text-transform: unset !important;
+}
+
+.css-1gnd1fd-MuiButton-endIcon>*:nth-of-type(1) {
+    color: #fff !important;
+}
+
+.css-1wyy2wf-MuiList-root {
+    margin-top: 1% !important;
+    padding: 20px !important;
+    background-color: #ebebebb0 !important;
+    height: 65vh important;
+    min-height: 400px important;
+    ;
+    overflow-y: scroll;
+}
+
+.css-1eb4bos-MuiButtonBase-root-MuiButton-root {
+    background-color: #0F67B1 !important;
+    color: #fff !important;
+    border-radius: 5px !important;
+    width: 100% !important;
+}
+
+.css-1aenzpy-MuiTypography-root {
+    color: #545454 !important;
+}
+
+.css-145fhba-MuiButtonBase-root-MuiButton-root {
+    width: fit-content !important;
+    background-color: #074173 !important;
+    text-transform: unset !important;
+}
+
+.css-hx7ya8-MuiButtonBase-root-MuiTab-root {
+    color: #787878;
+}
+
+.css-10mi8st-MuiSvgIcon-root-MuiAvatar-fallback {
+    color: #fff !important
+}
+
+.css-s0ns04-MuiAutocomplete-root .MuiOutlinedInput-root {
+    padding: 0px !important;
+}
+
+/*
+  .css-1q24vpl{
+    padding-left: 20px !important;
+    padding-right: 0px !important;
+  } 
+*/
+.css-1xslnwe {
+    display: -webkit-box !important;
+}
+
+.css-u7zwh2-MuiInputBase-input-MuiOutlinedInput-input {
+    padding: 10px 14px !important;
+}
+
+.css-5g0yqj-MuiButtonBase-root-MuiButton-root {
+    width: 100% !important;
+    background-color: #005C78 !important;
+}
+
+.css-1wyy2wf-MuiList-root {
+    margin-top: 1% !important;
+    padding: 20px !important;
+    background-color: #ebebebb0;
+    height: 65vh;
+    min-height: 400px;
+    overflow-y: scroll;
+}
+
+.css-h4y409-MuiList-root {
+    height: 65vh;
+    min-height: 400px;
+    overflow-y: scroll;
+}
+
+.css-19idom {
+    background-color: #52453317 !important;
+    padding: 0px 30px 0px 30px !important;
+    border-radius: 10px !important;
+}
+
+.css-1q24vpl:hover {
+    border-left: 0px !important;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px !important;
+}
+
+.css-cdbs6z-MuiButtonBase-root-MuiIconButton-root {
+    color: #4d575e !important;
+}
+
+.css-1d7dg2m:hover {
+    border-left: 0px !important;
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px !important;
+}

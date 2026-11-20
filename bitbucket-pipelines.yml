@@ -1,0 +1,32 @@
+pipelines:
+  branches:
+    Education_Frontend:   # 👈 your frontend branch name
+      - step:
+          name: Deploy Frontend to AWS
+          image: ubuntu:22.04
+          script:
+            # 1️⃣ Install SSH client
+            - apt-get update && apt-get install -y openssh-client
+
+            # 2️⃣ Setup SSH
+            - mkdir -p ~/.ssh
+            - chmod 700 ~/.ssh
+
+            # 3️⃣ Add server to known hosts
+            - ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
+            - chmod 644 ~/.ssh/known_hosts
+
+            # 4️⃣ Add private key from Bitbucket secured variable
+            - echo "$SERVER_PRIVATE_KEY" > ~/.ssh/id_rsa_crmfront
+            - chmod 600 ~/.ssh/id_rsa_crmfront
+
+            # 5️⃣ Test SSH connection
+            - echo "🔹 Testing SSH connection..."
+            - ssh -i ~/.ssh/id_rsa_crmfront -o StrictHostKeyChecking=no root@$SERVER_IP "echo '✅ SSH SUCCESS'" || { echo "❌ SSH failed"; exit 1; }
+
+            # 6️⃣ Run frontend deploy script
+            - echo "🔹 Running frontend deploy..."
+            - ssh -i ~/.ssh/id_rsa_crmfront -o StrictHostKeyChecking=no root@$SERVER_IP "bash /home/Edu/crmfrontend/deploy.sh" || { echo "❌ Deploy failed"; exit 1; }
+
+            # 7️⃣ Done
+            - echo "✅ Frontend Deployment completed successfully"

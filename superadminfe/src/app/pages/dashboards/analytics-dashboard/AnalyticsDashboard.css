@@ -1,0 +1,200 @@
+/* Stylesheet for Analytics Dashboard */
+
+.analytics-container {
+  padding: 10px;
+}
+
+.analytics-title {
+  margin-bottom: 20px !important;
+}
+
+.analytics-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.analytics-colspan {
+  flex: 1;
+  min-width: 240px;
+}
+
+/* Premium Card Styles */
+.analytics-card {
+  background: #ffffff;
+  border-radius: 12px !important;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid #f0f0f0 !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
+  height: 100%;
+}
+
+.analytics-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.08) !important;
+  border-color: #e0e0e0 !important;
+}
+
+.analytics-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f5f5f5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.analytics-card-title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #333333;
+}
+
+.analytics-card-body {
+  padding: 20px;
+}
+
+/* Highlights Stat Cards */
+.stat-card-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+}
+
+.stat-card-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111111;
+  margin-bottom: 6px;
+}
+
+.stat-card-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #96a0b5;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card-icon-container {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.analytics-card:hover .stat-card-icon-container {
+  transform: scale(1.1);
+}
+
+/* Renewal Funnel Visual Styles */
+.funnel-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.funnel-stage {
+  display: flex;
+  align-items: center;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 48px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease;
+}
+
+.funnel-stage:hover {
+  transform: translateX(4px);
+}
+
+.funnel-stage-label {
+  width: 40%;
+  padding-left: 16px;
+  font-weight: 600;
+  font-size: 12px;
+  color: #555;
+  z-index: 2;
+}
+
+.funnel-stage-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  z-index: 1;
+  border-radius: 8px;
+}
+
+.funnel-stage-value {
+  margin-left: auto;
+  padding-right: 16px;
+  font-weight: 700;
+  font-size: 14px;
+  color: #222;
+  z-index: 2;
+}
+
+/* Adoption details list */
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px dashed #f0f0f0;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+
+.highlight-badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Custom Scrollbar for list container */
+.scroll-container {
+  overflow-y: auto;
+  max-height: 320px;
+  padding-right: 4px;
+}
+
+.scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}

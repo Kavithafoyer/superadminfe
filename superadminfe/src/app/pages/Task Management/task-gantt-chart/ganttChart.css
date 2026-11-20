@@ -1,0 +1,102 @@
+.dx-row.dx-header-row {
+    background-color: #F3F3F3 !important;
+
+}
+
+.dx-treelist-headers {
+    /* color: #08D9D6 !important; */
+    color: #000000;
+    font-weight: 600;
+}
+
+.dx-gantt .dx-gantt-header {
+    font-size: 12px !important;
+}
+
+.dx-gantt .dx-gantt-taskWrapper .dx-gantt-task {
+    background-color: #08D9D6 !important;
+}
+
+.dx-treelist .dx-row>td {
+    font-size: 12px !important;
+}
+
+/* .dx-treelist .dx-treelist-table .dx-header-row>td {
+     padding-top: 0px !important; 
+     padding-bottom: 0px !important; 
+} */
+
+.dx-button-text {
+    font-size: 14px !important;
+}
+
+@media only screen and (max-width: 600px) {
+    .dx-button-has-text {
+        min-width: 60px;
+    }
+
+    .dx-button-has-text .dx-button-content {
+        padding: 0px !important;
+    }
+
+    .dx-button-text {
+        font-size: 12px !important;
+    }
+
+    .dx-button-has-icon {
+        min-width: 30px;
+    }
+}
+
+
+@media only screen and (max-width: 320px) {
+    .dx-button-has-text {
+        min-width: 50px;
+    }
+
+    .dx-button-has-text .dx-button-content {
+        padding: 0px !important;
+    }
+
+    .dx-button-text {
+        font-size: 10px !important;
+    }
+
+    .dx-button-has-icon {
+        min-width: 30px;
+    }
+
+    .dx-button-has-icon .dx-button-content {
+        padding: 4px;
+    }
+}
+
+.ganttcharttoolbar .dx-button {
+    /* background-color: #006e6d; */
+    background-color: #c7dfd4;
+    color: rgb(255 255 255 / 87%);
+}
+
+.ganttcharttoolbar .dx-button:hover {
+    /* background-color: #006e6d; */
+    background-color: #c7dfd4;
+    color: rgb(255 255 255 / 87%);
+}
+
+.dx-button.dx-button-has-icon:not(.dx-button-has-text):not(.dx-shape-standard) {
+    background-color: #006e6d1c;
+}
+
+.dx-gantt .dx-gantt-si {
+    /* background-color: #00646ebd; */
+    background-color: #c7dfd4;
+    /* color: #fff; */
+    color: #000000;
+    font-weight: 600;
+    border: 1px solid #ffff;
+}
+
+.dx-gantt .dx-gantt-taskWrapper .dx-gantt-task {
+    background-color: #2a706f !important;
+    width: 100px !important;
+}

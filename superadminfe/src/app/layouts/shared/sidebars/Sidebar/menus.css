@@ -1,0 +1,66 @@
+.menus-sidebar {
+    margin-top: -20px !important;
+}
+
+.menuPadding {
+    padding-left: 50px !important;
+}
+
+
+
+.css-nle7uj-MuiStack-root {
+    padding: 3px !important;
+    border-bottom: 1px solid #ebebeb8f !important;
+}
+
+.css-1hy0cpb.css-1sg2p09-MuiListItemText-root {
+    color: #595959 !important;
+}
+
+.css-1hy0cpb {
+    color: #030303 !important;
+}
+
+.css-1hy0cpb {
+    background-color: #fff !important;
+}
+
+.css-1sg2p09-MuiListItemText-root {
+    color: #4b4b4b !important;
+}
+
+.css-1hy0cpb,
+a {
+    color: #0000 !important;
+}
+
+.css-1hy0cpb a:focus {
+    color: #000 !important;
+}
+
+.css-fyc981-MuiListItemText-root {
+    -webkit-flex: 1 1 auto !important;
+    -ms-flex: 1 1 auto !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    margin-top: 4px !important;
+    margin-bottom: 4px !important;
+    font-size: 14px !important;
+    padding-left: -8px !important;
+    color: #080808 !important;
+}
+
+.css-szutfi-MuiTableCell-root.MuiTableCell-body {
+    margin-bottom: 0px !important;
+}
+
+.css-1oyfslj-MuiListItemIcon-root {
+    min-width: 56px !important;
+    color: #475259 !important;
+}
+
+.css-1sg2p09-MuiListItemText-root {
+    color: #2a978f !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+}

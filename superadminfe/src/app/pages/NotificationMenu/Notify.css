@@ -1,0 +1,22 @@
+.css-h4y409-MuiList-root {
+    height: 65vh;
+    min-height: 400px;
+    overflow-y: scroll;
+}
+
+.css-19idom {
+    background-color: #52453317 !important;
+    padding: 0px 30px 0px 30px !important;
+    border-radius: 10px !important;
+    margin-top: 2%;
+}
+
+.css-1q24vpl:hover {
+    border-left: 0px !important;
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px !important;
+}
+
+.css-1d7dg2m:hover {
+    border-left: 0px !important;
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px !important;
+}

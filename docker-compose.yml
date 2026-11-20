@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  frontend:
+    build: .
+    image: crmfront:v15
+    container_name: crm_frontend
+    ports:
+      - "3003:3003"   # Maps container 3000 (default React dev server) to host 3003
+    volumes:
+      - frontend_node_modules:/app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true   # Optional, useful for watching file changes
+    restart: always
+
+volumes:
+  frontend_node_modules:
+    driver: local

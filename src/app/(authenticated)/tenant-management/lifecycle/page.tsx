@@ -1,0 +1,12 @@
+'use client';
+
+import React from 'react';
+import { TenantStatusLifecycleScreen } from '@/components/tenants/TenantStatusLifecycleScreen';
+
+export default function TenantLifecyclePage() {
+  return (
+    <div className="w-full">
+      <TenantStatusLifecycleScreen />
+    </div>
+  );
+}

@@ -1,0 +1,235 @@
+.main-div {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.grid {
+  box-shadow: none !important;
+}
+
+.dashboard-title {
+  font-size: 32px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  color: #000000 !important;
+  /* letter-spacing: 1px !important; */
+}
+
+.push-pin {
+  margin-left: 10px;
+  margin-right: 5px;
+}
+
+.badge-soft-success {
+  --bs-badge-color: #1a8777;
+  --bs-bg-opacity: 0.18;
+  background-color: rgba(
+    var(--bs-success-rgb),
+    var(--bs-bg-opacity)
+  ) !important;
+  box-shadow: none;
+  margin-top: 7px;
+}
+
+.funnel-pipeline-chart {
+  clip-path: polygon(0 0, 100% 0, 60% 78%, 60% 90%, 40% 100%, 40% 78%);
+  text-align: center;
+  height: 365px;
+  overflow-y: scroll;
+}
+
+.main-div {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.grid {
+  box-shadow: none !important;
+}
+
+.dashboard-title {
+  font-size: 32px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  color: #000000 !important;
+  /* letter-spacing: 1px !important; */
+}
+
+.push-pin {
+  margin-left: 10px;
+  margin-right: 5px;
+}
+
+.css-17x2t8n {
+  background-color: none !important;
+}
+
+.css-rginck-MuiTableRow-root td,
+.css-rginck-MuiTableRow-root th {
+  font-size: 15px !important;
+}
+
+.css-9seshn-MuiTableRow-root td,
+.css-9seshn-MuiTableRow-root th {
+  border-bottom-width: 1px solid #e2e7f1 !important;
+}
+
+.css-1qhww7t-MuiAutocomplete-root .MuiOutlinedInput-root {
+  padding: 0px !important;
+}
+
+.css-19idom {
+  background-color: #52453317 !important;
+  padding: 0px 30px 0px 30px !important;
+  border-radius: 10px !important;
+}
+
+.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon.css-12lg90t-MuiAutocomplete-root
+  .MuiOutlinedInput-root {
+  height: 33px !important;
+}
+
+.css-1q24vpl:hover {
+  border-left: 0px !important;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px !important;
+}
+
+.css-h4y409-MuiList-root {
+  height: 400px;
+  overflow-y: scroll;
+  padding: 30px;
+}
+
+.css-59lhur-MuiTypography-root {
+  color: #2b2d3b !important;
+}
+
+.css-1vwv85s-MuiTypography-root {
+  color: #3c3c3c !important;
+}
+
+.css-1faq3v-MuiTypography-root {
+  font-size: 20px !important;
+}
+
+.css-1fscom9-MuiButtonBase-root-MuiIconButton-root svg {
+  color: #0c5c00 !important;
+}
+
+.css-1fscom9-MuiButtonBase-root-MuiIconButton-root {
+  background-color: #dff3dc !important;
+}
+
+/*
+svg {
+  color: #7e7e7e !important;
+}
+*/
+.css-1qhww7t-MuiAutocomplete-root
+  .MuiAutocomplete-inputRoot
+  .MuiAutocomplete-input {
+  color: #404040;
+  /* border: 1px solid #efefef; */
+}
+
+.css-h4y409-MuiList-root {
+  padding-right: 15px !important;
+}
+
+.table-responsive {
+  height: 285px;
+}
+
+.table-light {
+  --bs-table-color: #010f1c !important;
+  --bs-table-bg: #e2f1ff !important;
+  --bs-table-border-color: #dfe0e1;
+  --bs-table-striped-bg: #ecedee;
+  --bs-table-striped-color: #000;
+  --bs-table-active-bg: #dfe0e1;
+  --bs-table-active-color: #000;
+  --bs-table-hover-bg: #e5e6e7;
+  --bs-table-hover-color: #000;
+  color: var(--bs-table-color);
+  border-color: var(--bs-table-border-color);
+}
+
+.css-9seshn-MuiTableRow-root {
+  border-bottom: 1px solid #dededf;
+}
+
+#card-body {
+  padding: 0px !important;
+}
+
+.css-85sn61-MuiTypography-root {
+  color: #001326 !important;
+}
+
+#card {
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px !important;
+  border-color: #fff !important;
+  padding: 10px !important;
+}
+
+.left h3 {
+  font-size: 18px !important;
+}
+
+.css-1oyfslj-MuiListItemIcon-root {
+  min-width: 56px;
+  color: #475259 !important;
+}
+
+.css-fyc981-MuiListItemText-root {
+  color: #3e7835 !important;
+  font-size: small;
+  font-weight: 700;
+}
+
+/* Lead overview card style */
+.home-row {
+  gap: 10px !important;
+
+  .home-colspan {
+    flex: 1;
+    min-width: 250px;
+    /* Default minimum width */
+  }
+  .card {
+    height: 154px !important;
+    border-radius: 10px !important;
+  }
+}
+
+/* Mobile (up to 664px) */
+@media (max-width: 664px) {
+  .home-colspan {
+    flex: 1 1 48%;
+    margin: 10px 0;
+  }
+}
+
+/* Tablet (665px to 859px) */
+@media (min-width: 665px) and (max-width: 859px) {
+  .home-colspan {
+    flex: 1 1 48%;
+    margin: 10px 0;
+  }
+}
+
+/* Laptop (860px to 1379px) */
+@media (min-width: 860px) and (max-width: 1379px) {
+  .home-colspan {
+    flex: 1 1 30%;
+    margin: 10px 0;
+  }
+}
+
+/* Desktop (1380px and above) */
+@media (min-width: 1380px) {
+  .home-colspan {
+    flex: 1 1 22%;
+    margin: 10px 0;
+  }
+}

@@ -1,0 +1,288 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* font-family: "Arial"; */
+  /* margin-top: 3px; */
+
+}
+
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+.float-right {
+  float: right;
+}
+
+.float-left {
+  float: left;
+}
+
+/* 
+button {
+  border: none;
+  padding: 20px;
+  margin-right: 2px;
+} */
+
+.blue {
+  background-color: blue;
+  color: white;
+  border: none;
+  padding: 8px;
+}
+
+.green {
+  background-color: darkolivegreen;
+  color: white;
+}
+
+.btn-toolbar {
+  width: 200px !important;
+  padding-bottom: 60px !important;
+  /* margin: auto; */
+}
+
+.builder-sidebar .component {
+  width: 400px !important;
+  /* Add any additional styles as needed */
+}
+
+.formcomponents .formcomponent {
+  text-align: left;
+  padding: 5px 5px 5px 8px;
+  margin-top: 0.2rem;
+  font-size: 0.8em;
+  border-radius: 0.3em;
+  width: 100% !important;
+  background-color: #52a4ff;
+}
+
+.builder-group-button {
+  background-color: transparent;
+  white-space: normal;
+  text-align: left;
+  font-size: 0.75rem !important;
+  border-radius: 0px !important;
+}
+
+.card {
+  border-radius: 0px !important;
+}
+
+.has-feedback .form-control {
+  padding-right: 10px;
+
+}
+
+.form-control {
+  border-radius: 3px !important;
+  line-height: 1;
+}
+
+.builder-sidebar_search {
+  width: 96%;
+  margin-left: 3px !important;
+  margin-right: 3px !important;
+  margin-top: 5px !important;
+}
+
+
+
+/* Dialogue box */
+.lead {
+  font-size: 1rem;
+  font-weight: 200;
+}
+
+.required {
+  color: red;
+  /* display: flex; */
+  /* flex-direction: row; */
+}
+
+.btn {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.btn-success {
+  background: #52a4ff !important;
+  border-width: 0px !important;
+  min-width: 100px !important;
+  width: 100px !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+}
+
+.btn-secondary {
+  background: #ffffff !important;
+  border-width: 1px !important;
+  border-color: #52a4ff;
+  color: #52a4ff;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+}
+
+.btn-danger {
+  background: #ffffff !important;
+  border-width: 1px !important;
+  border-color: #dc3545;
+  color: #dc3545;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+}
+
+.btn-group-sm>.btn,
+.btn-sm {
+  background: #52a4ff !important;
+  border-width: 0px !important;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+}
+
+.card-title {
+  font-size: 0.80rem !important;
+  font-weight: 200;
+}
+
+.card-header:first-child {
+  display: flex !important;
+}
+
+.card {
+  width: 100%;
+  text-align: start;
+}
+
+.col-form-label {
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: #000
+}
+
+.form-check-label>span {
+  display: flex;
+  align-items: center;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: #000
+}
+
+.dropdown {
+  /* padding: 0px !important;
+  padding-left: 20px !important; */
+}
+
+.table>tbody {
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: #000
+}
+
+
+.collapse {
+  visibility: visible !important;
+}
+
+
+/* ponkumar changes */
+.custom-form {
+  min-height: 60vh !important;
+}
+
+.custom-form .form-control {
+  font-size: 14px !important;
+  line-height: 20px !important;
+  border-radius: 5px !important;
+}
+
+.custom-form button.btn.btn-primary.btn-md {
+  margin-top: 20px;
+  width: 100px;
+  height: 34px;
+  line-height: 15px;
+  background-color: #379666;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.custom-form button.btn.btn-primary.btn-md:hover {
+  background-color: rgba(55, 150, 102, 0.8);
+}
+
+.custom-form button.btn.btn-primary.btn-md:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(55, 150, 102, 0.4);
+}
+
+.custom-form button.btn.btn-primary.btn-md:disabled {
+  background-color: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
+}
+
+/* Custom styles for the submit button */
+.formio-component-submit .btn-primary {
+  background-color: #379666 !important;
+  color: #fff !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  height: 34px !important;
+  line-height: 1 !important;
+  font-size: 14px !important;
+  border-radius: 5px !important;
+  transition: background-color 0.3s ease !important;
+}
+
+.formio-component-submit .btn-primary:hover {
+  background-color: #2f8657 !important;
+}
+
+/* Additional customizations for the form */
+/* .formio-component .form-control {
+  border: 1px solid #ccc !important;
+  padding: 10px !important;
+  border-radius: 4px !important;
+} */
+
+.formio-component .form-group label {
+  font-weight: bold !important;
+  color: #333 !important;
+}
+
+.ace-xcode .ace_gutter,
+.ace-xcode .ace_gutter-active-line {
+  background-color: transparent !important;
+}
+
+.ace_placeholder {
+  opacity: 1 !important;
+  background-color: transparent !important;
+}
+
+.lead {
+  color: #000 !important;
+}
+
+.form-check {
+  display: block;
+  min-height: 1.218rem;
+  line-height: 1;
+  padding-left: 2em;
+  margin-bottom: .125rem;
+}
+
+.fa-question-circle:before {
+  content: "" !important;
+}

@@ -1,0 +1,5 @@
+.full-logo, .short-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

@@ -1,0 +1,328 @@
+.responsive-calendar {
+  /* by setting font-size, all the elements will correspond */
+  font-size: 9px !important; /* default to 10px */
+}
+/* #Calendar {
+  width: 100%;
+} */
+
+@media (max-width: 1500px) {
+  .responsive-calendar {
+    font-size: 8px !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .responsive-calendar {
+    font-size: 7px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .responsive-calendar {
+    font-size: 6px !important;
+  }
+}
+
+/* Large screens */
+@media (min-width: 2500px) {
+  .responsive-calendar {
+    font-size: 12px !important;
+  }
+}
+
+#head {
+  padding: 15px !important;
+  background-color: #e8f2ff !important;
+  border-radius: 5px;
+}
+
+.css-lekmnu-MuiButtonBase-root-MuiButton-root {
+  background-color: #03346e !important;
+  text-transform: unset !important;
+}
+
+.css-gcc2o7-MuiButton-startIcon > *:nth-of-type(1) {
+  color: #fff !important;
+}
+
+.css-1sq3u84-MuiButtonBase-root-MuiButton-root {
+  background-color: #217a6e !important;
+  text-transform: unset !important;
+}
+
+.css-1gnd1fd-MuiButton-endIcon > *:nth-of-type(1) {
+  color: #fff !important;
+}
+
+.css-1wyy2wf-MuiList-root {
+  margin-top: 1% !important;
+  padding: 20px !important;
+  background-color: #ebebebb0;
+  height: 400px;
+  overflow-y: scroll;
+}
+
+.css-1eb4bos-MuiButtonBase-root-MuiButton-root {
+  background-color: #0f67b1 !important;
+  color: #fff !important;
+  border-radius: 5px !important;
+  width: 100% !important;
+}
+
+.css-1aenzpy-MuiTypography-root {
+  color: #545454 !important;
+}
+
+.css-145fhba-MuiButtonBase-root-MuiButton-root {
+  width: fit-content !important;
+  background-color: #074173 !important;
+  text-transform: unset !important;
+}
+
+.css-hx7ya8-MuiButtonBase-root-MuiTab-root {
+  color: #787878;
+}
+
+.css-10mi8st-MuiSvgIcon-root-MuiAvatar-fallback {
+  color: #fff !important;
+}
+
+.css-s0ns04-MuiAutocomplete-root .MuiOutlinedInput-root {
+  padding: 0px !important;
+}
+
+/*
+  .css-1q24vpl{
+    padding-left: 20px !important;
+    padding-right: 0px !important;
+  } 
+*/
+.css-1xslnwe {
+  display: -webkit-box !important;
+}
+
+.css-u7zwh2-MuiInputBase-input-MuiOutlinedInput-input {
+  padding: 10px 14px !important;
+}
+
+.css-5g0yqj-MuiButtonBase-root-MuiButton-root {
+  width: 100% !important;
+  background-color: #005c78 !important;
+}
+.css-1wyy2wf-MuiList-root {
+  margin-top: 1% !important;
+  padding: 20px !important;
+  background-color: #ebebebb0;
+  height: 400px;
+  overflow-y: scroll;
+}
+.css-h4y409-MuiList-root {
+  height: 400px;
+  overflow-y: scroll;
+}
+.css-19idom {
+  background-color: #52453317 !important;
+  padding: 0px 30px 0px 30px !important;
+  border-radius: 10px !important;
+}
+.css-1q24vpl:hover {
+  border-left: 0px !important;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px,
+    rgba(0, 0, 0, 0.06) 0px 2px 4px -1px !important;
+}
+.css-cdbs6z-MuiButtonBase-root-MuiIconButton-root {
+  color: #4d575e !important;
+}
+.css-llakp1:hover {
+  border-left: 0px !important;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px,
+    rgba(0, 0, 0, 0.06) 0px 2px 4px -1px !important;
+}
+
+.card.custom-card {
+  color: #1a2638 !important;
+}
+.card.custom-card {
+  border-radius: 0.5rem;
+  background-color: var(--custom-white);
+  border: 1px solid var(--default-border);
+  position: relative;
+  margin-block-end: 1.5rem;
+  width: 100%;
+}
+.bg-primary-transparent {
+  background-color: #e0e3fb !important;
+  color: var(--primary-color) !important;
+}
+.main-card-icon {
+  border-radius: 1rem;
+}
+.border.border-success {
+  background-color: #b7efe5 !important;
+}
+.card.custom-card {
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  background-color: var(--custom-white);
+  border: 1px solid var(--default-border);
+  position: relative;
+  margin-block-end: 1.5rem;
+  width: 100%;
+}
+.border.border-primary.border-opacity-10 {
+  border-color: #babfe9 !important;
+  background-color: #ccd1fc !important;
+}
+.main-card-icon .avatar.avatar-lg {
+  border-radius: 0.75rem;
+}
+.border.border-primary {
+  border: 1px solid #c9d0fc !important;
+  opacity: 1;
+}
+
+.avatar.avatar-lg {
+  width: 3rem;
+  height: 3rem;
+  line-height: 3rem;
+  font-size: 1rem;
+}
+.avatar {
+  position: relative;
+  height: 2.625rem;
+  width: 2.625rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  color: #fff;
+  font-weight: 500;
+}
+.main-card-icon.primary .avatar.avatar-lg .avatar.avatar-sm {
+  background-color: #546dfe;
+}
+.main-card-icon .avatar.avatar-lg .avatar.avatar-sm {
+  border-radius: 0.5rem;
+}
+.avatar.avatar-sm {
+  width: 1.75rem;
+  height: 1.75rem;
+  line-height: 1.75rem;
+  font-size: 0.65rem;
+}
+.main-card-icon .avatar.avatar-lg .avatar.avatar-sm svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.svg-white svg {
+  fill: #fff;
+}
+.d-block {
+  display: block !important;
+}
+.fw-medium {
+  font-weight: 500 !important;
+  text-align: left;
+}
+.mb-0 {
+  margin-bottom: 0 !important;
+}
+.fs-12 {
+  font-size: 0.75rem;
+}
+.main-card-icon.secondary .avatar.avatar-lg .avatar.avatar-sm {
+  background-color: #9c51b7;
+}
+.border.border-secondary.border-opacity-10 {
+  border-color: #dfcae9 !important;
+  background-color: #efd5fa !important;
+}
+.border.border-secondary {
+  border: 1px solid #edccf9;
+}
+.bg-success1-transparent {
+  background-color: #e5e2e1 !important;
+}
+.bg-secondary-transparent {
+  background-color: #f3e5fa !important;
+}
+.bg-secondary1-transparent {
+  background-color: #cce7fd !important;
+}
+.bg-success-transparent {
+  background-color: #d5f3ef !important;
+}
+.main-card-icon.success .avatar.avatar-lg .avatar.avatar-sm {
+  background-color: #139980;
+}
+.main-card-icon.secondary1 .avatar.avatar-lg .avatar.avatar-sm {
+  background-color: #2a689d !important;
+}
+.main-card-icon.success1 .avatar.avatar-lg .avatar.avatar-sm {
+  background-color: #7e5f55 !important;
+}
+.border.border-secondary1.border-opacity-10 {
+  background-color: #b3d5f1 !important;
+  border-color: #a8cff1 !important;
+}
+.border.border-success1.border-opacity-10 {
+  background-color: #e5d5d5 !important;
+  border-color: #ddc7c0 !important;
+}
+.bg-success-transparent {
+  background-color: #b7efe5;
+}
+.bg-orange-transparent {
+  background-color: #f9e5e2 !important;
+}
+.border.border-orange.border-opacity-10 {
+  border-color: #faccc2 !important;
+  background-color: #fad5cd !important;
+}
+.main-card-icon.orange .avatar.avatar-lg .avatar.avatar-sm {
+  background-color: #fe7c58;
+}
+.p-4 {
+  padding: 1.5rem !important;
+}
+.bg {
+  background-color: #f1f1f1;
+  padding: 50px;
+  text-align: justify;
+}
+.bg h4 {
+  font-size: calc(1.275rem + 0.3vw);
+}
+.bg ul {
+  padding: 20px;
+}
+.bg li {
+  font-size: medium;
+}
+.bg li i {
+  padding: 10px;
+  background-color: #1399800f;
+  color: #139980;
+  font-size: larger;
+  border-radius: 10px;
+}
+.css-6qh8is {
+  border-bottom: 1px solid #efefef !important;
+  font-size: 9px !important;
+}
+.css-i376vl-MuiAvatar-root {
+  font-size: 9px !important;
+}
+.css-1d7dg2m:hover {
+  border-left: 0px !important;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px !important;
+}
+.css-1q24vpl:hover {
+  border-left: 0px !important;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px !important;
+}
+.css-1kuhpvk:hover {
+  border-left: 0px !important;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px !important;
+}

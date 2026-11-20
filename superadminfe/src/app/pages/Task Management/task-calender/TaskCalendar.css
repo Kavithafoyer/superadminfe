@@ -1,0 +1,142 @@
+.long-title h3 {
+  font-family:
+    "Segoe UI Light",
+    "Helvetica Neue Light",
+    "Segoe UI",
+    "Helvetica Neue",
+    "Trebuchet MS",
+    Verdana;
+  font-weight: 200;
+  font-size: 28px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.dx-scheduler-work-space {
+  padding: 5px !important;
+}
+
+.dx-widget {
+  line-height: normal !important;
+}
+
+.dx-button {
+  height: 35px !important;
+  /* width: 60px !important; */
+  /* color: #000000 !important; */
+}
+
+.dx-scheduler-header .dx-toolbar .dx-button,
+.dx-button-text {
+  color: #000000 !important;
+}
+
+.dx-scheduler-header .dx-toolbar .dx-button .dx-icon {
+  color: #000000 !important;
+}
+
+.dx-calendar-navigator .dx-button .dx-icon {
+  color: #000000 !important;
+}
+
+.scheduler-container .dx-scheduler-cell-sizes-vertical {
+  cursor: pointer;
+}
+
+/* 
+.scheduler-container .dx-scheduler-appointment {
+  background-color: red;
+} */
+
+
+.dx-icon-back:before,
+.dx-icon-chevronleft:before,
+.dx-icon-chevronprev:before {
+  content: "<";
+}
+
+.dx-icon-chevronnext:before,
+.dx-icon-chevronright:before {
+  content: ">";
+}
+
+/* menu bar css */
+.dx-scheduler-header .dx-toolbar .dx-toolbar-menu-container .dx-icon::before {
+  content: "\2630";
+}
+
+/* dot css */
+.dx-scheduler-appointment .dx-scheduler-appointment-reduced-icon::before {
+  content: "\2022";
+}
+
+
+.dx-button.dx-button-has-icon:not(.dx-button-has-text):not(.dx-shape-standard) {
+  border-radius: 0%;
+  box-shadow: none;
+}
+
+.scheduler-container .dx-scheduler-navigator-previous {
+  background-color: transparent;
+  /* border: 2px solid black; */
+  width: 40px;
+  height: 40px;
+}
+
+.scheduler-container .dx-scheduler-navigator-next {
+  background-color: transparent;
+  /* border: 2px solid black; */
+  width: 40px;
+  height: 40px;
+}
+
+.scheduler-container .dx-scheduler-navigator-caption {
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.scheduler-container .dx-scheduler-header-panel-cell {
+  /* background-color: #f0f0f0; */
+  background-color: #c7dfd4;
+  text-align: center;
+  font-weight: bold;
+  padding: 5px;
+}
+
+
+.scheduler-container .dx-scheduler-container {
+  margin: 10px !important;
+}
+
+
+/* ponkumar changes */
+.scheduler-container .dx-scheduler-all-day-table {
+  height: 80px !important;
+}
+
+.scheduler-container .dx-scheduler-appointment {
+  height: 30px !important;
+  display: grid;
+  grid-row: 1px;
+}
+
+.scheduler-container .dx-scheduler-appointment-content {
+  height: 30px !important;
+  display: grid;
+  grid-row: 1px;
+}
+
+.scheduler-container .dx-scheduler-appointment-collector {
+  background-color: #977ae0 !important;
+  /* padding: 0% !important; */
+  color: #ffffff !important;
+  height: 30px !important;
+  width: 100px !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+}
+
+.dx-popup-normal {
+  /* display: none; */
+}
