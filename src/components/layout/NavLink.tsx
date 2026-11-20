@@ -47,7 +47,7 @@ export function NavLink({
     "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer",
     collapsed ? "justify-center px-2" : "justify-start",
     isCurrentActive
-      ? "bg-[#5046e5] text-white font-semibold shadow-xs shadow-indigo-500/20"
+      ? "bg-blue-50/90 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold rounded-lg"
       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60"
   );
 
@@ -64,7 +64,14 @@ export function NavLink({
       onClick={onClick}
       style={resolvedStyle}
     >
-      {Icon && <Icon className="h-4 w-4 shrink-0" />}
+      {Icon && (
+        <Icon
+          className={cn(
+            "h-4 w-4 shrink-0 transition-colors",
+            isCurrentActive ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"
+          )}
+        />
+      )}
       {!collapsed && <span className="truncate">{content}</span>}
     </Link>
   );

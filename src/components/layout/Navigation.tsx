@@ -256,6 +256,45 @@ export const getMenuGroups = (): MenuSection[] => [
           },
         ],
       },
+      {
+        icon: PackagePlus,
+        label: 'Add-on Marketplace',
+        path: '/addon-marketplace/master',
+        subItems: [
+          {
+            label: 'Add-on Master',
+            path: '/addon-marketplace/master',
+          },
+          {
+            label: 'Add-on Categories',
+            path: '/addon-marketplace/categories',
+          },
+          {
+            label: 'Add-on Pricing',
+            path: '/addon-marketplace/pricing',
+          },
+          {
+            label: 'Price Templates',
+            path: '/addon-marketplace/price-templates',
+          },
+          {
+            label: 'Tiered Pricing',
+            path: '/addon-marketplace/tiered-pricing',
+          },
+          {
+            label: 'Discounts & Coupons',
+            path: '/addon-marketplace/discounts-coupons',
+          },
+          {
+            label: 'Price History',
+            path: '/addon-marketplace/price-history',
+          },
+          {
+            label: 'Product Compatibility',
+            path: '/addon-marketplace/compatibility',
+          },
+        ],
+      },
     ],
   },
 
@@ -599,14 +638,14 @@ export function isRouteActive(targetPath: string, currentPath: string | null): b
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isChildActive ? "text-[#5046e5]" : "text-slate-500 dark:text-slate-400")} />
+                          <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isChildActive ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400")} />
                           <span>{item.label}</span>
                         </div>
                         <ChevronDown
                           className={cn(
                             "h-4 w-4 transition-transform duration-200 shrink-0",
                             isExpanded ? "transform rotate-180" : "",
-                            isChildActive ? "text-[#5046e5]" : "text-slate-400"
+                            isChildActive ? "text-blue-600 dark:text-blue-400" : "text-slate-400"
                           )}
                         />
                       </button>
@@ -631,12 +670,11 @@ export function isRouteActive(targetPath: string, currentPath: string | null): b
                                   className={cn(
                                     "text-xs py-2 px-3 rounded-lg transition-all duration-150 cursor-pointer font-medium flex items-center gap-2",
                                     isSubActive
-                                      ? "bg-[#5046e5] text-white font-semibold shadow-xs shadow-indigo-500/25"
+                                      ? "bg-blue-50/90 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold"
                                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60"
                                   )}
                                 >
-                                  {isSubActive && <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />}
-                                  <span>{sub.label}</span>
+                                  {sub.label}
                                 </NavLink>
                               );
                             })}
@@ -645,21 +683,82 @@ export function isRouteActive(targetPath: string, currentPath: string | null): b
                       </AnimatePresence>
                     </div>
                   );
-                }
 
-                return (
-                  <NavLink
-                    key={`${item.label}-${item.path}`}
-                    href={item.path}
-                    icon={Icon}
-                    collapsed={collapsed}
-                    onClick={onNavigate}
-                    active={isItemActive}
-                  >
-                    {item.label}
-                  </NavLink>
-                );
-              })}
+                  if (hasSubItems && !collapsed) {
+                    return (
+                      <div key={item.label} className="flex flex-col">
+                        <button
+                          type="button"
+                          onClick={() => toggleSubmenu(item.label)}
+                          className={cn(
+                            "flex items-center justify-between w-full px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer",
+                            isChildActive
+                              ? "bg-slate-100/90 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 font-semibold"
+                              : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60"
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isChildActive ? "text-[#5046e5]" : "text-slate-500 dark:text-slate-400")} />
+                            <span>{item.label}</span>
+                          </div>
+                          <ChevronDown
+                            className={cn(
+                              "h-4 w-4 transition-transform duration-200 shrink-0",
+                              isExpanded ? "transform rotate-180" : "",
+                              isChildActive ? "text-[#5046e5]" : "text-slate-400"
+                            )}
+                          />
+                        </button>
+
+                        <AnimatePresence initial={false}>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden pl-7 pt-1 flex flex-col gap-1"
+                            >
+                              {item.subItems?.map((sub, subIdx) => {
+                                const isSubActive = isRouteActive(sub.path, pathname);
+                                return (
+                                  <NavLink
+                                    key={`${item.label}-${sub.label}-${subIdx}`}
+                                    href={sub.path}
+                                    onClick={onNavigate}
+                                    active={isSubActive}
+                                    className={cn(
+                                      "text-xs py-2 px-3 rounded-lg transition-all duration-150 cursor-pointer font-medium flex items-center gap-2",
+                                      isSubActive
+                                        ? "bg-[#5046e5] text-white font-semibold shadow-xs shadow-indigo-500/25"
+                                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60"
+                                    )}
+                                  >
+                                    {isSubActive && <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />}
+                                    <span>{sub.label}</span>
+                                  </NavLink>
+                                );
+                              })}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <NavLink
+                      key={`${item.label}-${item.path}`}
+                      href={item.path}
+                      icon={Icon}
+                      collapsed={collapsed}
+                      onClick={onNavigate}
+                      active={isItemActive}
+                    >
+                      {item.label}
+                    </NavLink>
+                  );
+                })}
             </div>
           </div>
         ))}
