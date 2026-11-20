@@ -1,5 +1,5 @@
-import SubscriptionsPage from '../sales/subscriptions/page';
+import { redirect } from 'next/navigation';
 
 export default function TopLevelSubscriptionsPage() {
-  return <SubscriptionsPage />;
+  redirect('/subscriptions/plans');
 }

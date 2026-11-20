@@ -1,16 +1,12 @@
 'use client';
 
 import React from 'react';
-import { useSearchParams } from 'next/navigation';
-import { ProductMasterScreen } from '@/components/products/ProductMasterScreen';
+import { ProductMasterListScreen } from '@/components/products/ProductMasterListScreen';
 
-export default function ProductMasterPage() {
-  const searchParams = useSearchParams();
-  const queryTab = searchParams.get('tab') as 'details' | 'editions' | 'features' | 'plans' | null;
-
+export default function ProductMasterMainPage() {
   return (
     <div className="w-full">
-      <ProductMasterScreen initialTab={queryTab || 'details'} />
+      <ProductMasterListScreen />
     </div>
   );
 }

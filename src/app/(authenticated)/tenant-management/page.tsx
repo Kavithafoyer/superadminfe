@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { TenantManagementScreen } from '@/components/tenants/TenantManagementScreen';
+import { TenantMasterListScreen } from '@/components/tenants/TenantMasterListScreen';
 
-export default function TenantManagementPage() {
+export default function TenantManagementRootPage() {
   return (
     <div className="w-full">
-      <TenantManagementScreen initialTab="onboarding" />
+      <TenantMasterListScreen />
     </div>
   );
 }

@@ -1,5 +1,13 @@
-import SubscriptionsPage from '../../../sales/subscriptions/page';
+'use client';
 
-export default function TopLevelSubscriptionsEditPage() {
-  return <SubscriptionsPage />;
+import React, { use } from 'react';
+import { SubscriptionPlanCreateScreen } from '@/components/subscriptions/SubscriptionPlanCreateScreen';
+
+export default function SubscriptionsEditPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const unwrappedParams = use(params);
+  return <SubscriptionPlanCreateScreen mode="edit" planId={unwrappedParams?.id || 'professional'} />;
 }

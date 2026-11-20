@@ -240,12 +240,16 @@ const INITIAL_MODULES: ModuleItem[] = [
   },
 ];
 
-export function FeaturesModulesScreen() {
+export function FeaturesModulesScreen({
+  initialTab = 'details',
+}: {
+  initialTab?: 'details' | 'features' | 'mapping';
+}) {
   const router = useRouter();
   const [modules, setModules] = useState<ModuleItem[]>(INITIAL_MODULES);
   const [selectedModuleId, setSelectedModuleId] = useState<string>('mod-1');
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
-  const [rightActiveTab, setRightActiveTab] = useState<'details' | 'features' | 'mapping'>('details');
+  const [rightActiveTab, setRightActiveTab] = useState<'details' | 'features' | 'mapping'>(initialTab);
 
   const selectedModule = modules.find((m) => m.id === selectedModuleId) || modules[0];
 
@@ -337,10 +341,18 @@ export function FeaturesModulesScreen() {
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              Product Master
+              {rightActiveTab === 'features'
+                ? 'Feature Master'
+                : rightActiveTab === 'mapping'
+                ? 'Feature Mapping'
+                : 'Module Master'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Create and manage all Pegatto products, editions, versions and lifecycle
+              {rightActiveTab === 'features'
+                ? 'Manage, configure, and assign product features across modules'
+                : rightActiveTab === 'mapping'
+                ? 'Map modules and feature sets to editions and tier packages'
+                : 'Configure and manage functional modules, feature counts, and edition assignments'}
             </p>
           </div>
         </div>

@@ -21,7 +21,6 @@ import {
   Cpu,
   UserPlus,
   Package,
-  PackagePlus,
   HardDrive,
   CalendarClock,
   UserMinus,
@@ -108,23 +107,84 @@ export const getMenuGroups = (): MenuSection[] => [
             path: '/products/master',
           },
           {
-            label: 'Product Editions',
+            label: 'Editions & Versions',
             path: '/products/editions',
           },
           {
-            label: 'Features & Modules',
-            path: '/products/features-modules',
+            label: 'Module Master',
+            path: '/products/modules',
           },
           {
-            label: 'Plans & Pricing',
-            path: '/products/plans-pricing',
+            label: 'Feature Master',
+            path: '/products/features',
           },
           {
-            label: 'Product Configuration',
+            label: 'Free Core Configuration',
             path: '/products/configuration',
+          },
+          {
+            label: 'Trial Configuration',
+            path: '/products/trial-configuration',
+          },
+          {
+            label: 'Product Releases',
+            path: '/products/releases',
+          },
+          {
+            label: 'Feature Mapping',
+            path: '/products/feature-mapping',
+          },
+          {
+            label: 'Product Pricing',
+            path: '/products/pricing',
+          },
+          {
+            label: 'Free & Paid Plans',
+            path: '/products/free-paid-plans',
+          },
+          {
+            label: 'License & Entitlements',
+            path: '/products/license-entitlements',
           },
         ],
       },
+    ],
+  },
+  {
+    title: 'Subscriptions',
+    items: [
+      {
+        icon: Layers,
+        label: 'Subscriptions',
+        path: '/subscriptions/plans',
+        subItems: [
+          {
+            label: 'Subscription Plans',
+            path: '/subscriptions/plans',
+          },
+          {
+            label: 'Subscription Lifecycle',
+            path: '/subscriptions/lifecycle',
+          },
+          {
+            label: 'Renewals & Expiry',
+            path: '/subscriptions/renewals',
+          },
+          {
+            label: 'Discounts & Coupons',
+            path: '/subscriptions/discounts-coupons',
+          },
+          {
+            label: 'Tenant Trials',
+            path: '/subscriptions/trials',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    title: 'Tenant Management',
+    items: [
       {
         icon: Building2,
         label: 'Tenant Management',
@@ -247,11 +307,6 @@ export const getMenuGroups = (): MenuSection[] => [
         path: '/customer/additional-license',
       },
       {
-        icon: PackagePlus,
-        label: 'Addon Subscriptions',
-        path: '/customer/addon-subscription',
-      },
-      {
         icon: HardDrive,
         label: 'Additional Storage',
         path: '/customer/additional-storage',
@@ -337,11 +392,6 @@ export const getMenuGroups = (): MenuSection[] => [
         path: '/settings/user-master',
       },
       {
-        icon: PackagePlus,
-        label: 'Addon Master',
-        path: '/settings/addons',
-      },
-      {
         icon: Sliders,
         label: 'System Preference',
         path: '/settings/preferences',
@@ -419,6 +469,15 @@ export function isRouteActive(targetPath: string, currentPath: string | null): b
     return currentPath === '/customer' || currentPath.startsWith('/customer/master');
   }
 
+  // Subscriptions deep routes & aliases
+  if (targetPath === '/subscriptions/plans') {
+    return (
+      currentPath === '/subscriptions' ||
+      currentPath === '/subscriptions/plans' ||
+      currentPath === '/subscriptions/subscription-plans'
+    );
+  }
+
   // Nested paths (e.g., /products/configuration/branding matches /products/configuration)
   if (targetPath !== '/' && targetPath !== '/dashboard' && currentPath.startsWith(targetPath + '/')) {
     return true;
@@ -432,6 +491,7 @@ export function Navigation({ collapsed = false, onNavigate }: { collapsed?: bool
   const { primaryColor } = useStore();
   const [expandedMenus, setExpandedMenus] = useState<string[]>([
     'Product Management',
+    'Subscriptions',
     'Tenant Management',
     'Customer Management',
   ]);
@@ -526,7 +586,8 @@ export function Navigation({ collapsed = false, onNavigate }: { collapsed?: bool
                                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60"
                                 )}
                               >
-                                {sub.label}
+                                {isSubActive && <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />}
+                                <span>{sub.label}</span>
                               </NavLink>
                             );
                           })}
