@@ -36,6 +36,7 @@ import {
   Sliders,
   Activity,
   TrendingUp,
+  ShoppingCart,
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { cn } from '@/lib/utils';
@@ -262,6 +263,38 @@ export const getMenuGroups = (): MenuSection[] => [
     title: 'Sales Module',
     items: [
       {
+        icon: ShoppingCart,
+        label: 'Purchase & Activation',
+        path: '/purchase-activation/purchases',
+        subItems: [
+          {
+            label: 'Purchases',
+            path: '/purchase-activation/purchases',
+          },
+          {
+            label: 'Activations',
+            path: '/purchase-activation/activations',
+          },
+          {
+            label: 'Activation Queue',
+            path: '/purchase-activation/activation-queue',
+          },
+          {
+            label: 'Payment Transactions',
+            path: '/purchase-activation/payment-transactions',
+          },
+          {
+            label: 'Invoices',
+            path: '/purchase-activation/invoices',
+          },
+        ],
+      },
+      {
+        icon: Activity,
+        label: 'Usage',
+        path: '/usage',
+      },
+      {
         icon: Layers,
         label: 'Plans Management',
         path: '/sales/plans',
@@ -476,144 +509,160 @@ export function isRouteActive(targetPath: string, currentPath: string | null): b
       currentPath === '/subscriptions/plans' ||
       currentPath === '/subscriptions/subscription-plans'
     );
+    // Purchase & Activation aliases & deep routes
+    if (targetPath.startsWith('/purchase-activation')) {
+      if (targetPath === '/purchase-activation/purchases') {
+        return (
+          currentPath === '/purchase-activation' ||
+          currentPath === '/purchase-activation/purchases' ||
+          currentPath === '/subscriptions/purchase-activation'
+        );
+      }
+      return currentPath === targetPath || currentPath.startsWith(targetPath + '/');
+    }
+
+    // Usage module aliases
+    if (targetPath === '/usage') {
+      return currentPath === '/usage' || currentPath === '/subscriptions/usage';
+    }
+
+    // Nested paths (e.g., /products/configuration/branding matches /products/configuration)
+    if (targetPath !== '/' && targetPath !== '/dashboard' && currentPath.startsWith(targetPath + '/')) {
+      return true;
+    }
+
+    return false;
   }
 
-  // Nested paths (e.g., /products/configuration/branding matches /products/configuration)
-  if (targetPath !== '/' && targetPath !== '/dashboard' && currentPath.startsWith(targetPath + '/')) {
-    return true;
-  }
+  export function Navigation({ collapsed = false, onNavigate }: { collapsed?: boolean; onNavigate?: () => void }) {
+    const pathname = usePathname();
+    const { primaryColor } = useStore();
+    const [expandedMenus, setExpandedMenus] = useState<string[]>([
+      'Product Management',
+      'Subscriptions',
+      'Tenant Management',
+      'Customer Management',
+      'Purchase & Activation',
+    ]);
 
-  return false;
-}
+    const menuSections = React.useMemo(() => getMenuGroups(), []);
 
-export function Navigation({ collapsed = false, onNavigate }: { collapsed?: boolean; onNavigate?: () => void }) {
-  const pathname = usePathname();
-  const { primaryColor } = useStore();
-  const [expandedMenus, setExpandedMenus] = useState<string[]>([
-    'Product Management',
-    'Subscriptions',
-    'Tenant Management',
-    'Customer Management',
-  ]);
-
-  const menuSections = React.useMemo(() => getMenuGroups(), []);
-
-  // Universal auto-expand: expand any menu whose child is currently active
-  React.useEffect(() => {
-    if (!pathname) return;
-    menuSections.forEach((section) => {
-      section.items.forEach((item) => {
-        if (item.subItems && item.subItems.some((sub) => isRouteActive(sub.path, pathname))) {
-          setExpandedMenus((prev) => (prev.includes(item.label) ? prev : [...prev, item.label]));
-        }
+    // Universal auto-expand: expand any menu whose child is currently active
+    React.useEffect(() => {
+      if (!pathname) return;
+      menuSections.forEach((section) => {
+        section.items.forEach((item) => {
+          if (item.subItems && item.subItems.some((sub) => isRouteActive(sub.path, pathname))) {
+            setExpandedMenus((prev) => (prev.includes(item.label) ? prev : [...prev, item.label]));
+          }
+        });
       });
-    });
-  }, [pathname, menuSections]);
+    }, [pathname, menuSections]);
 
-  const toggleSubmenu = (label: string) => {
-    setExpandedMenus((prev) =>
-      prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]
-    );
-  };
+    const toggleSubmenu = (label: string) => {
+      setExpandedMenus((prev) =>
+        prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]
+      );
+    };
 
-  return (
-    <nav className="flex flex-col gap-6 py-2">
-      {menuSections.map((section, idx) => (
-        <div key={idx} className="flex flex-col gap-1.5">
-          {section.title && !collapsed && (
-            <span className="px-3 text-[11px] font-bold text-muted-foreground/70 uppercase tracking-wider">
-              {section.title}
-            </span>
-          )}
+    return (
+      <nav className="flex flex-col gap-6 py-2">
+        {menuSections.map((section, idx) => (
+          <div key={idx} className="flex flex-col gap-1.5">
+            {section.title && !collapsed && (
+              <span className="px-3 text-[11px] font-bold text-muted-foreground/70 uppercase tracking-wider">
+                {section.title}
+              </span>
+            )}
 
-          <div className="flex flex-col gap-1">
-            {section.items.map((item) => {
-              const Icon = item.icon || Layers;
-              const hasSubItems = Boolean(item.subItems && item.subItems.length > 0);
-              const isExpanded = expandedMenus.includes(item.label);
-              const isItemActive = isRouteActive(item.path, pathname);
-              const isChildActive = Boolean(
-                hasSubItems && item.subItems?.some((sub) => isRouteActive(sub.path, pathname))
-              );
-
-              if (hasSubItems && !collapsed) {
-                return (
-                  <div key={item.label} className="flex flex-col">
-                    <button
-                      type="button"
-                      onClick={() => toggleSubmenu(item.label)}
-                      className={cn(
-                        "flex items-center justify-between w-full px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer",
-                        isChildActive
-                          ? "bg-slate-100/90 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 font-semibold"
-                          : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60"
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isChildActive ? "text-[#5046e5]" : "text-slate-500 dark:text-slate-400")} />
-                        <span>{item.label}</span>
-                      </div>
-                      <ChevronDown
-                        className={cn(
-                          "h-4 w-4 transition-transform duration-200 shrink-0",
-                          isExpanded ? "transform rotate-180" : "",
-                          isChildActive ? "text-[#5046e5]" : "text-slate-400"
-                        )}
-                      />
-                    </button>
-
-                    <AnimatePresence initial={false}>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden pl-7 pt-1 flex flex-col gap-1"
-                        >
-                          {item.subItems?.map((sub, subIdx) => {
-                            const isSubActive = isRouteActive(sub.path, pathname);
-                            return (
-                              <NavLink
-                                key={`${item.label}-${sub.label}-${subIdx}`}
-                                href={sub.path}
-                                onClick={onNavigate}
-                                active={isSubActive}
-                                className={cn(
-                                  "text-xs py-2 px-3 rounded-lg transition-all duration-150 cursor-pointer font-medium flex items-center gap-2",
-                                  isSubActive
-                                    ? "bg-[#5046e5] text-white font-semibold shadow-xs shadow-indigo-500/25"
-                                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60"
-                                )}
-                              >
-                                {isSubActive && <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />}
-                                <span>{sub.label}</span>
-                              </NavLink>
-                            );
-                          })}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+            <div className="flex flex-col gap-1">
+              {section.items.map((item) => {
+                const Icon = item.icon || Layers;
+                const hasSubItems = Boolean(item.subItems && item.subItems.length > 0);
+                const isExpanded = expandedMenus.includes(item.label);
+                const isItemActive = isRouteActive(item.path, pathname);
+                const isChildActive = Boolean(
+                  hasSubItems && item.subItems?.some((sub) => isRouteActive(sub.path, pathname))
                 );
-              }
 
-              return (
-                <NavLink
-                  key={`${item.label}-${item.path}`}
-                  href={item.path}
-                  icon={Icon}
-                  collapsed={collapsed}
-                  onClick={onNavigate}
-                  active={isItemActive}
-                >
-                  {item.label}
-                </NavLink>
-              );
-            })}
+                if (hasSubItems && !collapsed) {
+                  return (
+                    <div key={item.label} className="flex flex-col">
+                      <button
+                        type="button"
+                        onClick={() => toggleSubmenu(item.label)}
+                        className={cn(
+                          "flex items-center justify-between w-full px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer",
+                          isChildActive
+                            ? "bg-slate-100/90 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 font-semibold"
+                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className={cn("h-4 w-4 shrink-0 transition-colors", isChildActive ? "text-[#5046e5]" : "text-slate-500 dark:text-slate-400")} />
+                          <span>{item.label}</span>
+                        </div>
+                        <ChevronDown
+                          className={cn(
+                            "h-4 w-4 transition-transform duration-200 shrink-0",
+                            isExpanded ? "transform rotate-180" : "",
+                            isChildActive ? "text-[#5046e5]" : "text-slate-400"
+                          )}
+                        />
+                      </button>
+
+                      <AnimatePresence initial={false}>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden pl-7 pt-1 flex flex-col gap-1"
+                          >
+                            {item.subItems?.map((sub, subIdx) => {
+                              const isSubActive = isRouteActive(sub.path, pathname);
+                              return (
+                                <NavLink
+                                  key={`${item.label}-${sub.label}-${subIdx}`}
+                                  href={sub.path}
+                                  onClick={onNavigate}
+                                  active={isSubActive}
+                                  className={cn(
+                                    "text-xs py-2 px-3 rounded-lg transition-all duration-150 cursor-pointer font-medium flex items-center gap-2",
+                                    isSubActive
+                                      ? "bg-[#5046e5] text-white font-semibold shadow-xs shadow-indigo-500/25"
+                                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60"
+                                  )}
+                                >
+                                  {isSubActive && <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />}
+                                  <span>{sub.label}</span>
+                                </NavLink>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                }
+
+                return (
+                  <NavLink
+                    key={`${item.label}-${item.path}`}
+                    href={item.path}
+                    icon={Icon}
+                    collapsed={collapsed}
+                    onClick={onNavigate}
+                    active={isItemActive}
+                  >
+                    {item.label}
+                  </NavLink>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
-    </nav>
-  );
-}
+        ))}
+      </nav>
+    );
+  }
