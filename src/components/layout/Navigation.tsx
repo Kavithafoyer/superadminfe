@@ -37,6 +37,7 @@ import {
   Sliders,
   Activity,
   TrendingUp,
+  ShoppingCart,
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { cn } from '@/lib/utils';
@@ -201,6 +202,38 @@ export const getMenuGroups = (): MenuSection[] => [
   {
     title: 'Sales Module',
     items: [
+      {
+        icon: ShoppingCart,
+        label: 'Purchase & Activation',
+        path: '/purchase-activation/purchases',
+        subItems: [
+          {
+            label: 'Purchases',
+            path: '/purchase-activation/purchases',
+          },
+          {
+            label: 'Activations',
+            path: '/purchase-activation/activations',
+          },
+          {
+            label: 'Activation Queue',
+            path: '/purchase-activation/activation-queue',
+          },
+          {
+            label: 'Payment Transactions',
+            path: '/purchase-activation/payment-transactions',
+          },
+          {
+            label: 'Invoices',
+            path: '/purchase-activation/invoices',
+          },
+        ],
+      },
+      {
+        icon: Activity,
+        label: 'Usage',
+        path: '/usage',
+      },
       {
         icon: Layers,
         label: 'Plans Management',
@@ -419,6 +452,23 @@ export function isRouteActive(targetPath: string, currentPath: string | null): b
     return currentPath === '/customer' || currentPath.startsWith('/customer/master');
   }
 
+  // Purchase & Activation aliases & deep routes
+  if (targetPath.startsWith('/purchase-activation')) {
+    if (targetPath === '/purchase-activation/purchases') {
+      return (
+        currentPath === '/purchase-activation' ||
+        currentPath === '/purchase-activation/purchases' ||
+        currentPath === '/subscriptions/purchase-activation'
+      );
+    }
+    return currentPath === targetPath || currentPath.startsWith(targetPath + '/');
+  }
+
+  // Usage module aliases
+  if (targetPath === '/usage') {
+    return currentPath === '/usage' || currentPath === '/subscriptions/usage';
+  }
+
   // Nested paths (e.g., /products/configuration/branding matches /products/configuration)
   if (targetPath !== '/' && targetPath !== '/dashboard' && currentPath.startsWith(targetPath + '/')) {
     return true;
@@ -434,6 +484,7 @@ export function Navigation({ collapsed = false, onNavigate }: { collapsed?: bool
     'Product Management',
     'Tenant Management',
     'Customer Management',
+    'Purchase & Activation',
   ]);
 
   const menuSections = React.useMemo(() => getMenuGroups(), []);
