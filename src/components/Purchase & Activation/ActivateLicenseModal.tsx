@@ -38,7 +38,7 @@ export function ActivateLicenseModal({ isOpen, onClose, onSuccess }: Props) {
       product,
       planEdition,
       activatedOn: `${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}, 10:24 AM`,
-      validity: '19 Nov 2026 â€“ 18 Nov 2027',
+      validity: '19 Nov 2026 – 18 Nov 2027',
       status: 'Active',
       purchaseId: `PUR-${Math.floor(100000 + Math.random() * 900000)}`,
       licenseKey: randomKey,

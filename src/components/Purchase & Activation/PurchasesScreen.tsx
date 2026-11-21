@@ -198,7 +198,7 @@ export function PurchasesScreen() {
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Revenue</p>
-            <p className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mt-0.5">â‚¹4,86,400</p>
+            <p className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mt-0.5">₹4,86,400</p>
           </div>
         </div>
       </div>
@@ -365,7 +365,7 @@ export function PurchasesScreen() {
                   <th className="p-3.5 font-bold">Product</th>
                   <th className="p-3.5 font-bold">Plan / Edition</th>
                   <th className="p-3.5 font-bold">Purchase Date</th>
-                  <th className="p-3.5 font-bold">Amount (â‚¹)</th>
+                  <th className="p-3.5 font-bold">Amount (₹)</th>
                   <th className="p-3.5 font-bold">Payment Status</th>
                   <th className="p-3.5 font-bold">Activation Status</th>
                   <th className="p-3.5 font-bold text-center">Actions</th>
@@ -621,7 +621,7 @@ export function PurchasesScreen() {
               <div className="flex justify-between items-center">
                 <span className="text-slate-600 dark:text-slate-400 font-medium">License Validity</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-100">
-                  {selectedPurchase.validity || '19 Nov 2026 â€“ 18 Nov 2027'}
+                  {selectedPurchase.validity || '19 Nov 2026 – 18 Nov 2027'}
                 </span>
               </div>
             </div>

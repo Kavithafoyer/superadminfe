@@ -15,7 +15,7 @@ interface Props {
 
 export function CreateInvoiceModal({ isOpen, onClose, onSuccess }: Props) {
   const [customerTenant, setCustomerTenant] = useState('');
-  const [productPlan, setProductPlan] = useState('Pegatto CRM â€“ Professional');
+  const [productPlan, setProductPlan] = useState('Pegatto CRM – Professional');
   const [amount, setAmount] = useState('49900');
   const [status, setStatus] = useState<'Paid' | 'Pending' | 'Draft'>('Pending');
 
@@ -102,14 +102,14 @@ export function CreateInvoiceModal({ isOpen, onClose, onSuccess }: Props) {
             <Input
               value={productPlan}
               onChange={(e) => setProductPlan(e.target.value)}
-              placeholder="Pegatto CRM â€“ Professional"
+              placeholder="Pegatto CRM – Professional"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Total Amount (â‚¹)
+                Total Amount (₹)
               </label>
               <Input
                 type="number"

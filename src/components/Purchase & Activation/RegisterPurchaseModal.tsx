@@ -136,7 +136,7 @@ export function RegisterPurchaseModal({ isOpen, onClose, onSuccess }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Amount (â‚¹)
+                Amount (₹)
               </label>
               <Input
                 type="number"
