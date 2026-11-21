@@ -10,6 +10,7 @@ import {
   User,
   Settings,
   Shield,
+  ShieldCheck,
   Layers,
   ChevronDown,
   BarChart3,
@@ -22,6 +23,9 @@ import {
   UserPlus,
   Package,
   PackagePlus,
+  Puzzle,
+  GitBranch,
+  Store,
   HardDrive,
   CalendarClock,
   UserMinus,
@@ -57,204 +61,40 @@ export interface MenuSection {
 
 export const getMenuGroups = (): MenuSection[] => [
   {
-    title: 'Dashboard',
     items: [
       {
         icon: LayoutDashboard,
-        label: 'Business Overview',
+        label: 'Dashboard',
         path: '/dashboard',
       },
-      {
-        icon: BarChart2,
-        label: 'Product-wise Performance',
-        path: '/dashboard/product-wise-performance',
-      },
-      {
-        icon: Users,
-        label: 'Customer & Partner KPIs',
-        path: '/dashboard/customer-partner-kpis',
-      },
-      {
-        icon: Layers,
-        label: 'Revenue & Subscription Analytics',
-        path: '/dashboard/revenue-subscription-analytics',
-      },
-      {
-        icon: Activity,
-        label: 'System Health & Alerts',
-        path: '/dashboard/system-health',
-      },
-      {
-        icon: Server,
-        label: 'Tenant & Fleet Telemetry',
-        path: '/dashboard/tenant-fleet-telemetry',
-      },
-      {
-        icon: TrendingUp,
-        label: 'Financial & Operations Analytics',
-        path: '/dashboard/financial-operations-analytics',
-      },
-    ],
-  },
-  {
-    title: 'Product Management',
-    items: [
       {
         icon: Package,
         label: 'Product Management',
         path: '/products/master',
         subItems: [
-          {
-            label: 'Product Master',
-            path: '/products/master',
-          },
-          {
-            label: 'Editions & Versions',
-            path: '/products/editions',
-          },
-          {
-            label: 'Module Master',
-            path: '/products/modules',
-          },
-          {
-            label: 'Feature Master',
-            path: '/products/features',
-          },
-          {
-            label: 'Free Core Configuration',
-            path: '/products/configuration',
-          },
-          {
-            label: 'Trial Configuration',
-            path: '/products/trial-configuration',
-          },
-          {
-            label: 'Product Releases',
-            path: '/products/releases',
-          },
-          {
-            label: 'Feature Mapping',
-            path: '/products/feature-mapping',
-          },
-          {
-            label: 'Product Pricing',
-            path: '/products/pricing',
-          },
-          {
-            label: 'Free & Paid Plans',
-            path: '/products/free-paid-plans',
-          },
-          {
-            label: 'License & Entitlements',
-            path: '/products/license-entitlements',
-          },
+          { label: 'Product Master', path: '/products/master' },
+          { label: 'Editions & Versions', path: '/products/editions' },
+          { label: 'Module Master', path: '/products/modules' },
+          { label: 'Feature Master', path: '/products/features' },
+          { label: 'Free Core Configuration', path: '/products/configuration' },
+          { label: 'Trial Configuration', path: '/products/trial-configuration' },
+          { label: 'Product Releases', path: '/products/releases' },
+          { label: 'Feature Mapping', path: '/products/feature-mapping' },
+          { label: 'Product Pricing', path: '/products/pricing' },
+          { label: 'Free & Paid Plans', path: '/products/free-paid-plans' },
+          { label: 'License & Entitlements', path: '/products/license-entitlements' },
         ],
       },
-    ],
-  },
-  {
-    title: 'Subscriptions',
-    items: [
       {
         icon: Layers,
         label: 'Subscriptions',
         path: '/subscriptions/plans',
         subItems: [
-          {
-            label: 'Subscription Plans',
-            path: '/subscriptions/plans',
-          },
-          {
-            label: 'Subscription Lifecycle',
-            path: '/subscriptions/lifecycle',
-          },
-          {
-            label: 'Renewals & Expiry',
-            path: '/subscriptions/renewals',
-          },
-          {
-            label: 'Discounts & Coupons',
-            path: '/subscriptions/discounts-coupons',
-          },
-          {
-            label: 'Tenant Trials',
-            path: '/subscriptions/trials',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    title: 'Tenant Management',
-    items: [
-      {
-        icon: Building2,
-        label: 'Tenant Management',
-        path: '/tenant-management/onboarding',
-        subItems: [
-          {
-            label: 'Tenants (All)',
-            path: '/tenant-management/all',
-          },
-          {
-            label: 'Tenant Registration',
-            path: '/tenant-management/registration',
-          },
-          {
-            label: 'Approval & Onboarding',
-            path: '/tenant-management/onboarding',
-          },
-          {
-            label: 'Tenant Provisioning',
-            path: '/tenant-management/provisioning',
-          },
-          {
-            label: 'Tenant Status & Lifecycle',
-            path: '/tenant-management/lifecycle',
-          },
-          {
-            label: 'Tenant Usage & Limits',
-            path: '/tenant-management/usage',
-          },
-          {
-            label: 'Tenant Settings',
-            path: '/tenant-management/settings',
-          },
-          {
-            label: 'Tenant Suspension & Reactivation',
-            path: '/tenant-management/suspension',
-          },
-          {
-            label: 'Tenant Data Export & Deletion',
-            path: '/tenant-management/export-deletion',
-          },
-        ],
-      },
-      {
-        icon: Users,
-        label: 'Customer Management',
-        path: '/customer/master',
-        subItems: [
-          {
-            label: 'Customer Master',
-            path: '/customer/master',
-          },
-          {
-            label: 'Customer Overview',
-            path: '/customer/overview',
-          },
-          {
-            label: 'Subscription Management',
-            path: '/customer/subscription-management',
-          },
-          {
-            label: 'Customer Usage',
-            path: '/customer/usage',
-          },
-          {
-            label: 'Renewals & Expiry',
-            path: '/customer/renewals-expiry',
-          },
+          { label: 'Subscription Plans', path: '/subscriptions/plans' },
+          { label: 'Subscription Lifecycle', path: '/subscriptions/lifecycle' },
+          { label: 'Renewals & Expiry', path: '/subscriptions/renewals' },
+          { label: 'Discounts & Coupons', path: '/subscriptions/discounts-coupons' },
+          { label: 'Tenant Trials', path: '/subscriptions/trials' },
         ],
       },
       {
@@ -262,72 +102,42 @@ export const getMenuGroups = (): MenuSection[] => [
         label: 'Add-on Marketplace',
         path: '/addon-marketplace/master',
         subItems: [
-          {
-            label: 'Add-on Master',
-            path: '/addon-marketplace/master',
-          },
-          {
-            label: 'Add-on Categories',
-            path: '/addon-marketplace/categories',
-          },
-          {
-            label: 'Add-on Pricing',
-            path: '/addon-marketplace/pricing',
-          },
-          {
-            label: 'Price Templates',
-            path: '/addon-marketplace/price-templates',
-          },
-          {
-            label: 'Tiered Pricing',
-            path: '/addon-marketplace/tiered-pricing',
-          },
-          {
-            label: 'Discounts & Coupons',
-            path: '/addon-marketplace/discounts-coupons',
-          },
-          {
-            label: 'Price History',
-            path: '/addon-marketplace/price-history',
-          },
-          {
-            label: 'Product Compatibility',
-            path: '/addon-marketplace/compatibility',
-          },
+          { label: 'Add-on Master', path: '/addon-marketplace/master' },
+          { label: 'Add-on Categories', path: '/addon-marketplace/categories' },
+          { label: 'Add-on Pricing', path: '/addon-marketplace/pricing' },
+          { label: 'Price Templates', path: '/addon-marketplace/price-templates' },
+          { label: 'Tiered Pricing', path: '/addon-marketplace/tiered-pricing' },
+          { label: 'Discounts & Coupons', path: '/addon-marketplace/discounts-coupons' },
+          { label: 'Price History', path: '/addon-marketplace/price-history' },
+          { label: 'Product Compatibility', path: '/addon-marketplace/compatibility' },
         ],
       },
-    ],
-  },
-
-  {
-    title: 'Sales Module',
-    items: [
+      {
+        icon: Puzzle,
+        label: 'Product Compatibility',
+        path: '/addon-marketplace/compatibility',
+      },
+      {
+        icon: ShieldCheck,
+        label: 'License & Entitlements',
+        path: '/products/license-entitlements',
+      },
       {
         icon: ShoppingCart,
         label: 'Purchase & Activation',
         path: '/purchase-activation/purchases',
         subItems: [
-          {
-            label: 'Purchases',
-            path: '/purchase-activation/purchases',
-          },
-          {
-            label: 'Activations',
-            path: '/purchase-activation/activations',
-          },
-          {
-            label: 'Activation Queue',
-            path: '/purchase-activation/activation-queue',
-          },
-          {
-            label: 'Payment Transactions',
-            path: '/purchase-activation/payment-transactions',
-          },
-          {
-            label: 'Invoices',
-            path: '/purchase-activation/invoices',
-          },
+          { label: 'Purchases', path: '/purchase-activation/purchases' },
+          { label: 'Activations', path: '/purchase-activation/activations' },
+          { label: 'Activation Queue', path: '/purchase-activation/activation-queue' },
+          { label: 'Payment Transactions', path: '/purchase-activation/payment-transactions' },
+          { label: 'Invoices', path: '/purchase-activation/invoices' },
         ],
+      },
+      {
+        icon: Receipt,
+        label: 'Invoices',
+        path: '/purchase-activation/invoices',
       },
       {
         icon: Activity,
@@ -335,168 +145,39 @@ export const getMenuGroups = (): MenuSection[] => [
         path: '/usage',
       },
       {
-        icon: Layers,
-        label: 'Plans Management',
-        path: '/sales/plans',
-      },
-      {
-        icon: CreditCard,
-        label: 'Subscriptions',
-        path: '/sales/subscriptions',
-      },
-      {
-        icon: Receipt,
-        label: 'Sales Invoices',
-        path: '/sales/invoices',
-      },
-      {
-        icon: DollarSign,
-        label: 'Payments',
-        path: '/sales/payments',
-      },
-      {
-        icon: Server,
-        label: 'Instance Requests',
-        path: '/sales/instance-requests',
-      },
-      {
-        icon: Cpu,
-        label: 'Instance Creation',
-        path: '/sales/instance-creation',
-      },
-    ],
-  },
-  {
-    title: 'License & Operations',
-    items: [
-      {
-        icon: Building2,
-        label: 'Customer Accounts',
-        path: '/accounts',
-      },
-      {
-        icon: UserPlus,
-        label: 'Additional License',
-        path: '/customer/additional-license',
-      },
-      {
-        icon: HardDrive,
-        label: 'Additional Storage',
-        path: '/customer/additional-storage',
-      },
-      {
-        icon: CalendarClock,
-        label: 'Renewal Due',
-        path: '/customer/renewal-due',
-      },
-      {
-        icon: UserMinus,
-        label: 'Cancel Plan',
-        path: '/customer/cancel-plan',
-      },
-    ],
-  },
-  {
-    title: 'Task Management',
-    items: [
-      {
-        icon: CheckSquare,
-        label: 'List Task',
-        path: '/task-management/tasks',
-      },
-      {
-        icon: Kanban,
-        label: 'Task Status',
-        path: '/task-management/status',
-      },
-      {
-        icon: BarChart2,
-        label: 'Task Gantt Chart',
-        path: '/task-management/gantt',
-      },
-      {
-        icon: Calendar,
-        label: 'Task Calendar',
-        path: '/task-management/calendar',
-      },
-    ],
-  },
-  {
-    title: 'Ticket Management',
-    items: [
-      {
-        icon: Users,
-        label: 'Ticket Groups',
-        path: '/ticket-management/groups',
-      },
-      {
-        icon: Ticket,
-        label: 'Ticket Created List',
-        path: '/ticket-management/tickets',
-      },
-    ],
-  },
-  {
-    title: 'Settings Module',
-    items: [
-      {
-        icon: Menu,
-        label: 'Product Menu Setup',
-        path: '/settings/product-menu',
+        icon: GitBranch,
+        label: 'Version & Dependencies',
+        path: '/products/editions',
       },
       {
         icon: Building2,
-        label: 'Company Details',
-        path: '/settings/company-details',
+        label: 'Tenant Management',
+        path: '/tenant-management/all',
+        subItems: [
+          { label: 'Tenants (All)', path: '/tenant-management/all' },
+          { label: 'Tenant Registration', path: '/tenant-management/registration' },
+          { label: 'Approval & Onboarding', path: '/tenant-management/onboarding' },
+          { label: 'Tenant Provisioning', path: '/tenant-management/provisioning' },
+          { label: 'Tenant Status & Lifecycle', path: '/tenant-management/lifecycle' },
+          { label: 'Tenant Usage & Limits', path: '/tenant-management/usage' },
+          { label: 'Tenant Settings', path: '/tenant-management/settings' },
+          { label: 'Tenant Suspension & Reactivation', path: '/tenant-management/suspension' },
+          { label: 'Tenant Data Export & Deletion', path: '/tenant-management/export-deletion' },
+        ],
+      },
+      {
+        icon: Store,
+        label: 'Partner Management',
+        path: '/customer/overview',
       },
       {
         icon: Users,
-        label: 'Roles & Users',
+        label: 'User & Access Management',
         path: '/settings/roles-users',
       },
       {
-        icon: HardDrive,
-        label: 'Storage Master',
-        path: '/settings/storage',
-      },
-      {
-        icon: UserCheck,
-        label: 'User Master',
-        path: '/settings/user-master',
-      },
-      {
-        icon: Sliders,
-        label: 'System Preference',
-        path: '/settings/preferences',
-      },
-    ],
-  },
-  {
-    title: 'Operations & Forms',
-    items: [
-      {
-        icon: FileText,
-        label: 'SuperAdmin Forms',
-        path: '/forms',
-      },
-      {
-        icon: Table,
-        label: 'Data Tables',
-        path: '/tables',
-      },
-    ],
-  },
-  {
-    title: 'Administration',
-    items: [
-      {
-        icon: User,
-        label: 'Profile',
-        path: '/profile',
-      },
-      {
         icon: Settings,
-        label: 'Platform Settings',
+        label: 'Settings',
         path: '/settings',
       },
     ],
@@ -514,40 +195,73 @@ export function isRouteActive(targetPath: string, currentPath: string | null): b
     return (
       currentPath === '/' ||
       currentPath === '/dashboard' ||
-      currentPath === '/dashboard/business-overview'
+      currentPath.startsWith('/dashboard/')
     );
-  }
-  if (targetPath === '/dashboard/tenant-fleet-telemetry') {
-    return currentPath === '/superadmin-dashboard';
-  }
-  if (targetPath === '/dashboard/financial-operations-analytics') {
-    return currentPath === '/analytics-dashboard';
   }
 
   // Product Management aliases & deep routes
   if (targetPath === '/products/master') {
-    return currentPath === '/products' || currentPath.startsWith('/products/master');
+    return (
+      currentPath === '/products' ||
+      (currentPath.startsWith('/products/') &&
+        !currentPath.includes('/license-entitlements') &&
+        !currentPath.includes('/editions'))
+    );
+  }
+
+  // Version & Dependencies
+  if (targetPath === '/products/editions') {
+    return currentPath === '/products/editions' || currentPath.startsWith('/products/editions/');
+  }
+
+  // License & Entitlements
+  if (targetPath === '/products/license-entitlements') {
+    return currentPath === '/products/license-entitlements' || currentPath.startsWith('/products/license-entitlements/');
+  }
+
+  // Add-on Marketplace
+  if (targetPath === '/addon-marketplace/master') {
+    return (
+      currentPath === '/addon-marketplace' ||
+      (currentPath.startsWith('/addon-marketplace/') && !currentPath.includes('/compatibility'))
+    );
+  }
+
+  // Product Compatibility
+  if (targetPath === '/addon-marketplace/compatibility') {
+    return currentPath === '/addon-marketplace/compatibility';
   }
 
   // Tenant Management aliases & deep routes
-  if (targetPath === '/tenant-management/onboarding') {
-    return currentPath === '/tenant-management';
-  }
-  if (targetPath === '/tenant-management/export-deletion') {
-    return currentPath === '/tenant-management/retention-policy';
+  if (targetPath === '/tenant-management/all' || targetPath === '/tenant-management/onboarding') {
+    return currentPath === '/tenant-management' || currentPath.startsWith('/tenant-management');
   }
 
-  // Customer Management aliases & deep routes
-  if (targetPath === '/customer/master') {
-    return currentPath === '/customer' || currentPath.startsWith('/customer/master');
+  // Partner / Customer Management
+  if (targetPath === '/customer/overview') {
+    return (
+      currentPath === '/customer' ||
+      currentPath.startsWith('/customer/') ||
+      currentPath === '/partner-management' ||
+      currentPath.startsWith('/partner-management/')
+    );
+  }
+
+  // User & Access Management
+  if (targetPath === '/settings/roles-users') {
+    return currentPath === '/settings/roles-users' || currentPath.startsWith('/settings/roles-users/');
+  }
+
+  // Settings root (avoid catching /settings/roles-users)
+  if (targetPath === '/settings') {
+    return currentPath === '/settings' || (currentPath.startsWith('/settings/') && !currentPath.includes('/roles-users'));
   }
 
   // Subscriptions deep routes & aliases
   if (targetPath === '/subscriptions/plans') {
     return (
       currentPath === '/subscriptions' ||
-      currentPath === '/subscriptions/plans' ||
-      currentPath === '/subscriptions/subscription-plans'
+      (currentPath.startsWith('/subscriptions/') && !currentPath.includes('/usage'))
     );
   }
 
@@ -568,7 +282,7 @@ export function isRouteActive(targetPath: string, currentPath: string | null): b
     return currentPath === '/usage' || currentPath === '/subscriptions/usage';
   }
 
-  // Nested paths (e.g., /products/configuration/branding matches /products/configuration)
+  // Nested paths
   if (targetPath !== '/' && targetPath !== '/dashboard' && currentPath.startsWith(targetPath + '/')) {
     return true;
   }
@@ -582,9 +296,9 @@ export function Navigation({ collapsed = false, onNavigate }: { collapsed?: bool
   const [expandedMenus, setExpandedMenus] = useState<string[]>([
     'Product Management',
     'Subscriptions',
-    'Tenant Management',
-    'Customer Management',
+    'Add-on Marketplace',
     'Purchase & Activation',
+    'Tenant Management',
   ]);
 
   const menuSections = React.useMemo(() => getMenuGroups(), []);
@@ -608,119 +322,111 @@ export function Navigation({ collapsed = false, onNavigate }: { collapsed?: bool
   };
 
   return (
-    <nav className="flex flex-col gap-5 py-2">
+    <nav className="flex flex-col gap-1 py-1">
       {menuSections.map((section, idx) => (
-        <div key={idx} className="flex flex-col gap-1.5">
-          {section.title && !collapsed && (
-            <span className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-              {section.title}
-            </span>
-          )}
+        <div key={idx} className="flex flex-col gap-1">
+          {section.items.map((item) => {
+            const Icon = item.icon || Layers;
+            const hasSubItems = Boolean(item.subItems && item.subItems.length > 0);
+            const isExpanded = expandedMenus.includes(item.label);
+            const isItemActive = isRouteActive(item.path, pathname);
+            const isChildActive = Boolean(
+              hasSubItems && item.subItems?.some((sub) => isRouteActive(sub.path, pathname))
+            );
 
-          <div className="flex flex-col gap-1">
-            {section.items.map((item) => {
-              const Icon = item.icon || Layers;
-              const hasSubItems = Boolean(item.subItems && item.subItems.length > 0);
-              const isExpanded = expandedMenus.includes(item.label);
-              const isItemActive = isRouteActive(item.path, pathname);
-              const isChildActive = Boolean(
-                hasSubItems && item.subItems?.some((sub) => isRouteActive(sub.path, pathname))
-              );
-
-              if (hasSubItems && !collapsed) {
-                const isAddonGroup = item.label === 'Add-on Marketplace';
-                const isGroupActive = isChildActive || isItemActive;
-
-                return (
-                  <div key={item.label} className="flex flex-col">
-                    <button
-                      type="button"
-                      onClick={() => toggleSubmenu(item.label)}
-                      className={cn(
-                        "flex items-center justify-between w-full px-3 py-2 text-xs font-medium rounded-xl transition-all duration-150 cursor-pointer",
-                        isAddonGroup && isGroupActive
-                          ? "bg-purple-600 text-white font-semibold shadow-xs"
-                          : isGroupActive
-                            ? "bg-slate-800/80 text-white font-semibold"
-                            : "text-slate-300 hover:text-white hover:bg-slate-800/50"
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon
-                          className={cn(
-                            "h-4 w-4 shrink-0 transition-colors",
-                            isAddonGroup && isGroupActive
-                              ? "text-white"
-                              : isGroupActive
-                                ? "text-purple-400"
-                                : "text-slate-400"
-                          )}
-                        />
-                        <span>{item.label}</span>
-                      </div>
-                      <ChevronDown
-                        className={cn(
-                          "h-3.5 w-3.5 transition-transform duration-200 shrink-0",
-                          isExpanded ? "transform rotate-180" : "",
-                          isAddonGroup && isGroupActive ? "text-white" : "text-slate-400"
-                        )}
-                      />
-                    </button>
-
-                    <AnimatePresence initial={false}>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden pl-5 pt-1 flex flex-col gap-0.5"
-                        >
-                          {item.subItems?.map((sub, subIdx) => {
-                            const isSubActive = isRouteActive(sub.path, pathname);
-                            return (
-                              <NavLink
-                                key={`${item.label}-${sub.label}-${subIdx}`}
-                                href={sub.path}
-                                onClick={onNavigate}
-                                active={isSubActive}
-                                className={cn(
-                                  "text-xs py-1.5 px-3 rounded-lg transition-all duration-150 cursor-pointer font-medium flex items-center gap-2",
-                                  isSubActive
-                                    ? "text-white font-semibold"
-                                    : "text-slate-400 hover:text-white hover:bg-slate-800/40"
-                                )}
-                              >
-                                {isSubActive ? (
-                                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shrink-0" />
-                                ) : (
-                                  <span className="w-1.5 h-1.5 rounded-full bg-transparent shrink-0" />
-                                )}
-                                <span>{sub.label}</span>
-                              </NavLink>
-                            );
-                          })}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              }
+            if (hasSubItems && !collapsed) {
+              const isGroupActive = isChildActive || isItemActive;
 
               return (
-                <NavLink
-                  key={`${item.label}-${item.path}`}
-                  href={item.path}
-                  icon={Icon}
-                  collapsed={collapsed}
-                  onClick={onNavigate}
-                  active={isItemActive}
-                >
-                  {item.label}
-                </NavLink>
+                <div key={item.label} className="flex flex-col">
+                  <button
+                    type="button"
+                    onClick={() => toggleSubmenu(item.label)}
+                    className={cn(
+                      "flex items-center justify-between w-full px-3 py-2.5 text-xs font-medium rounded-xl transition-all duration-150 cursor-pointer",
+                      isGroupActive
+                        ? "bg-[#6222cc] text-white font-semibold shadow-xs"
+                        : "text-slate-300 hover:text-white hover:bg-white/5"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon
+                        className={cn(
+                          "h-4 w-4 shrink-0 transition-colors",
+                          isGroupActive ? "text-white" : "text-slate-300"
+                        )}
+                      />
+                      <span className="text-left leading-tight">{item.label}</span>
+                    </div>
+                    <ChevronDown
+                      className={cn(
+                        "h-3.5 w-3.5 transition-transform duration-200 shrink-0 ml-2",
+                        isExpanded ? "transform rotate-180" : "",
+                        isGroupActive ? "text-white" : "text-slate-400"
+                      )}
+                    />
+                  </button>
+
+                  <AnimatePresence initial={false}>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden pl-5 pt-1.5 flex flex-col gap-1"
+                      >
+                        {item.subItems?.map((sub, subIdx) => {
+                          const isSubActive = isRouteActive(sub.path, pathname);
+                          return (
+                            <NavLink
+                              key={`${item.label}-${sub.label}-${subIdx}`}
+                              href={sub.path}
+                              onClick={onNavigate}
+                              active={isSubActive}
+                              className={cn(
+                                "text-xs py-2 px-3 rounded-lg transition-all duration-150 cursor-pointer font-medium flex items-center gap-2.5",
+                                isSubActive
+                                  ? "bg-[#24126a] text-white font-semibold"
+                                  : "text-slate-300 hover:text-white hover:bg-white/5"
+                              )}
+                            >
+                              {isSubActive ? (
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#a855f7] shrink-0" />
+                              ) : (
+                                <span className="w-1.5 h-1.5 rounded-full bg-transparent shrink-0" />
+                              )}
+                              <span>{sub.label}</span>
+                            </NavLink>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               );
-            })}
-          </div>
+            }
+
+            return (
+              <NavLink
+                key={`${item.label}-${item.path}`}
+                href={item.path}
+                icon={Icon}
+                collapsed={collapsed}
+                onClick={onNavigate}
+                active={isItemActive}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 text-xs font-medium rounded-xl transition-all duration-150 cursor-pointer",
+                  collapsed ? "justify-center px-2" : "justify-start",
+                  isItemActive
+                    ? "bg-[#6222cc] text-white font-semibold shadow-xs"
+                    : "text-slate-300 hover:text-white hover:bg-white/5"
+                )}
+              >
+                {item.label}
+              </NavLink>
+            );
+          })}
         </div>
       ))}
     </nav>

@@ -415,9 +415,9 @@ export default function LoginPage() {
 
           {/* Logo */}
           <div className="flex items-center gap-2 select-none shrink-0">
-            <img src="/logo_blue.png" alt="PEGATTO SuperAdmin Logo" style={{ height: '70px', width: 'auto', objectFit: 'contain' }} />
+            <img src="/pegatto_logo.png" alt="PEGATTO SuperAdmin Logo" style={{ height: '70px', width: 'auto', objectFit: 'contain' }} />
             <span className="text-xl xl:text-2xl font-extrabold text-[#0f172a] tracking-tight">
-              PEGATTO <span className="text-blue-500">SuperAdmin</span>
+              PEGATTO <span className="text-purple-600">SuperAdmin</span>
             </span>
           </div>
 
@@ -589,9 +589,9 @@ export default function LoginPage() {
 
           {/* Mobile logo — only shown below lg */}
           <div className="flex lg:hidden items-center gap-2 mb-6 select-none">
-            <img src="/logo_blue.png" alt="PEGATTO SuperAdmin Logo" style={{ height: '60px', width: 'auto', objectFit: 'contain' }} />
+            <img src="/pegatto_logo.png" alt="PEGATTO SuperAdmin Logo" style={{ height: '60px', width: 'auto', objectFit: 'contain' }} />
             <span className="text-xl font-extrabold text-[#0f172a] dark:text-slate-100 tracking-tight">
-              PEGATTO <span className="text-blue-600">SuperAdmin</span>
+              PEGATTO <span className="text-purple-600">SuperAdmin</span>
             </span>
           </div>
 

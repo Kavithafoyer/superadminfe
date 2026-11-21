@@ -21,22 +21,24 @@ export function Sidebar() {
       initial={false}
       animate={{ width: isSidebarOpen ? 260 : 80 }}
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen border-r border-[#1a233d] bg-[#0c1427] text-white transition-all duration-300 ease-in-out hidden md:block"
+        "fixed left-0 top-0 z-40 h-screen border-r border-[#12192d] bg-[#060b1b] text-white transition-all duration-300 ease-in-out hidden md:block"
       )}
     >
       <div className="flex h-full flex-col">
         {/* Top Pegatto Logo */}
-        <div className="flex items-center gap-3 px-4 h-16 border-b border-[#1a233d] shrink-0">
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
-              P
-            </div>
+        <div className="flex items-center gap-3 px-4 h-16 border-b border-[#12192d] shrink-0">
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+            <img
+              src="/pegatto_logo.png"
+              alt="Pegatto"
+              className="h-8 w-auto object-contain shrink-0"
+            />
             {isSidebarOpen && (
               <div className="flex flex-col">
-                <span className="text-white font-bold text-sm tracking-tight leading-tight">
+                <span className="text-white font-bold text-[15px] tracking-tight leading-tight">
                   Pegatto
                 </span>
-                <span className="text-[11px] text-slate-400 font-medium">
+                <span className="text-[11px] text-slate-400 font-medium tracking-normal">
                   Super Admin
                 </span>
               </div>
@@ -50,7 +52,7 @@ export function Sidebar() {
         </ScrollArea>
 
         {/* Footer collapse button */}
-        <div className="px-3 py-3 border-t border-[#1a233d] mt-auto shrink-0">
+        <div className="px-3 py-3 border-t border-[#12192d] mt-auto shrink-0">
           <Button
             variant="ghost"
             size="sm"

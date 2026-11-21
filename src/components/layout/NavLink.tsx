@@ -44,11 +44,11 @@ export function NavLink({
   const labelText = typeof content === 'string' ? content : '';
 
   const defaultClasses = cn(
-    "flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-xl transition-all duration-150 cursor-pointer",
+    "flex items-center gap-3 px-3 py-2.5 text-xs font-medium rounded-xl transition-all duration-150 cursor-pointer",
     collapsed ? "justify-center px-2" : "justify-start",
     isCurrentActive
-      ? "bg-purple-600 text-white font-semibold shadow-xs"
-      : "text-slate-300 hover:text-white hover:bg-slate-800/50"
+      ? "bg-[#6222cc] text-white font-semibold shadow-xs"
+      : "text-slate-300 hover:text-white hover:bg-white/5"
   );
 
   const resolvedClass = typeof className === 'function'

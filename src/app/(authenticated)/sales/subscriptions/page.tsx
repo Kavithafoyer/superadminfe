@@ -1116,7 +1116,7 @@ export default function SubscriptionsPage() {
               <div className="flex items-start justify-between border-b pb-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <img src="/logo_blue.png" alt="Pegatto" className="h-8 w-auto object-contain" />
+                    <img src="/pegatto_logo.png" alt="Pegatto" className="h-8 w-auto object-contain" />
                     <span className="font-bold text-lg text-slate-900 dark:text-slate-100">PEGATTO</span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">SuperAdmin Platform Services Ltd.</p>

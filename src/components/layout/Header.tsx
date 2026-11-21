@@ -103,15 +103,17 @@ export function Header() {
             >
               <Menu className="h-5 w-5" />
             </SheetTrigger>
-            <SheetContent side="left" className="w-[260px] p-0 bg-[#0c1427] border-r border-[#1a233d] text-white">
-              <SheetHeader className="p-4 border-b border-[#1a233d]">
-                <SheetTitle className="flex items-center gap-3 cursor-pointer" onClick={() => { router.push('/dashboard'); setIsSheetOpen(false); }}>
-                  <div className="h-9 w-9 rounded-xl bg-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                    P
-                  </div>
+            <SheetContent side="left" className="w-[260px] p-0 bg-[#060b1b] border-r border-[#12192d] text-white">
+              <SheetHeader className="p-4 border-b border-[#12192d]">
+                <SheetTitle className="flex items-center gap-2.5 cursor-pointer" onClick={() => { router.push('/dashboard'); setIsSheetOpen(false); }}>
+                  <img
+                    src="/pegatto_logo.png"
+                    alt="Pegatto"
+                    className="h-8 w-auto object-contain shrink-0"
+                  />
                   <div className="flex flex-col text-left">
-                    <span className="text-white font-bold text-sm tracking-tight leading-tight">Pegatto</span>
-                    <span className="text-[11px] text-slate-400 font-medium">Super Admin</span>
+                    <span className="text-white font-bold text-[15px] tracking-tight leading-tight">Pegatto</span>
+                    <span className="text-[11px] text-slate-400 font-medium tracking-normal">Super Admin</span>
                   </div>
                 </SheetTitle>
               </SheetHeader>
@@ -213,7 +215,7 @@ export function Header() {
               render={
                 <button
                   type="button"
-                  className="h-8 w-8 rounded-full bg-purple-600 text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-pointer hover:bg-purple-700 transition-colors shrink-0 ml-1"
+                  className="h-8 w-8 rounded-full bg-[#6222cc] text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-pointer hover:bg-[#521cb0] transition-colors shrink-0 ml-1"
                   title={user.name || 'Super Admin'}
                 >
                   SA
@@ -282,9 +284,10 @@ export function Header() {
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Primary Color</span>
                       <div className="grid grid-cols-4 gap-2 pt-1.5">
                         {[
-                          { name: 'Blue', value: '#0565FD' },
+                          { name: 'Pegatto Purple', value: '#6222cc' },
                           { name: 'Indigo', value: '#6366f1' },
                           { name: 'Violet', value: '#8b5cf6' },
+                          { name: 'Blue', value: '#0565FD' },
                           { name: 'Emerald', value: '#10b981' },
                           { name: 'Orange', value: '#f97316' },
                           { name: 'Rose', value: '#f43f5e' },

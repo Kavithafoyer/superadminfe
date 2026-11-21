@@ -31,7 +31,7 @@ interface LayoutState {
 
 const getInitialState = (): LayoutState => {
   let mode: 'light' | 'dark' | 'system' = 'light';
-  let primaryColor = '#1574fe';
+  let primaryColor = '#6222cc';
   let density: 'compact' | 'comfortable' = 'comfortable';
   let sidebarStyle: 'full' | 'collapsed' = 'full';
   let isSidebarOpen = true;
@@ -47,8 +47,8 @@ const getInitialState = (): LayoutState => {
         if (parsed && parsed.state) {
           if (parsed.state.mode) mode = parsed.state.mode;
           if (parsed.state.primaryColor) {
-            primaryColor = (parsed.state.primaryColor === '#6366f1' || parsed.state.primaryColor === '#4f46e5' || parsed.state.primaryColor === '#0565FD')
-              ? '#1574fe'
+            primaryColor = (parsed.state.primaryColor === '#6366f1' || parsed.state.primaryColor === '#4f46e5' || parsed.state.primaryColor === '#0565FD' || parsed.state.primaryColor === '#1574fe')
+              ? '#6222cc'
               : parsed.state.primaryColor;
           }
           if (parsed.state.density) density = parsed.state.density;
