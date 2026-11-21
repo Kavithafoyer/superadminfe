@@ -17,6 +17,7 @@ import {
   Trash2,
   Columns,
   Percent,
+  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -582,50 +583,118 @@ export function TieredPricingScreen() {
           <div className="p-4 space-y-4 text-xs">
             {activeTab === 'tiers' && (
               <>
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">
-                    Volume Tier Configuration
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Plan Code <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      value={formData.code || 'TP-001'}
+                      onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                      className="h-8 text-xs font-mono font-semibold uppercase"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Plan Name <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      value={formData.name || 'AI Lead Scoring - Volume'}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Add-on <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={formData.addonName}
+                      onChange={(e) => setFormData({ ...formData, addonName: e.target.value })}
+                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white"
+                    >
+                      <option>AI Lead Scoring</option>
+                      <option>AI CRM Assistant</option>
+                      <option>WhatsApp CRM Integration</option>
+                      <option>Document Generator</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Billing Cycle <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={formData.billingCycle}
+                      onChange={(e) => setFormData({ ...formData, billingCycle: e.target.value as 'Monthly' | 'Annual' })}
+                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white"
+                    >
+                      <option>Monthly</option>
+                      <option>Annual</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <span className="font-bold text-slate-900 dark:text-slate-100 block text-xs">
+                    Tier Configuration
                   </span>
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={handleAddTierRow}
-                    className="h-7 px-2.5 text-xs bg-[#6222cc] hover:bg-[#521cb0] text-white"
-                  >
-                    <Plus className="h-3 w-3 mr-1" />
-                    Add Tier
-                  </Button>
-                </div>
 
-                <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                  <table className="w-full text-xs">
-                    <thead className="bg-slate-50 dark:bg-slate-800 text-slate-600 border-b">
-                      <tr>
-                        <th className="py-2 px-2.5">Tier Label</th>
-                        <th className="py-2 px-2.5">Usage Range</th>
-                        <th className="py-2 px-2.5">Rate / Unit</th>
-                        <th className="py-2 px-2.5">Discount</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                      {formData.tiers?.map((t, idx) => (
-                        <tr key={idx}>
-                          <td className="py-2 px-2.5 font-medium">{t.tierLabel}</td>
-                          <td className="py-2 px-2.5 text-slate-600">{t.usageRange}</td>
-                          <td className="py-2 px-2.5 font-semibold text-[#6222cc]">₹{t.pricePerUnit}</td>
-                          <td className="py-2 px-2.5 text-emerald-600 font-medium">{t.discount}</td>
+                  <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 dark:bg-slate-800 text-slate-700 font-semibold border-b border-slate-200 dark:border-slate-700">
+                        <tr>
+                          <th className="py-2 px-2.5">Tier</th>
+                          <th className="py-2 px-2.5">Usage Range (Leads/Month)</th>
+                          <th className="py-2 px-2.5">Price per Unit (₹)</th>
+                          <th className="py-2 px-2.5">Effective Price (₹)</th>
+                          <th className="py-2 px-2.5">Discount</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tr>
+                          <td className="py-2 px-2.5 font-medium">Tier 1</td>
+                          <td className="py-2 px-2.5 text-slate-600">1 – 1,000</td>
+                          <td className="py-2 px-2.5 font-mono text-slate-700">0.50</td>
+                          <td className="py-2 px-2.5 font-semibold text-slate-900">₹499</td>
+                          <td className="py-2 px-2.5 text-slate-400 font-semibold">—</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 px-2.5 font-medium">Tier 2</td>
+                          <td className="py-2 px-2.5 text-slate-600">1,001 – 5,000</td>
+                          <td className="py-2 px-2.5 font-mono text-slate-700">0.40</td>
+                          <td className="py-2 px-2.5 font-semibold text-slate-900">₹1,999</td>
+                          <td className="py-2 px-2.5 text-emerald-600 font-semibold">20%</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 px-2.5 font-medium">Tier 3</td>
+                          <td className="py-2 px-2.5 text-slate-600">5,001 – 10,000</td>
+                          <td className="py-2 px-2.5 font-mono text-slate-700">0.30</td>
+                          <td className="py-2 px-2.5 font-semibold text-slate-900">₹2,999</td>
+                          <td className="py-2 px-2.5 text-emerald-600 font-semibold">40%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
 
-                {/* Example calculation preview card */}
-                <div className="p-3 rounded-lg border border-purple-100 bg-purple-50/50 text-purple-900 space-y-1">
-                  <span className="font-semibold block">Volume Calculation Example</span>
-                  <p className="text-[11px] text-purple-700">
-                    A tenant utilizing 2,500 units qualifies under Tier 2 at ₹0.40/unit (20% savings). Total billing = ₹1,999.00
-                  </p>
+                  <button
+                    type="button"
+                    onClick={handleAddTierRow}
+                    className="text-xs font-semibold text-[#6222cc] hover:text-[#521cb0] inline-flex items-center gap-1 cursor-pointer pt-1"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Add Tier</span>
+                  </button>
+
+                  {/* Example helper box */}
+                  <div className="p-3 rounded-lg border border-purple-100 bg-purple-50/50 text-slate-700 flex items-start gap-2">
+                    <Info className="h-4 w-4 text-[#6222cc] shrink-0 mt-0.5" />
+                    <p className="text-[11px] text-slate-600 leading-snug">
+                      <strong>Example:</strong> At 3,000 leads/month, customer pays ₹1,999 (₹0.40 per lead, 20% discount).
+                    </p>
+                  </div>
                 </div>
               </>
             )}
@@ -745,7 +814,7 @@ export function TieredPricingScreen() {
                 onClick={() => handleSaveForm(false)}
                 className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
               >
-                {isCreatingNew ? 'Create Schedule' : 'Update Schedule'}
+                Update Tiered Pricing
               </Button>
             </div>
           </div>

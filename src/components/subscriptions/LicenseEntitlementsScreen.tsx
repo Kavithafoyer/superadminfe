@@ -250,7 +250,7 @@ export function LicenseEntitlementsScreen() {
         <Button
           type="button"
           onClick={handleIssueLicense}
-          className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
+          className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-xs sm:text-sm h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
           <span>Issue License</span>
@@ -321,7 +321,7 @@ export function LicenseEntitlementsScreen() {
               className={cn(
                 'pb-3 font-semibold transition-all relative cursor-pointer',
                 activeTab === tab.id
-                  ? 'text-[#1574fe] border-b-2 border-[#1574fe] -mb-[1px]'
+                  ? 'text-[#6222cc] border-b-2 border-[#6222cc] -mb-[1px]'
                   : 'text-slate-500 hover:text-slate-800'
               )}
             >
@@ -342,7 +342,7 @@ export function LicenseEntitlementsScreen() {
                 <select
                   value={filterProduct}
                   onChange={(e) => setFilterProduct(e.target.value)}
-                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
+                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
                 >
                   <option value="All Products">All Products</option>
                   <option value="Pegatto CRM">Pegatto CRM</option>
@@ -359,7 +359,7 @@ export function LicenseEntitlementsScreen() {
                 <select
                   value={filterPlan}
                   onChange={(e) => setFilterPlan(e.target.value)}
-                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
+                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
                 >
                   <option value="All Plans">All Plans</option>
                   <option value="Standard">Standard</option>
@@ -377,7 +377,7 @@ export function LicenseEntitlementsScreen() {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
+                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
                 >
                   <option value="All Status">All Status</option>
                   <option value="Active">Active</option>
@@ -395,7 +395,7 @@ export function LicenseEntitlementsScreen() {
                 <select
                   value={filterTenant}
                   onChange={(e) => setFilterTenant(e.target.value)}
-                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
+                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
                 >
                   <option value="All Tenants">All Tenants</option>
                   <option value="Euro Textiles">Euro Textiles</option>
@@ -417,7 +417,7 @@ export function LicenseEntitlementsScreen() {
             <Button
               type="button"
               onClick={() => toast.success('License filters applied')}
-              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs h-9 px-4 rounded-lg font-medium shadow-2xs"
+              className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs h-9 px-4 rounded-lg font-medium shadow-2xs"
             >
               Apply
             </Button>
@@ -468,7 +468,7 @@ export function LicenseEntitlementsScreen() {
                 <thead>
                   <tr className="bg-slate-50/80 text-slate-700 border-b border-slate-200 font-semibold text-[11px]">
                     <th className="py-3 px-3 w-8 text-center">
-                      <input type="checkbox" className="rounded border-slate-300 text-[#1574fe] h-3.5 w-3.5" />
+                      <input type="checkbox" className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-3.5 w-3.5" />
                     </th>
                     <th className="py-3 px-3 font-semibold text-slate-800">License Key</th>
                     <th className="py-3 px-3 font-semibold text-slate-800">Customer / Tenant</th>
@@ -491,7 +491,7 @@ export function LicenseEntitlementsScreen() {
                         className={cn(
                           'transition-colors cursor-pointer',
                           isSelected
-                            ? 'bg-[#edf5ff] border-l-2 border-l-[#1574fe]'
+                            ? 'bg-[#f8f5ff] border-l-2 border-l-[#6222cc]'
                             : 'hover:bg-slate-50/70'
                         )}
                       >
@@ -500,10 +500,10 @@ export function LicenseEntitlementsScreen() {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => setSelectedLicenseId(lic.id)}
-                            className="rounded border-slate-300 text-[#1574fe] h-3.5 w-3.5"
+                            className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-3.5 w-3.5"
                           />
                         </td>
-                        <td className="py-3 px-3 font-mono font-semibold text-[#1574fe] underline decoration-[#1574fe]/40 whitespace-nowrap">
+                        <td className="py-3 px-3 font-mono font-semibold text-[#6222cc] underline decoration-[#6222cc]/40 whitespace-nowrap">
                           {lic.licenseKey}
                         </td>
                         <td className="py-3 px-3 font-medium text-slate-900 whitespace-nowrap">
@@ -531,10 +531,10 @@ export function LicenseEntitlementsScreen() {
                             className={cn(
                               'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold',
                               lic.status === 'Active'
-                                ? 'bg-emerald-100 text-emerald-700'
+                                ? 'bg-[#dcfce7] text-[#15803d]'
                                 : lic.status === 'Expiring'
-                                ? 'bg-amber-100 text-amber-700'
-                                : 'bg-rose-100 text-rose-700'
+                                ? 'bg-[#fef9c3] text-[#a16207]'
+                                : 'bg-[#fee2e2] text-[#b91c1c]'
                             )}
                           >
                             {lic.status}
@@ -545,7 +545,7 @@ export function LicenseEntitlementsScreen() {
                             <button
                               type="button"
                               onClick={() => toast.info(`Edit ${lic.licenseKey}`)}
-                              className="p-1 rounded text-slate-400 hover:text-[#1574fe] hover:bg-slate-100"
+                              className="p-1 rounded text-slate-400 hover:text-[#6222cc] hover:bg-slate-100"
                             >
                               <Edit2 className="h-3.5 w-3.5" />
                             </button>
@@ -595,7 +595,7 @@ export function LicenseEntitlementsScreen() {
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-900">License Details</h3>
-              <span className="bg-emerald-100 text-emerald-700 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+              <span className="bg-[#dcfce7] text-[#15803d] text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
                 {selectedLicense.status}
               </span>
             </div>
@@ -706,7 +706,7 @@ export function LicenseEntitlementsScreen() {
               <Button
                 type="button"
                 onClick={() => toast.info('Edit Entitlements dialog')}
-                className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs h-9 px-2 font-semibold"
+                className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs h-9 px-2 font-semibold"
               >
                 Edit Entitlements
               </Button>

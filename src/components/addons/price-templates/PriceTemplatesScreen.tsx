@@ -16,6 +16,7 @@ import {
   Trash2,
   Columns,
   RefreshCw,
+  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -715,11 +716,105 @@ export function PriceTemplatesScreen() {
                     Description
                   </label>
                   <textarea
-                    rows={3}
+                    rows={2}
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs bg-white dark:bg-slate-900 focus:ring-1 focus:ring-[#6222cc] focus:outline-none"
                   />
+                </div>
+
+                {/* Tiered Pricing Mini-Table in Basic Details */}
+                <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                  <span className="font-bold text-slate-900 dark:text-slate-100 block text-xs">
+                    Tiered Pricing
+                  </span>
+                  <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 dark:bg-slate-800 text-slate-700 font-semibold border-b border-slate-200 dark:border-slate-700">
+                        <tr>
+                          <th className="py-2 px-2.5">Tier Name</th>
+                          <th className="py-2 px-2.5">Price (₹)</th>
+                          <th className="py-2 px-2.5">User Limit</th>
+                          <th className="py-2 px-2.5">Storage</th>
+                          <th className="py-2 px-2.5">Features</th>
+                          <th className="py-2 px-2.5 text-right"></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tr>
+                          <td className="py-2 px-2.5 font-medium">Basic</td>
+                          <td className="py-2 px-2.5 font-semibold text-slate-800">₹499</td>
+                          <td className="py-2 px-2.5 text-slate-600">Up to 5</td>
+                          <td className="py-2 px-2.5 text-slate-600">5 GB</td>
+                          <td className="py-2 px-2.5 text-slate-600">Core features</td>
+                          <td className="py-2 px-2 text-right">
+                            <div className="flex items-center justify-end gap-1 text-slate-400">
+                              <Pencil className="h-3 w-3 hover:text-[#6222cc] cursor-pointer" />
+                              <Trash2 className="h-3 w-3 hover:text-rose-600 cursor-pointer" />
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 px-2.5 font-medium">Pro</td>
+                          <td className="py-2 px-2.5 font-semibold text-slate-800">₹999</td>
+                          <td className="py-2 px-2.5 text-slate-600">Up to 25</td>
+                          <td className="py-2 px-2.5 text-slate-600">50 GB</td>
+                          <td className="py-2 px-2.5 text-slate-600">Advanced features</td>
+                          <td className="py-2 px-2 text-right">
+                            <div className="flex items-center justify-end gap-1 text-slate-400">
+                              <Pencil className="h-3 w-3 hover:text-[#6222cc] cursor-pointer" />
+                              <Trash2 className="h-3 w-3 hover:text-rose-600 cursor-pointer" />
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 px-2.5 font-medium">Enterprise</td>
+                          <td className="py-2 px-2.5 font-semibold text-slate-800">₹1,999</td>
+                          <td className="py-2 px-2.5 text-slate-600">Up to 100</td>
+                          <td className="py-2 px-2.5 text-slate-600">250 GB</td>
+                          <td className="py-2 px-2.5 text-slate-600">All features + Support</td>
+                          <td className="py-2 px-2 text-right">
+                            <div className="flex items-center justify-end gap-1 text-slate-400">
+                              <Pencil className="h-3 w-3 hover:text-[#6222cc] cursor-pointer" />
+                              <Trash2 className="h-3 w-3 hover:text-rose-600 cursor-pointer" />
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Sliding Toggles */}
+                <div className="space-y-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={true}
+                      className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out bg-[#6222cc]"
+                    >
+                      <span className="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-4" />
+                    </button>
+                    <span className="font-medium text-slate-700 dark:text-slate-300 text-xs">
+                      Show this template for new add-ons
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={true}
+                      className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out bg-[#6222cc]"
+                    >
+                      <span className="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-4" />
+                    </button>
+                    <span className="font-medium text-slate-700 dark:text-slate-300 text-xs">
+                      Allow customization at add-on level
+                    </span>
+                    <Info className="h-3.5 w-3.5 text-slate-400" />
+                  </div>
                 </div>
               </>
             )}
@@ -805,7 +900,7 @@ export function PriceTemplatesScreen() {
                 onClick={() => handleSaveForm(false)}
                 className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
               >
-                {isCreatingNew ? 'Create Template' : 'Update Template'}
+                Save Template
               </Button>
             </div>
           </div>
