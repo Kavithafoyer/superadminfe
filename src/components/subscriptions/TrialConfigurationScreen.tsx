@@ -228,7 +228,7 @@ export function TrialConfigurationScreen() {
         <Button
           type="button"
           onClick={handleCreateNew}
-          className="bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium text-xs sm:text-sm h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
+          className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-xs sm:text-sm h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
           <span>Create Trial Plan</span>
@@ -298,7 +298,7 @@ export function TrialConfigurationScreen() {
               className={cn(
                 'pb-3 font-semibold transition-all relative cursor-pointer',
                 activeTab === tab.id
-                  ? 'text-[#4F46E5] border-b-2 border-[#4F46E5] -mb-[1px]'
+                  ? 'text-[#6222cc] border-b-2 border-[#6222cc] -mb-[1px]'
                   : 'text-slate-500 hover:text-slate-800'
               )}
             >
@@ -345,7 +345,7 @@ export function TrialConfigurationScreen() {
                 <thead>
                   <tr className="bg-slate-50/80 text-slate-700 border-b border-slate-200 font-semibold text-[11px]">
                     <th className="py-3 px-3 w-8 text-center">
-                      <input type="checkbox" className="rounded border-slate-300 text-indigo-600 h-3.5 w-3.5" />
+                      <input type="checkbox" className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-3.5 w-3.5" />
                     </th>
                     <th className="py-3 px-3 font-semibold text-slate-800">Plan Name</th>
                     <th className="py-3 px-3 font-semibold text-slate-800">Product</th>
@@ -366,7 +366,7 @@ export function TrialConfigurationScreen() {
                         className={cn(
                           'transition-colors cursor-pointer',
                           isSelected
-                            ? 'bg-[#f6f4fe] border-l-2 border-l-[#4F46E5]'
+                            ? 'bg-[#f8f5ff] border-l-2 border-l-[#6222cc]'
                             : 'hover:bg-slate-50/70'
                         )}
                       >
@@ -375,7 +375,7 @@ export function TrialConfigurationScreen() {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleSelectRow(tr)}
-                            className="rounded border-slate-300 text-indigo-600 h-3.5 w-3.5"
+                            className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-3.5 w-3.5"
                           />
                         </td>
                         <td className="py-3 px-3 font-semibold text-slate-900 whitespace-nowrap">
@@ -410,7 +410,7 @@ export function TrialConfigurationScreen() {
                             <button
                               type="button"
                               onClick={() => handleSelectRow(tr)}
-                              className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-slate-100"
+                              className="p-1 rounded text-slate-400 hover:text-[#6222cc] hover:bg-slate-100"
                             >
                               <Edit2 className="h-3.5 w-3.5" />
                             </button>
@@ -443,7 +443,7 @@ export function TrialConfigurationScreen() {
                 <span>1-6 of 6</span>
                 <div className="flex items-center gap-1">
                   <button type="button" className="p-1 rounded hover:bg-slate-100 text-slate-400">&lt;</button>
-                  <button type="button" className="h-6 w-6 rounded bg-[#4F46E5] text-white font-semibold text-xs flex items-center justify-center shadow-xs">1</button>
+                  <button type="button" className="h-6 w-6 rounded bg-[#6222cc] text-white font-semibold text-xs flex items-center justify-center shadow-xs">1</button>
                   <button type="button" className="p-1 rounded hover:bg-slate-100 text-slate-400">&gt;</button>
                 </div>
               </div>
@@ -463,7 +463,7 @@ export function TrialConfigurationScreen() {
 
             {/* SECTION 1: Basic Information */}
             <div className="space-y-3 text-xs">
-              <h4 className="font-bold text-slate-900 text-xs text-[#4F46E5]">Basic Information</h4>
+              <h4 className="font-bold text-slate-900 text-xs text-[#6222cc]">Basic Information</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="font-semibold text-slate-700">Trial Plan Name *</label>
@@ -523,7 +523,7 @@ export function TrialConfigurationScreen() {
 
             {/* SECTION 2: Trial Access & Features */}
             <div className="space-y-3 text-xs pt-2 border-t border-slate-100">
-              <h4 className="font-bold text-slate-900 text-xs text-[#4F46E5]">Trial Access &amp; Features</h4>
+              <h4 className="font-bold text-slate-900 text-xs text-[#6222cc]">Trial Access &amp; Features</h4>
 
               <div className="space-y-2">
                 <label className="font-semibold text-slate-700">Feature Scope *</label>
@@ -534,7 +534,7 @@ export function TrialConfigurationScreen() {
                       name="scope"
                       checked={formData.featureScope === 'all'}
                       onChange={() => setFormData({ ...formData, featureScope: 'all' })}
-                      className="text-indigo-600"
+                      className="text-[#6222cc]"
                     />
                     <span className="text-slate-700 text-xs">All Edition Features</span>
                   </label>
@@ -544,7 +544,7 @@ export function TrialConfigurationScreen() {
                       name="scope"
                       checked={formData.featureScope === 'select'}
                       onChange={() => setFormData({ ...formData, featureScope: 'select' })}
-                      className="text-indigo-600"
+                      className="text-[#6222cc]"
                     />
                     <span className="text-slate-700 text-xs font-semibold">Select Features</span>
                   </label>
@@ -559,7 +559,7 @@ export function TrialConfigurationScreen() {
                   {formData.enabledFeatures.map((feat, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center gap-1.5 bg-[#f6f4fe] text-[#4F46E5] text-[11px] font-medium px-2.5 py-1 rounded-lg border border-purple-200/60"
+                      className="inline-flex items-center gap-1.5 bg-[#f8f5ff] text-[#6222cc] text-[11px] font-medium px-2.5 py-1 rounded-lg border border-purple-200/60"
                     >
                       <span>{feat}</span>
                       <button
@@ -577,7 +577,7 @@ export function TrialConfigurationScreen() {
 
             {/* SECTION 3: Conversion & Limits */}
             <div className="space-y-3 text-xs pt-2 border-t border-slate-100">
-              <h4 className="font-bold text-slate-900 text-xs text-[#4F46E5]">Conversion &amp; Limits</h4>
+              <h4 className="font-bold text-slate-900 text-xs text-[#6222cc]">Conversion &amp; Limits</h4>
 
               <div className="space-y-2">
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -585,7 +585,7 @@ export function TrialConfigurationScreen() {
                     type="checkbox"
                     checked={formData.allowConversion}
                     onChange={(e) => setFormData({ ...formData, allowConversion: e.target.checked })}
-                    className="rounded border-slate-300 text-indigo-600 h-3.5 w-3.5"
+                    className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-3.5 w-3.5"
                   />
                   <span className="text-slate-700 text-xs">Allow conversion to paid plan after trial</span>
                 </label>
@@ -595,7 +595,7 @@ export function TrialConfigurationScreen() {
                     type="checkbox"
                     checked={formData.retainData}
                     onChange={(e) => setFormData({ ...formData, retainData: e.target.checked })}
-                    className="rounded border-slate-300 text-indigo-600 h-3.5 w-3.5"
+                    className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-3.5 w-3.5"
                   />
                   <span className="text-slate-700 text-xs">Retain trial data on conversion</span>
                 </label>
@@ -605,7 +605,7 @@ export function TrialConfigurationScreen() {
                     type="checkbox"
                     checked={formData.autoExpire}
                     onChange={(e) => setFormData({ ...formData, autoExpire: e.target.checked })}
-                    className="rounded border-slate-300 text-indigo-600 h-3.5 w-3.5"
+                    className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-3.5 w-3.5"
                   />
                   <span className="text-slate-700 text-xs">Auto-expire trial (deactivate access)</span>
                 </label>
@@ -659,7 +659,7 @@ export function TrialConfigurationScreen() {
                 <Button
                   type="button"
                   onClick={handleUpdateTrial}
-                  className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs h-9 px-4 font-semibold"
+                  className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs h-9 px-4 font-semibold"
                 >
                   Update Trial Plan
                 </Button>

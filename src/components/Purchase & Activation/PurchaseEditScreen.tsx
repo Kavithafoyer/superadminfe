@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -119,7 +119,7 @@ function PurchaseEditForm() {
             <button
               type="button"
               onClick={() => router.push('/purchase-activation/purchases')}
-              className="hover:text-[#7c3aed] transition-colors cursor-pointer"
+              className="hover:text-[#6222cc] transition-colors cursor-pointer"
             >
               Subscriptions
             </button>
@@ -127,7 +127,7 @@ function PurchaseEditForm() {
             <button
               type="button"
               onClick={() => router.push('/purchase-activation/purchases')}
-              className="hover:text-[#7c3aed] transition-colors cursor-pointer"
+              className="hover:text-[#6222cc] transition-colors cursor-pointer"
             >
               Purchase & Activation
             </button>
@@ -138,7 +138,7 @@ function PurchaseEditForm() {
             <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
               Edit Purchase
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-[#7c3aed] border border-purple-200 dark:bg-purple-950/60 dark:border-purple-800">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-[#6222cc] border border-purple-200 dark:bg-purple-950/60 dark:border-purple-800">
               {purchaseId}
             </span>
             <span
@@ -170,7 +170,7 @@ function PurchaseEditForm() {
           <Button
             type="button"
             onClick={handleSave}
-            className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-semibold text-xs sm:text-sm px-5 h-9 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+            className="bg-[#6222cc] hover:bg-[#5219b0] text-white font-semibold text-xs sm:text-sm px-5 h-9 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <Save className="h-4 w-4" />
             <span>Save Changes</span>
@@ -182,7 +182,7 @@ function PurchaseEditForm() {
         {/* Card 1: Customer & Tenant Information */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#7c3aed] text-xs font-bold">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#6222cc] text-xs font-bold">
               1
             </span>
             <span>Customer & Tenant Information</span>
@@ -244,7 +244,7 @@ function PurchaseEditForm() {
         {/* Card 2: Subscription & Plan Specification */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#7c3aed] text-xs font-bold">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#6222cc] text-xs font-bold">
               2
             </span>
             <span>Product & Subscription Details</span>
@@ -328,7 +328,7 @@ function PurchaseEditForm() {
         {/* Card 3: Add-ons & Entitlements Selection */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-3">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#7c3aed] text-xs font-bold">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#6222cc] text-xs font-bold">
               3
             </span>
             <span>Add-on Modules & Optional Extensions</span>
@@ -349,14 +349,14 @@ function PurchaseEditForm() {
                   className={cn(
                     'px-3.5 py-2 rounded-lg text-xs font-medium border transition-all flex items-center gap-2 cursor-pointer',
                     isSelected
-                      ? 'bg-[#7c3aed] text-white border-[#7c3aed] shadow-xs'
+                      ? 'bg-[#6222cc] text-white border-[#6222cc] shadow-xs'
                       : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
                   )}
                 >
                   <span
                     className={cn(
                       'w-3.5 h-3.5 rounded-full flex items-center justify-center text-[10px]',
-                      isSelected ? 'bg-white text-[#7c3aed]' : 'border border-slate-400'
+                      isSelected ? 'bg-white text-[#6222cc]' : 'border border-slate-400'
                     )}
                   >
                     {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
@@ -374,7 +374,7 @@ function PurchaseEditForm() {
         {/* Card 4: Payment & Commercial Breakdown */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#7c3aed] text-xs font-bold">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#6222cc] text-xs font-bold">
               4
             </span>
             <span>Payment & Commercial Breakdown</span>
@@ -457,7 +457,7 @@ function PurchaseEditForm() {
             </div>
             <div className="border-l border-purple-200 dark:border-slate-700 pl-4">
               <span className="text-slate-500 font-semibold">Total Payable Amount:</span>
-              <p className="text-xl font-extrabold text-[#7c3aed] dark:text-purple-400">
+              <p className="text-xl font-extrabold text-[#6222cc] dark:text-purple-400">
                 ₹{grandTotal.toLocaleString('en-IN')}
               </p>
             </div>
@@ -467,7 +467,7 @@ function PurchaseEditForm() {
         {/* Card 5: Licensing & Provisioning Configuration */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#7c3aed] text-xs font-bold">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#6222cc] text-xs font-bold">
               5
             </span>
             <span>Licensing Policy & Server Allocation</span>
@@ -522,7 +522,7 @@ function PurchaseEditForm() {
                   onClick={() => setAutoProvision(!autoProvision)}
                   className={cn(
                     'w-11 h-6 rounded-full p-1 transition-colors relative cursor-pointer',
-                    autoProvision ? 'bg-[#7c3aed]' : 'bg-slate-300 dark:bg-slate-700'
+                    autoProvision ? 'bg-[#6222cc]' : 'bg-slate-300 dark:bg-slate-700'
                   )}
                 >
                   <div
@@ -543,7 +543,7 @@ function PurchaseEditForm() {
         {/* Card 6: Additional Notes & Sales Attributions */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#7c3aed] text-xs font-bold">
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-950 text-[#6222cc] text-xs font-bold">
               6
             </span>
             <span>Additional Remarks & Notes</span>
@@ -588,7 +588,7 @@ function PurchaseEditForm() {
           </Button>
           <Button
             type="submit"
-            className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-semibold text-xs px-6 h-9 rounded-lg shadow-sm cursor-pointer"
+            className="bg-[#6222cc] hover:bg-[#5219b0] text-white font-semibold text-xs px-6 h-9 rounded-lg shadow-sm cursor-pointer"
           >
             Save Changes
           </Button>

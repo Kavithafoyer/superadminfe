@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -62,7 +62,7 @@ function PurchaseOverviewContent() {
             <button
               type="button"
               onClick={() => router.push('/purchase-activation/purchases')}
-              className="hover:text-[#7c3aed] transition-colors cursor-pointer"
+              className="hover:text-[#6222cc] transition-colors cursor-pointer"
             >
               Subscriptions
             </button>
@@ -70,7 +70,7 @@ function PurchaseOverviewContent() {
             <button
               type="button"
               onClick={() => router.push('/purchase-activation/purchases')}
-              className="hover:text-[#7c3aed] transition-colors cursor-pointer"
+              className="hover:text-[#6222cc] transition-colors cursor-pointer"
             >
               Purchase & Activation
             </button>
@@ -82,7 +82,7 @@ function PurchaseOverviewContent() {
             <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
               Purchase Overview
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-[#7c3aed] border border-purple-200 dark:bg-purple-950/60 dark:border-purple-800">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-[#6222cc] border border-purple-200 dark:bg-purple-950/60 dark:border-purple-800">
               {purchase.id}
             </span>
             <span
@@ -121,7 +121,7 @@ function PurchaseOverviewContent() {
           <Button
             type="button"
             onClick={() => router.push(`/purchase-activation/edit?id=${purchase.id}`)}
-            className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-semibold text-xs sm:text-sm px-4 h-9 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+            className="bg-[#6222cc] hover:bg-[#5219b0] text-white font-semibold text-xs sm:text-sm px-4 h-9 rounded-lg shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <Edit2 className="h-3.5 w-3.5" />
             <span>Edit Purchase</span>
@@ -152,7 +152,7 @@ function PurchaseOverviewContent() {
               Purchase ID: {purchase.id}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950 text-[#7c3aed] flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950 text-[#6222cc] flex items-center justify-center shrink-0">
             <Building2 className="h-5 w-5" />
           </div>
         </div>
@@ -181,7 +181,7 @@ function PurchaseOverviewContent() {
             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
               Total Paid Amount
             </span>
-            <p className="text-base font-bold text-[#7c3aed] dark:text-purple-400">
+            <p className="text-base font-bold text-[#6222cc] dark:text-purple-400">
               {formatINR(purchase.amount)}
             </p>
             <p className="text-xs text-slate-500">
@@ -217,7 +217,7 @@ function PurchaseOverviewContent() {
         {/* Left Column: Purchase & Customer Information */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <span className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-950 text-[#7c3aed]">
+            <span className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-950 text-[#6222cc]">
               <FileText className="h-4 w-4" />
             </span>
             <span>Purchase & Customer Information</span>
@@ -247,7 +247,7 @@ function PurchaseOverviewContent() {
 
             <div className="flex items-center justify-between py-1.5 border-b border-slate-100 dark:border-slate-800/60">
               <span className="text-slate-500">Official Email</span>
-              <span className="font-medium text-[#7c3aed] underline underline-offset-2">
+              <span className="font-medium text-[#6222cc] underline underline-offset-2">
                 admin@eurotextiles.com
               </span>
             </div>
@@ -325,7 +325,7 @@ function PurchaseOverviewContent() {
         {/* Right Column: Payment, Entitlements & Licensing Policy */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-bold text-sm">
-            <span className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-950 text-[#7c3aed]">
+            <span className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-950 text-[#6222cc]">
               <ShieldCheck className="h-4 w-4" />
             </span>
             <span>Payment, Entitlements & Licensing Policy</span>
@@ -381,7 +381,7 @@ function PurchaseOverviewContent() {
 
             <div className="flex items-center justify-between py-1.5 border-b border-slate-100 dark:border-slate-800/60 bg-purple-50/50 dark:bg-purple-950/20 px-2 rounded-lg">
               <span className="text-slate-700 dark:text-slate-300 font-bold">Total Net Paid</span>
-              <span className="font-extrabold text-base text-[#7c3aed] dark:text-purple-400">
+              <span className="font-extrabold text-base text-[#6222cc] dark:text-purple-400">
                 {formatINR(purchase.amount)}
               </span>
             </div>
@@ -395,7 +395,7 @@ function PurchaseOverviewContent() {
                 <button
                   type="button"
                   onClick={() => handleCopyLicenseKey('PGT-CRM-7F3D-9A21-4B8E')}
-                  className="p-1 text-slate-400 hover:text-[#7c3aed] transition-colors"
+                  className="p-1 text-slate-400 hover:text-[#6222cc] transition-colors"
                 >
                   {copiedKey ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                 </button>
@@ -511,15 +511,15 @@ function PurchaseOverviewContent() {
             Active Add-on Extensions Included:
           </span>
           <div className="flex flex-wrap gap-2">
-            <span className="px-3 py-1 rounded-lg text-xs font-medium bg-purple-50 dark:bg-purple-950/60 text-[#7c3aed] border border-purple-200 dark:border-purple-800 flex items-center gap-1.5">
+            <span className="px-3 py-1 rounded-lg text-xs font-medium bg-purple-50 dark:bg-purple-950/60 text-[#6222cc] border border-purple-200 dark:border-purple-800 flex items-center gap-1.5">
               <Sparkles className="h-3 w-3" />
               <span>AI Lead Scoring (Active)</span>
             </span>
-            <span className="px-3 py-1 rounded-lg text-xs font-medium bg-purple-50 dark:bg-purple-950/60 text-[#7c3aed] border border-purple-200 dark:border-purple-800 flex items-center gap-1.5">
+            <span className="px-3 py-1 rounded-lg text-xs font-medium bg-purple-50 dark:bg-purple-950/60 text-[#6222cc] border border-purple-200 dark:border-purple-800 flex items-center gap-1.5">
               <Sparkles className="h-3 w-3" />
               <span>WhatsApp Business API (Connected)</span>
             </span>
-            <span className="px-3 py-1 rounded-lg text-xs font-medium bg-purple-50 dark:bg-purple-950/60 text-[#7c3aed] border border-purple-200 dark:border-purple-800 flex items-center gap-1.5">
+            <span className="px-3 py-1 rounded-lg text-xs font-medium bg-purple-50 dark:bg-purple-950/60 text-[#6222cc] border border-purple-200 dark:border-purple-800 flex items-center gap-1.5">
               <Sparkles className="h-3 w-3" />
               <span>Multi-Terminal POS Sync (Enabled)</span>
             </span>

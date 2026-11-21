@@ -76,7 +76,7 @@ export function SubscriptionPlanOverviewScreen({ planId }: { planId: string }) {
     gracePeriodDays: 7,
     autoRenewDefault: true,
     planBadge: isStarter ? 'Starter Choice' : isBusiness ? 'Growth Tier' : isEnterprise ? 'Enterprise SLA' : 'Most Popular',
-    planColor: '#5046e5',
+    planColor: '#1574fe',
     status: 'Active',
     activeSubscribers: isStarter ? 840 : isBusiness ? 420 : isEnterprise ? 95 : 1420,
     mrrContribution: isStarter ? '$15,960' : isBusiness ? '$41,580' : isEnterprise ? '$85,500' : '$69,580',
@@ -126,7 +126,7 @@ export function SubscriptionPlanOverviewScreen({ planId }: { planId: string }) {
               {plan.status}
             </span>
             {plan.planBadge && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#5046e5] text-white shadow-2xs">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#1574fe] text-white shadow-2xs">
                 {plan.planBadge}
               </span>
             )}
@@ -147,7 +147,7 @@ export function SubscriptionPlanOverviewScreen({ planId }: { planId: string }) {
           <Button
             type="button"
             onClick={() => router.push(`/subscriptions/edit/${planId || 'professional'}`)}
-            className="h-9 px-4 bg-[#5046e5] hover:bg-[#4338ca] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
+            className="h-9 px-4 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
           >
             <Edit2 className="h-3.5 w-3.5" />
             Edit Plan
@@ -164,9 +164,9 @@ export function SubscriptionPlanOverviewScreen({ planId }: { planId: string }) {
               Subscription Plan
             </div>
             <div className="text-lg font-bold text-slate-900 mt-1">{plan.name}</div>
-            <div className="text-xs text-[#5046e5] font-semibold mt-0.5">{plan.code}</div>
+            <div className="text-xs text-[#1574fe] font-semibold mt-0.5">{plan.code}</div>
           </div>
-          <div className="h-10 w-10 rounded-lg bg-indigo-50 text-[#5046e5] flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-lg bg-blue-50 text-[#1574fe] flex items-center justify-center shrink-0">
             <Layers className="h-5 w-5" />
           </div>
         </div>
@@ -196,7 +196,7 @@ export function SubscriptionPlanOverviewScreen({ planId }: { planId: string }) {
             <div className="text-lg font-bold text-slate-900 mt-1">{plan.userSeats} User Seats</div>
             <div className="text-xs text-slate-500 font-medium mt-0.5">{plan.storageGb} GB Cloud Storage</div>
           </div>
-          <div className="h-10 w-10 rounded-lg bg-purple-50 text-[#5046e5] flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-lg bg-purple-50 text-[#1574fe] flex items-center justify-center shrink-0">
             <Users className="h-5 w-5" />
           </div>
         </div>
@@ -208,7 +208,7 @@ export function SubscriptionPlanOverviewScreen({ planId }: { planId: string }) {
               Active Subscribers
             </div>
             <div className="text-lg font-bold text-slate-900 mt-1">{plan.activeSubscribers} Tenants</div>
-            <div className="text-xs text-indigo-600 font-semibold mt-0.5">{plan.retentionRate} Retention</div>
+            <div className="text-xs text-[#1574fe] font-semibold mt-0.5">{plan.retentionRate} Retention</div>
           </div>
           <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
             <ShieldCheck className="h-5 w-5" />
@@ -221,7 +221,7 @@ export function SubscriptionPlanOverviewScreen({ planId }: { planId: string }) {
         {/* Left Card: Plan Specifications */}
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
           <div className="flex items-center gap-2 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-[#5046e5]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
               <Layers className="h-4 w-4" />
             </span>
             <span>Subscription Plan Specifications</span>
@@ -258,7 +258,7 @@ export function SubscriptionPlanOverviewScreen({ planId }: { planId: string }) {
             </div>
             <div>
               <span className="text-slate-400 block font-medium">Display Badge</span>
-              <span className="font-semibold text-indigo-600">{plan.planBadge}</span>
+              <span className="font-semibold text-[#1574fe]">{plan.planBadge}</span>
             </div>
             <div>
               <span className="text-slate-400 block font-medium">Publishing Status</span>
@@ -281,7 +281,7 @@ export function SubscriptionPlanOverviewScreen({ planId }: { planId: string }) {
         {/* Right Card: Quotas, Entitlements & Policies */}
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
           <div className="flex items-center gap-2 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-indigo-50 text-[#5046e5]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
               <ShieldCheck className="h-4 w-4" />
             </span>
             <span>Quotas, Entitlements &amp; Policies</span>

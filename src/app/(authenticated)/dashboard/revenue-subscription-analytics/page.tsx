@@ -94,9 +94,9 @@ const REVENUE_KPIS = [
     value: '₹ 1.24 Cr',
     change: '+32%',
     icon: Sparkles,
-    iconColor: 'text-indigo-600 dark:text-indigo-400',
+    iconColor: 'text-[#1574fe] dark:text-indigo-400',
     iconBg: 'bg-white dark:bg-slate-900 border-indigo-200/80 dark:border-indigo-800/80 shadow-2xs',
-    cardBg: 'bg-indigo-50/90 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800/70',
+    cardBg: 'bg-blue-50/90 dark:bg-blue-950/40 border-indigo-200 dark:border-indigo-800/70',
   },
   {
     id: 'tot_rev',
@@ -294,7 +294,7 @@ export default function RevenueSubscriptionAnalyticsPage() {
           <button
             type="button"
             onClick={() => router.push('/dashboard')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer bg-[#5046e5] text-white hover:bg-[#4338ca] shadow-indigo-500/20"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer bg-[#1574fe] text-white hover:bg-[#0d62e0] shadow-blue-500/20"
           >
             <TrendingUp className="h-4 w-4" />
             Executive Dashboard
@@ -425,7 +425,7 @@ export default function RevenueSubscriptionAnalyticsPage() {
               <Button
                 onClick={handleApply}
                 disabled={isApplying}
-                className="bg-[#5046e5] hover:bg-[#4338ca] text-white font-semibold text-xs h-8 px-4 rounded-lg shadow-xs cursor-pointer gap-1.5"
+                className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-semibold text-xs h-8 px-4 rounded-lg shadow-xs cursor-pointer gap-1.5"
               >
                 <Filter className={`h-3.5 w-3.5 ${isApplying ? 'animate-spin' : ''}`} />
                 Apply
@@ -433,7 +433,7 @@ export default function RevenueSubscriptionAnalyticsPage() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="text-xs font-semibold text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 px-2 py-1.5 cursor-pointer transition-colors"
+                className="text-xs font-semibold text-slate-600 hover:text-[#1574fe] dark:text-slate-400 dark:hover:text-indigo-400 px-2 py-1.5 cursor-pointer transition-colors"
               >
                 Reset
               </button>
@@ -648,7 +648,7 @@ export default function RevenueSubscriptionAnalyticsPage() {
                 <div className="bg-sky-400 text-white rounded-lg p-2 text-center text-xs font-semibold mx-2 shadow-xs">
                   Engaged Tenants: 2,860 (38%)
                 </div>
-                <div className="bg-indigo-500 text-white rounded-lg p-2 text-center text-xs font-semibold mx-4 shadow-xs">
+                <div className="bg-blue-500 text-white rounded-lg p-2 text-center text-xs font-semibold mx-4 shadow-xs">
                   Converted to Paid: 1,320 (17.3%)
                 </div>
                 <div className="bg-purple-700 text-white rounded-lg p-2 text-center text-xs font-semibold mx-6 shadow-xs">

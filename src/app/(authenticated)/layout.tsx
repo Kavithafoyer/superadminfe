@@ -48,8 +48,8 @@ export default function AuthenticatedLayout({
   }, [mode]);
 
   useEffect(() => {
-    const activeColor = (!primaryColor || primaryColor === '#6366f1' || primaryColor === '#4f46e5')
-      ? '#0565FD'
+    const activeColor = (!primaryColor || primaryColor === '#6366f1' || primaryColor === '#4f46e5' || primaryColor === '#0565FD')
+      ? '#1574fe'
       : primaryColor;
     document.documentElement.style.setProperty('--primary', activeColor);
     document.documentElement.style.setProperty('--ring', activeColor);

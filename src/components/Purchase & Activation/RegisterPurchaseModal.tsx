@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { X, ShoppingCart, Check } from 'lucide-react';
@@ -68,7 +68,7 @@ export function RegisterPurchaseModal({ isOpen, onClose, onSuccess }: Props) {
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-purple-50 dark:bg-purple-950/50 text-[#7c3aed] rounded-lg">
+            <div className="p-2 bg-blue-50 dark:bg-blue-950/50 text-[#1574fe] rounded-lg">
               <ShoppingCart className="h-5 w-5" />
             </div>
             <div>
@@ -106,7 +106,7 @@ export function RegisterPurchaseModal({ isOpen, onClose, onSuccess }: Props) {
               <select
                 value={product}
                 onChange={(e) => setProduct(e.target.value as ProductType)}
-                className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-purple-500"
+                className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 <option value="Pegatto CRM">Pegatto CRM</option>
                 <option value="Pegatto Education">Pegatto Education</option>
@@ -124,7 +124,7 @@ export function RegisterPurchaseModal({ isOpen, onClose, onSuccess }: Props) {
               <select
                 value={planEdition}
                 onChange={(e) => setPlanEdition(e.target.value as PlanEdition)}
-                className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-purple-500"
+                className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 <option value="Standard">Standard</option>
                 <option value="Professional">Professional</option>
@@ -153,7 +153,7 @@ export function RegisterPurchaseModal({ isOpen, onClose, onSuccess }: Props) {
               <select
                 value={channel}
                 onChange={(e) => setChannel(e.target.value)}
-                className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-purple-500"
+                className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-800 dark:text-slate-200 outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 <option value="Direct Web">Direct Web</option>
                 <option value="Sales Partner">Sales Partner</option>
@@ -174,7 +174,7 @@ export function RegisterPurchaseModal({ isOpen, onClose, onSuccess }: Props) {
                   name="paymentStatus"
                   checked={paymentStatus === 'Paid'}
                   onChange={() => setPaymentStatus('Paid')}
-                  className="text-purple-600 focus:ring-purple-500"
+                  className="text-[#1574fe] focus:ring-blue-500"
                 />
                 <span>Paid (Auto-Provision)</span>
               </label>
@@ -184,7 +184,7 @@ export function RegisterPurchaseModal({ isOpen, onClose, onSuccess }: Props) {
                   name="paymentStatus"
                   checked={paymentStatus === 'Pending'}
                   onChange={() => setPaymentStatus('Pending')}
-                  className="text-purple-600 focus:ring-purple-500"
+                  className="text-[#1574fe] focus:ring-blue-500"
                 />
                 <span>Pending (Queue for Verification)</span>
               </label>
@@ -197,7 +197,7 @@ export function RegisterPurchaseModal({ isOpen, onClose, onSuccess }: Props) {
             </Button>
             <Button
               type="submit"
-              className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium"
+              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium"
             >
               Register & Save
             </Button>

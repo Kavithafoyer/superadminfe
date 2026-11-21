@@ -182,9 +182,9 @@ const KPI_METRICS = [
     change: '+32%',
     isPositive: true,
     icon: Sparkles,
-    iconColor: 'text-indigo-600 dark:text-indigo-400',
+    iconColor: 'text-[#1574fe] dark:text-indigo-400',
     iconBg: 'bg-white dark:bg-slate-900 border-indigo-200/80 dark:border-indigo-800/80 shadow-2xs',
-    cardBg: 'bg-indigo-50/80 dark:bg-indigo-950/30 border-indigo-200/90 dark:border-indigo-800/60',
+    cardBg: 'bg-blue-50/80 dark:bg-blue-950/30 border-indigo-200/90 dark:border-indigo-800/60',
   },
   {
     id: 'pending_approvals',
@@ -228,7 +228,7 @@ const CUSTOMER_GROWTH_DATA = [
 // Product-wise Adoption Data
 const PRODUCT_ADOPTION_DATA = [
   { name: 'Education', value: 32, count: '3,014', color: '#2563eb' },
-  { name: 'CRM (Generic)', value: 20, count: '1,884', color: '#7c3aed' },
+  { name: 'CRM (Generic)', value: 20, count: '1,884', color: '#1574fe' },
   { name: 'IT', value: 16, count: '1,507', color: '#84cc16' },
   { name: 'People (HRMS)', value: 12, count: '1,130', color: '#eab308' },
   { name: 'Retail', value: 10, count: '942', color: '#ec4899' },
@@ -440,7 +440,7 @@ export default function ExecutiveDashboardPage() {
       ══════════════════════════════════════════════════════════════════════ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 shadow-xs">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#1574fe] dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 shadow-xs">
             <Activity className="h-6 w-6 stroke-[2.2]" />
           </div>
           <div>
@@ -460,7 +460,7 @@ export default function ExecutiveDashboardPage() {
             onClick={scrollToTop}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer ${
               activeTab === 'executive'
-                ? 'bg-[#5046e5] text-white hover:bg-[#4338ca] shadow-indigo-500/20'
+                ? 'bg-[#1574fe] text-white hover:bg-[#0d62e0] shadow-blue-500/20'
                 : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
@@ -473,7 +473,7 @@ export default function ExecutiveDashboardPage() {
             onClick={scrollToHealth}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer ${
               activeTab === 'health'
-                ? 'bg-[#5046e5] text-white hover:bg-[#4338ca] shadow-indigo-500/20'
+                ? 'bg-[#1574fe] text-white hover:bg-[#0d62e0] shadow-blue-500/20'
                 : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
@@ -603,7 +603,7 @@ export default function ExecutiveDashboardPage() {
               <Button
                 onClick={handleApplyFilters}
                 disabled={isApplying}
-                className="bg-[#5046e5] hover:bg-[#4338ca] text-white font-semibold text-xs h-8 px-4 rounded-lg shadow-xs cursor-pointer gap-1.5"
+                className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-semibold text-xs h-8 px-4 rounded-lg shadow-xs cursor-pointer gap-1.5"
               >
                 <Filter className={`h-3.5 w-3.5 ${isApplying ? 'animate-spin' : ''}`} />
                 Apply
@@ -611,7 +611,7 @@ export default function ExecutiveDashboardPage() {
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="text-xs font-semibold text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 px-2 py-1.5 cursor-pointer transition-colors"
+                className="text-xs font-semibold text-slate-600 hover:text-[#1574fe] dark:text-slate-400 dark:hover:text-indigo-400 px-2 py-1.5 cursor-pointer transition-colors"
               >
                 Reset
               </button>
@@ -832,7 +832,7 @@ export default function ExecutiveDashboardPage() {
                 </div>
 
                 {/* Step 2: Engaged Tenants */}
-                <div className="relative bg-indigo-100/90 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800/80 rounded-lg p-2.5 flex items-center justify-between shadow-xs">
+                <div className="relative bg-blue-100/90 dark:bg-blue-950/50 border border-indigo-200 dark:border-indigo-800/80 rounded-lg p-2.5 flex items-center justify-between shadow-xs">
                   <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200 truncate">
                     Engaged Tenants
                   </span>
@@ -1115,7 +1115,7 @@ export default function ExecutiveDashboardPage() {
         <Card className="border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 pt-4 px-4 md:px-6 border-b border-slate-100 dark:border-slate-800/60">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/60 text-[#1574fe] dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60">
                 <Server className="h-5 w-5" />
               </div>
               <div>
@@ -1139,7 +1139,7 @@ export default function ExecutiveDashboardPage() {
                 disabled={isRefreshingHealth}
                 className="gap-1.5 h-8 text-xs font-semibold border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer shadow-xs"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${isRefreshingHealth ? 'animate-spin text-indigo-600' : 'text-slate-500'}`} />
+                <RefreshCw className={`h-3.5 w-3.5 ${isRefreshingHealth ? 'animate-spin text-[#1574fe]' : 'text-slate-500'}`} />
                 Refresh
               </Button>
             </div>

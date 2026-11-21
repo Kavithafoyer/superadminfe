@@ -97,7 +97,7 @@ const INITIAL_TENANTS: TenantUsageItem[] = [
 const PRODUCT_DISTRIBUTION = [
   { name: 'Pegatto CRM', pct: 32, color: '#3b82f6', bg: 'bg-blue-500' },
   { name: 'Pegatto Education', pct: 24, color: '#06b6d4', bg: 'bg-cyan-500' },
-  { name: 'Pegatto IT', pct: 18, color: '#8b5cf6', bg: 'bg-purple-500' },
+  { name: 'Pegatto IT', pct: 18, color: '#8b5cf6', bg: 'bg-blue-500' },
   { name: 'Pegatto People', pct: 10, color: '#f59e0b', bg: 'bg-amber-500' },
   { name: 'Pegatto Retail', pct: 8, color: '#10b981', bg: 'bg-emerald-500' },
   { name: 'Pegatto Real Estate', pct: 5, color: '#14b8a6', bg: 'bg-teal-500' },
@@ -178,7 +178,7 @@ export function UsageScreen() {
           </div>
           <Button
             onClick={handleExportReport}
-            className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+            className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition-all cursor-pointer"
           >
             <Download className="h-4 w-4" />
             <span>Export Usage Report</span>
@@ -190,7 +190,7 @@ export function UsageScreen() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
         {/* Total Tenants */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800 p-4 flex items-center gap-3.5 shadow-xs">
-          <div className="p-3 bg-purple-50 dark:bg-purple-950/50 text-[#7c3aed] rounded-xl shrink-0">
+          <div className="p-3 bg-blue-50 dark:bg-blue-950/50 text-[#6222cc] rounded-xl shrink-0">
             <Users className="h-6 w-6" />
           </div>
           <div>
@@ -283,13 +283,13 @@ export function UsageScreen() {
               className={cn(
                 'pb-3 transition-colors cursor-pointer relative whitespace-nowrap',
                 isActive
-                  ? 'text-[#7c3aed] dark:text-purple-400 font-bold'
+                  ? 'text-[#6222cc] dark:text-blue-400 font-bold'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
               )}
             >
               {tab}
               {isActive && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#7c3aed] rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
               )}
             </button>
           );
@@ -362,7 +362,7 @@ export function UsageScreen() {
         <div className="flex items-center gap-2 ml-auto pt-4">
           <Button
             onClick={() => toast.success('Filters applied')}
-            className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-medium text-xs px-5 py-2 rounded-lg shadow-xs cursor-pointer"
+            className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-xs px-5 py-2 rounded-lg shadow-xs cursor-pointer"
           >
             Apply
           </Button>
@@ -384,7 +384,7 @@ export function UsageScreen() {
                 {/* Legends */}
                 <div className="flex items-center gap-3 text-[11px] text-slate-600 dark:text-slate-400">
                   <div className="flex items-center gap-1">
-                    <span className="h-2 w-2 rounded-full bg-[#7c3aed]" />
+                    <span className="h-2 w-2 rounded-full bg-[#6222cc]" />
                     <span>Active Users</span>
                   </div>
                   <div className="flex items-center gap-1">
@@ -421,7 +421,7 @@ export function UsageScreen() {
                   {/* 1. Active Users (Purple) */}
                   <polyline
                     fill="none"
-                    stroke="#7c3aed"
+                    stroke="#6222cc"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -431,7 +431,7 @@ export function UsageScreen() {
                     [30,110], [85,98], [140,94], [195,90], [250,75],
                     [305,73], [360,70], [415,68], [470,60], [525,45]
                   ].map(([cx, cy], i) => (
-                    <circle key={i} cx={cx} cy={cy} r="3" fill="#7c3aed" stroke="#fff" strokeWidth="1.5" />
+                    <circle key={i} cx={cx} cy={cy} r="3" fill="#6222cc" stroke="#fff" strokeWidth="1.5" />
                   ))}
 
                   {/* 2. Storage (GB) (Blue) */}
@@ -610,10 +610,10 @@ export function UsageScreen() {
                         onClick={() => setSelectedTenantId(tenant.id)}
                         className={cn(
                           'hover:bg-purple-50/40 dark:hover:bg-purple-950/20 transition-colors cursor-pointer',
-                          isSelected && 'bg-purple-50/60 dark:bg-purple-950/30'
+                          isSelected && 'bg-purple-50/60 dark:bg-blue-950/30'
                         )}
                       >
-                        <td className="p-3.5 font-semibold text-[#7c3aed] underline underline-offset-2">
+                        <td className="p-3.5 font-semibold text-[#6222cc] underline underline-offset-2">
                           {tenant.id}
                         </td>
                         <td className="p-3.5 font-medium text-slate-900 dark:text-slate-100">
@@ -659,7 +659,7 @@ export function UsageScreen() {
                               setSelectedTenantId(tenant.id);
                               toast.info(`Viewing usage telemetry for ${tenant.tenantName}`);
                             }}
-                            className="p-1 text-slate-400 hover:text-[#7c3aed] hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+                            className="p-1 text-slate-400 hover:text-[#6222cc] hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
@@ -684,7 +684,7 @@ export function UsageScreen() {
                 </button>
                 <button
                   type="button"
-                  className="w-7 h-7 rounded-md font-semibold text-xs flex items-center justify-center bg-[#7c3aed] text-white"
+                  className="w-7 h-7 rounded-md font-semibold text-xs flex items-center justify-center bg-[#6222cc] text-white"
                 >
                   1
                 </button>
@@ -835,7 +835,7 @@ export function UsageScreen() {
                   <span className="font-bold text-slate-900 dark:text-slate-100">68%</span>
                 </div>
                 <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#7c3aed] rounded-full" style={{ width: '68%' }} />
+                  <div className="h-full bg-[#6222cc] rounded-full" style={{ width: '68%' }} />
                 </div>
               </div>
 
@@ -885,7 +885,7 @@ export function UsageScreen() {
             <div className="space-y-2 text-xs">
               {TOP_ENDPOINTS.map((ep) => (
                 <div key={ep.endpoint} className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 font-mono text-purple-700 dark:text-purple-400">
+                  <div className="flex items-center gap-1.5 font-mono text-[#6222cc] dark:text-blue-400">
                     <span className="text-slate-400 font-sans">&lt;/&gt;</span>
                     <span>{ep.endpoint}</span>
                   </div>

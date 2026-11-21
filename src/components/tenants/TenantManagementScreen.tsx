@@ -121,7 +121,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
       case 'retail':
         return <ShoppingCart className="h-4 w-4 text-rose-600" />;
       case 'real-estate':
-        return <Building2 className="h-4 w-4 text-indigo-600" />;
+        return <Building2 className="h-4 w-4 text-[#1574fe]" />;
       case 'people':
       default:
         return <Users className="h-4 w-4 text-purple-600" />;
@@ -149,8 +149,8 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
           {/* Header Bar matching Image 1 */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-0.5">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl shadow-xs">
-                <Settings className="h-7 w-7 text-indigo-600" />
+              <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
+                <Settings className="h-7 w-7 text-[#1574fe]" />
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -167,7 +167,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
               <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-xs">
                 <span className="text-slate-400 font-medium">Product</span>
                 <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-                  <GraduationCap className="h-4 w-4 text-indigo-600" />
+                  <GraduationCap className="h-4 w-4 text-[#1574fe]" />
                   <select
                     value={selectedProductFilter}
                     onChange={(e) => setSelectedProductFilter(e.target.value)}
@@ -195,7 +195,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
 
               <Button
                 onClick={() => toast.success('Onboarding wizard launched')}
-                className="bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
                 <span>Onboard Tenant</span>
@@ -264,7 +264,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
           {/* Flow Diagram: Approval & Onboarding Flow */}
           <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <Layers className="h-4.5 w-4.5 text-indigo-600" />
+              <Layers className="h-4.5 w-4.5 text-[#1574fe]" />
               <div>
                 <h3 className="text-sm font-bold text-slate-900">Approval & Onboarding Flow</h3>
                 <p className="text-xs text-slate-500">From registration to go-live in a few simple steps</p>
@@ -346,7 +346,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
             <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3.5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <FileText className="h-4.5 w-4.5 text-indigo-600" />
+                  <FileText className="h-4.5 w-4.5 text-[#1574fe]" />
                   <h3 className="text-sm font-bold text-slate-900">Pending Approvals (12)</h3>
                 </div>
 
@@ -366,7 +366,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                     size="sm"
                     className="h-8 px-2.5 text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 gap-1 rounded-lg"
                   >
-                    <Filter className="h-3 w-3 text-indigo-600" />
+                    <Filter className="h-3 w-3 text-[#1574fe]" />
                     <span>Filters</span>
                   </Button>
                 </div>
@@ -396,7 +396,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                         onClick={() => setSelectedPendingTenantId(pt.id)}
                         className={cn(
                           'hover:bg-slate-50/80 transition-colors cursor-pointer',
-                          selectedPendingTenantId === pt.id ? 'bg-indigo-50/40' : ''
+                          selectedPendingTenantId === pt.id ? 'bg-blue-50/40' : ''
                         )}
                       >
                         <td className="py-2.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
@@ -424,7 +424,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                             <button
                               type="button"
                               onClick={() => toast.info(`Viewing details of ${pt.name}`)}
-                              className="p-1 text-slate-500 hover:text-indigo-600"
+                              className="p-1 text-slate-500 hover:text-[#1574fe]"
                               title="View"
                             >
                               <Eye className="h-3.5 w-3.5" />
@@ -457,7 +457,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
             {/* Right 4 cols: Onboarding Progress */}
             <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Rocket className="h-4.5 w-4.5 text-indigo-600" />
+                <Rocket className="h-4.5 w-4.5 text-[#1574fe]" />
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Onboarding Progress</h3>
                   <p className="text-[11px] text-slate-500">Track onboarding status for approved tenants</p>
@@ -468,7 +468,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
               <div className="p-3 border border-slate-200/70 rounded-xl bg-slate-50/50 flex items-center justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
-                    <Building2 className="h-4 w-4 text-indigo-600" />
+                    <Building2 className="h-4 w-4 text-[#1574fe]" />
                     <span>Bright Future School</span>
                   </div>
                   <p className="text-[11px] text-slate-500">
@@ -550,8 +550,8 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
           {/* Header Bar matching Image 2 */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-0.5">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl shadow-xs">
-                <Users className="h-7 w-7 text-indigo-600" />
+              <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
+                <Users className="h-7 w-7 text-[#1574fe]" />
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -565,7 +565,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
 
             <Button
               onClick={() => toast.success('Add Tenant Manually modal')}
-              className="bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               <span>Add Tenant Manually</span>
@@ -630,7 +630,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
             {/* Left 8 cols: Registration Flow */}
             <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Layers className="h-4.5 w-4.5 text-indigo-600" />
+                <Layers className="h-4.5 w-4.5 text-[#1574fe]" />
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Registration Flow</h3>
                   <p className="text-xs text-slate-500">How a tenant gets onboarded</p>
@@ -650,7 +650,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                     return (
                       <React.Fragment key={s.step}>
                         <div className="flex-1 p-2.5 rounded-xl border border-slate-200 bg-white text-center shadow-2xs space-y-1">
-                          <SIcon className="h-4 w-4 text-indigo-600 mx-auto" />
+                          <SIcon className="h-4 w-4 text-[#1574fe] mx-auto" />
                           <p className="text-xs font-bold text-slate-900">{s.step}</p>
                           <p className="text-[10px] text-slate-500">{s.sub}</p>
                         </div>
@@ -667,7 +667,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
             {/* Right 4 cols: Registration Sources */}
             <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Zap className="h-4.5 w-4.5 text-indigo-600" />
+                <Zap className="h-4.5 w-4.5 text-[#1574fe]" />
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Registration Sources</h3>
                 </div>
@@ -684,7 +684,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                     <input
                       type="checkbox"
                       defaultChecked={src.checked}
-                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                      className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
                     />
                     <span>{src.label}</span>
                   </label>
@@ -699,7 +699,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
             <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3.5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4.5 w-4.5 text-indigo-600" />
+                  <Clock className="h-4.5 w-4.5 text-[#1574fe]" />
                   <h3 className="text-sm font-bold text-slate-900">Pending Tenant Approvals (12)</h3>
                 </div>
 
@@ -719,7 +719,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                     size="sm"
                     className="h-8 px-2.5 text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 gap-1 rounded-lg"
                   >
-                    <Filter className="h-3 w-3 text-indigo-600" />
+                    <Filter className="h-3 w-3 text-[#1574fe]" />
                     <span>Filters</span>
                   </Button>
                 </div>
@@ -747,7 +747,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                         onClick={() => setSelectedPendingTenantId(pt.id)}
                         className={cn(
                           'hover:bg-slate-50/80 transition-colors cursor-pointer',
-                          selectedPendingTenantId === pt.id ? 'bg-indigo-50/50' : ''
+                          selectedPendingTenantId === pt.id ? 'bg-blue-50/50' : ''
                         )}
                       >
                         <td className="py-2.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
@@ -774,7 +774,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                             <button
                               type="button"
                               onClick={() => setSelectedPendingTenantId(pt.id)}
-                              className="p-1 text-slate-500 hover:text-indigo-600"
+                              className="p-1 text-slate-500 hover:text-[#1574fe]"
                               title="View"
                             >
                               <Eye className="h-3.5 w-3.5" />
@@ -807,7 +807,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
             {/* Right 5 cols: Tenant Details (Selected) */}
             <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Building2 className="h-4.5 w-4.5 text-indigo-600" />
+                <Building2 className="h-4.5 w-4.5 text-[#1574fe]" />
                 <h3 className="text-sm font-bold text-slate-900">Tenant Details (Selected)</h3>
               </div>
 
@@ -824,7 +824,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
 
                 <div className="grid grid-cols-3 gap-2">
                   <span className="text-slate-500 font-medium">Email</span>
-                  <span className="col-span-2 text-indigo-600 font-medium">{selectedPendingTenant.email}</span>
+                  <span className="col-span-2 text-[#1574fe] font-medium">{selectedPendingTenant.email}</span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
@@ -877,7 +877,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                   onClick={() => toast.info('Full details view')}
                   className="flex-1 h-8.5 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-slate-50 gap-1 rounded-lg"
                 >
-                  <FileText className="h-3.5 w-3.5 text-indigo-600" />
+                  <FileText className="h-3.5 w-3.5 text-[#1574fe]" />
                   <span>View & Edit</span>
                 </Button>
               </div>
@@ -894,8 +894,8 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
           {/* Header Bar matching Image 5 */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-0.5">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl shadow-xs">
-                <Building2 className="h-7 w-7 text-indigo-600" />
+              <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
+                <Building2 className="h-7 w-7 text-[#1574fe]" />
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -929,7 +929,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
 
               <Button
                 onClick={() => toast.success('Register Tenant modal')}
-                className="bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
                 <span>Register Tenant</span>
@@ -1015,7 +1015,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                   className={cn(
                     'px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer whitespace-nowrap',
                     i === 0
-                      ? 'bg-[#4F46E5] text-white shadow-xs font-bold'
+                      ? 'bg-[#1574fe] text-white shadow-xs font-bold'
                       : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
                   )}
                 >
@@ -1028,7 +1028,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
           {/* Tenant Lifecycle (End-to-End) Flow Canvas matching Image 5 */}
           <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <RefreshCw className="h-4.5 w-4.5 text-indigo-600" />
+              <RefreshCw className="h-4.5 w-4.5 text-[#1574fe]" />
               <h3 className="text-sm font-bold text-slate-900">Tenant Lifecycle (End-to-End)</h3>
             </div>
 
@@ -1046,7 +1046,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                   return (
                     <React.Fragment key={s.step}>
                       <div className="flex-1 p-3 rounded-xl border border-slate-200 bg-white text-center shadow-2xs space-y-1">
-                        <SIcon className="h-5 w-5 text-indigo-600 mx-auto" />
+                        <SIcon className="h-5 w-5 text-[#1574fe] mx-auto" />
                         <p className="text-xs font-bold text-slate-900 leading-tight">{s.step}</p>
                         <p className="text-[10px] text-slate-500 leading-tight">{s.sub}</p>
                       </div>
@@ -1080,7 +1080,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
             <div className="lg:col-span-9 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3.5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <Building2 className="h-4.5 w-4.5 text-indigo-600" />
+                  <Building2 className="h-4.5 w-4.5 text-[#1574fe]" />
                   <h3 className="text-sm font-bold text-slate-900">Tenants (286)</h3>
                 </div>
 
@@ -1100,7 +1100,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                     size="sm"
                     className="h-8 px-2.5 text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 gap-1 rounded-lg"
                   >
-                    <Filter className="h-3 w-3 text-indigo-600" />
+                    <Filter className="h-3 w-3 text-[#1574fe]" />
                     <span>Filters</span>
                   </Button>
                 </div>
@@ -1190,7 +1190,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                             <button
                               type="button"
                               onClick={() => router.push('/customer/overview')}
-                              className="p-1 text-slate-500 hover:text-indigo-600"
+                              className="p-1 text-slate-500 hover:text-[#1574fe]"
                               title="View"
                             >
                               <Eye className="h-3.5 w-3.5" />
@@ -1198,7 +1198,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                             <button
                               type="button"
                               onClick={() => toast.info(`Editing ${t.name}`)}
-                              className="p-1 text-slate-500 hover:text-indigo-600"
+                              className="p-1 text-slate-500 hover:text-[#1574fe]"
                               title="Edit"
                             >
                               <Edit2 className="h-3.5 w-3.5" />
@@ -1223,7 +1223,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
             {/* Right 3 cols: Lifecycle Actions */}
             <div className="lg:col-span-3 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Settings className="h-4.5 w-4.5 text-indigo-600" />
+                <Settings className="h-4.5 w-4.5 text-[#1574fe]" />
                 <h3 className="text-sm font-bold text-slate-900">Lifecycle Actions</h3>
               </div>
 
@@ -1245,7 +1245,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                       onClick={() => toast.info(`${act.label} action triggered`)}
                       className="w-full h-8.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-800 justify-start gap-2 rounded-lg"
                     >
-                      <AIcon className="h-3.5 w-3.5 text-indigo-600" />
+                      <AIcon className="h-3.5 w-3.5 text-[#1574fe]" />
                       <span>{act.label}</span>
                     </Button>
                   );
@@ -1264,8 +1264,8 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
           {/* Header Bar matching Images 3 & 4 */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-0.5">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl shadow-xs">
-                <Database className="h-7 w-7 text-indigo-600" />
+              <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
+                <Database className="h-7 w-7 text-[#1574fe]" />
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -1340,7 +1340,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                   className={cn(
                     'px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer',
                     isSelected
-                      ? 'bg-[#4F46E5] text-white shadow-xs font-bold'
+                      ? 'bg-[#1574fe] text-white shadow-xs font-bold'
                       : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
                   )}
                 >
@@ -1358,7 +1358,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                 {/* Top-Left 8 cols: Export Tenant Data Form */}
                 <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
                   <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                    <Download className="h-4.5 w-4.5 text-indigo-600" />
+                    <Download className="h-4.5 w-4.5 text-[#1574fe]" />
                     <h3 className="text-sm font-bold text-slate-900">Export Tenant Data</h3>
                   </div>
 
@@ -1434,7 +1434,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                     <Button
                       type="button"
                       onClick={() => toast.success(`Export job queued for ${exportTenant}!`)}
-                      className="h-8.5 px-4 text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white gap-1.5 rounded-lg"
+                      className="h-8.5 px-4 text-xs font-semibold bg-[#1574fe] hover:bg-[#0d62e0] text-white gap-1.5 rounded-lg"
                     >
                       <Download className="h-3.5 w-3.5" />
                       <span>Export Data</span>
@@ -1445,7 +1445,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                 {/* Top-Right 4 cols: Export Progress (72%) */}
                 <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3.5">
                   <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                    <RefreshCw className="h-4.5 w-4.5 text-indigo-600 animate-spin" />
+                    <RefreshCw className="h-4.5 w-4.5 text-[#1574fe] animate-spin" />
                     <div>
                       <h3 className="text-sm font-bold text-slate-900">Export Progress</h3>
                       <p className="text-xs text-slate-500">Exporting: {exportTenant}</p>
@@ -1455,10 +1455,10 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between text-xs font-bold">
                       <span className="text-slate-700">Progress</span>
-                      <span className="text-indigo-600">72%</span>
+                      <span className="text-[#1574fe]">72%</span>
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                      <div className="bg-[#4F46E5] h-full rounded-full transition-all duration-500" style={{ width: '72%' }} />
+                      <div className="bg-[#1574fe] h-full rounded-full transition-all duration-500" style={{ width: '72%' }} />
                     </div>
                   </div>
 
@@ -1509,7 +1509,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                             name="deletionType"
                             checked={deletionType === 'soft'}
                             onChange={() => setDeletionType('soft')}
-                            className="text-indigo-600"
+                            className="text-[#1574fe]"
                           />
                           <span>Soft Delete (Recommended)</span>
                         </label>
@@ -1586,7 +1586,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                 {/* Right 4 cols: Recent Activities */}
                 <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3">
                   <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                    <FileText className="h-4.5 w-4.5 text-indigo-600" />
+                    <FileText className="h-4.5 w-4.5 text-[#1574fe]" />
                     <h3 className="text-sm font-bold text-slate-900">Recent Activities</h3>
                   </div>
 
@@ -1625,7 +1625,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                     onClick={() => setExportSubTab('history')}
                     className="w-full h-8 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-800 gap-1 rounded-lg mt-2"
                   >
-                    <ExternalLink className="h-3.5 w-3.5 text-indigo-600" />
+                    <ExternalLink className="h-3.5 w-3.5 text-[#1574fe]" />
                     <span>View Full History</span>
                   </Button>
                 </div>
@@ -1637,7 +1637,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
           {exportSubTab === 'history' && (
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Clock className="h-4.5 w-4.5 text-indigo-600" />
+                <Clock className="h-4.5 w-4.5 text-[#1574fe]" />
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Export & Deletion History</h3>
                   <p className="text-xs text-slate-500">
@@ -1686,7 +1686,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                 <div className="flex items-center gap-2 ml-auto">
                   <Button
                     size="sm"
-                    className="h-8 px-4 text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg"
+                    className="h-8 px-4 text-xs font-semibold bg-[#1574fe] hover:bg-[#0d62e0] text-white rounded-lg"
                   >
                     Apply
                   </Button>
@@ -1768,7 +1768,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                                 onClick={() => toast.success(`Downloading backup for ${row.tenant}`)}
                                 className="h-6.5 text-[11px] px-2 bg-white border-slate-200 text-slate-700 gap-1 rounded"
                               >
-                                <Download className="h-3 w-3 text-indigo-600" />
+                                <Download className="h-3 w-3 text-[#1574fe]" />
                                 <span>Download</span>
                               </Button>
                             )}
@@ -1788,7 +1788,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                                 onClick={() => toast.info(`Retrying export for ${row.tenant}`)}
                                 className="h-6.5 text-[11px] px-2 bg-white border-slate-200 text-slate-700 gap-1 rounded"
                               >
-                                <RefreshCw className="h-3 w-3 text-indigo-600" />
+                                <RefreshCw className="h-3 w-3 text-[#1574fe]" />
                                 <span>Retry</span>
                               </Button>
                             )}
@@ -1807,7 +1807,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                   <button type="button" className="p-1 border rounded hover:bg-slate-50">
                     <ChevronLeft className="h-3.5 w-3.5" />
                   </button>
-                  <button type="button" className="w-6 h-6 rounded bg-[#4F46E5] text-white font-bold text-xs">
+                  <button type="button" className="w-6 h-6 rounded bg-[#1574fe] text-white font-bold text-xs">
                     1
                   </button>
                   <button type="button" className="w-6 h-6 rounded border hover:bg-slate-50 text-xs">

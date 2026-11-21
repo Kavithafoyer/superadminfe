@@ -302,7 +302,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
     switch (activeTab) {
       case 'module':
         return {
-          icon: <Layers className="h-7 w-7 text-indigo-600" />,
+          icon: <Layers className="h-7 w-7 text-[#1574fe]" />,
           title: 'Module Configuration',
           desc: 'Enable, configure and manage modules for each product edition',
           actionLabel: 'Save Changes',
@@ -311,7 +311,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
         };
       case 'features':
         return {
-          icon: <ToggleRight className="h-7 w-7 text-indigo-600" />,
+          icon: <ToggleRight className="h-7 w-7 text-[#1574fe]" />,
           title: 'Product Configuration',
           desc: 'Configure product settings, business rules, defaults and feature controls',
           actionLabel: 'Save Changes',
@@ -320,7 +320,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
         };
       case 'workflow':
         return {
-          icon: <GitFork className="h-7 w-7 text-indigo-600" />,
+          icon: <GitFork className="h-7 w-7 text-[#1574fe]" />,
           title: 'Workflow & Approvals',
           desc: 'Design and manage business workflows, approval rules and automated actions',
           actionLabel: 'Create Workflow',
@@ -329,7 +329,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
         };
       case 'integrations':
         return {
-          icon: <Link2 className="h-7 w-7 text-indigo-600" />,
+          icon: <Link2 className="h-7 w-7 text-[#1574fe]" />,
           title: 'Integrations',
           desc: 'Connect Pegatto with external systems, apps and services for a seamless experience',
           actionLabel: 'Add Integration',
@@ -338,7 +338,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
         };
       case 'branding':
         return {
-          icon: <Palette className="h-7 w-7 text-indigo-600" />,
+          icon: <Palette className="h-7 w-7 text-[#1574fe]" />,
           title: 'Branding & UI',
           desc: 'Customize product branding, look & feel and user experience for each edition',
           actionLabel: 'Save Changes',
@@ -347,7 +347,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
         };
       case 'advanced':
         return {
-          icon: <Sliders className="h-7 w-7 text-indigo-600" />,
+          icon: <Sliders className="h-7 w-7 text-[#1574fe]" />,
           title: 'Product Configuration',
           desc: 'Configure product settings, business rules, defaults and feature controls',
           actionLabel: 'Save Changes',
@@ -357,7 +357,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
       case 'general':
       default:
         return {
-          icon: <Settings className="h-7 w-7 text-indigo-600" />,
+          icon: <Settings className="h-7 w-7 text-[#1574fe]" />,
           title: 'Product Configuration',
           desc: 'Configure product settings, business rules, defaults and feature controls',
           actionLabel: 'Save Configuration',
@@ -374,7 +374,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
       {/* 1. Header Bar matching images */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-0.5">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl shadow-xs">
+          <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
             {headerInfo.icon}
           </div>
           <div>
@@ -392,7 +392,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-xs">
             <span className="text-slate-400 font-medium">Product</span>
             <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-              <GraduationCap className="h-4 w-4 text-indigo-600" />
+              <GraduationCap className="h-4 w-4 text-[#1574fe]" />
               <select
                 value={selectedProduct}
                 onChange={(e) => setSelectedProduct(e.target.value)}
@@ -423,7 +423,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
 
           <Button
             onClick={() => toast.success('Configuration saved successfully!')}
-            className="bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all"
+            className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all"
           >
             <Check className="h-4 w-4" />
             <span>{headerInfo.actionLabel}</span>
@@ -463,7 +463,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
               className={cn(
                 'px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer',
                 isActive
-                  ? 'bg-[#4F46E5] text-white shadow-xs'
+                  ? 'bg-[#1574fe] text-white shadow-xs'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
               )}
             >
@@ -482,7 +482,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           {/* Top-Left Card: General Settings Form */}
           <div className="lg:col-span-6 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
             <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-              <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+              <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                 <Settings className="h-5 w-5" />
               </div>
               <div>
@@ -611,7 +611,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           {/* Top-Right Card: Module Configuration Summary Table */}
           <div className="lg:col-span-6 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3">
             <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-              <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+              <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                 <Layers className="h-5 w-5" />
               </div>
               <div>
@@ -676,7 +676,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           {/* Bottom-Left Card: Business Rules */}
           <div className="lg:col-span-6 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3">
             <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-              <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+              <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                 <Sliders className="h-5 w-5" />
               </div>
               <div>
@@ -719,7 +719,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           <div className="lg:col-span-6 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                   <BarChart2 className="h-5 w-5" />
                 </div>
                 <div>
@@ -785,7 +785,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           {/* Column 1 (3 cols): Modules List (12) */}
           <div className="lg:col-span-3 bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 space-y-3">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+              <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                 <Layers className="h-4 w-4" />
               </div>
               <div>
@@ -805,13 +805,13 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                     className={cn(
                       'flex items-center justify-between p-2.5 rounded-lg border text-xs transition-all cursor-pointer',
                       isSelected
-                        ? 'bg-indigo-50/80 border-indigo-200 text-indigo-900 font-semibold shadow-xs'
+                        ? 'bg-blue-50/80 border-blue-200 text-[#0d62e0] font-semibold shadow-xs'
                         : 'bg-white border-slate-200/70 hover:bg-slate-50 text-slate-700'
                     )}
                   >
                     <div className="flex items-center gap-2 overflow-hidden">
                       <GripVertical className="h-3.5 w-3.5 text-slate-400 shrink-0 cursor-grab" />
-                      <Icon className={cn('h-4 w-4 shrink-0', isSelected ? 'text-indigo-600' : 'text-slate-500')} />
+                      <Icon className={cn('h-4 w-4 shrink-0', isSelected ? 'text-[#1574fe]' : 'text-slate-500')} />
                       <span className="truncate">{mod.name}</span>
                     </div>
 
@@ -840,7 +840,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           {/* Column 2 (5 cols): Module Settings */}
           <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
             <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-              <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+              <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                 <GraduationCap className="h-5 w-5" />
               </div>
               <div>
@@ -913,14 +913,14 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                   rows={2}
                   value={moduleSettingsForm.description}
                   onChange={(e) => setModuleSettingsForm({ ...moduleSettingsForm, description: e.target.value })}
-                  className="w-full p-2.5 text-xs border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 resize-none"
+                  className="w-full p-2.5 text-xs border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-[#1574fe] resize-none"
                 />
               </div>
 
               {/* Section: Module Access */}
               <div className="p-3 bg-slate-50/60 border border-slate-200/80 rounded-xl space-y-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                  <Users className="h-3.5 w-3.5 text-indigo-600" />
+                  <Users className="h-3.5 w-3.5 text-[#1574fe]" />
                   <span>Module Access</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
@@ -929,7 +929,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                       type="checkbox"
                       checked={moduleSettingsForm.includeStandard}
                       onChange={() => setModuleSettingsForm({ ...moduleSettingsForm, includeStandard: !moduleSettingsForm.includeStandard })}
-                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                      className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
                     />
                     <span className="text-slate-700">Include in Standard Edition</span>
                   </label>
@@ -938,7 +938,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                       type="checkbox"
                       checked={moduleSettingsForm.includeEnterprise}
                       onChange={() => setModuleSettingsForm({ ...moduleSettingsForm, includeEnterprise: !moduleSettingsForm.includeEnterprise })}
-                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                      className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
                     />
                     <span className="text-slate-700">Include in Enterprise Edition</span>
                   </label>
@@ -947,7 +947,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                       type="checkbox"
                       checked={moduleSettingsForm.allowTrial}
                       onChange={() => setModuleSettingsForm({ ...moduleSettingsForm, allowTrial: !moduleSettingsForm.allowTrial })}
-                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                      className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
                     />
                     <span className="text-slate-700">Allow in Trial</span>
                   </label>
@@ -956,7 +956,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                       type="checkbox"
                       checked={moduleSettingsForm.allowFreeCore}
                       onChange={() => setModuleSettingsForm({ ...moduleSettingsForm, allowFreeCore: !moduleSettingsForm.allowFreeCore })}
-                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                      className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
                     />
                     <span className="text-slate-700">Allow in Free Core</span>
                   </label>
@@ -966,7 +966,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
               {/* Section: Module Preferences */}
               <div className="p-3 bg-slate-50/60 border border-slate-200/80 rounded-xl space-y-2.5">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                  <Settings className="h-3.5 w-3.5 text-indigo-600" />
+                  <Settings className="h-3.5 w-3.5 text-[#1574fe]" />
                   <span>Module Preferences</span>
                 </div>
                 <div className="space-y-2 text-xs">
@@ -1045,7 +1045,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                  <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                     <ClipboardList className="h-4 w-4" />
                   </div>
                   <div>
@@ -1056,7 +1056,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                 <Button
                   size="sm"
                   onClick={() => toast.success('Add feature modal')}
-                  className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs h-7 px-2.5 gap-1 rounded-md"
+                  className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs h-7 px-2.5 gap-1 rounded-md"
                 >
                   <Plus className="h-3 w-3" />
                   <span>Add Feature</span>
@@ -1118,7 +1118,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Workflow (Optional) Card */}
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-2 bg-blue-50 text-[#1574fe] rounded-lg">
                   <GitFork className="h-4 w-4" />
                 </div>
                 <div>
@@ -1148,7 +1148,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           {/* Left Column (3 cols): Select Module list */}
           <div className="lg:col-span-3 bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 space-y-3">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+              <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                 <ToggleRight className="h-4 w-4" />
               </div>
               <div>
@@ -1182,11 +1182,11 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                       className={cn(
                         'w-full flex items-center gap-2 px-3 py-2 text-xs rounded-lg font-medium transition-all text-left cursor-pointer',
                         isSelected
-                          ? 'bg-indigo-100/70 text-indigo-900 font-bold border border-indigo-200 shadow-2xs'
+                          ? 'bg-blue-100/70 text-[#0d62e0] font-bold border border-blue-200 shadow-2xs'
                           : 'bg-white hover:bg-slate-50 text-slate-700'
                       )}
                     >
-                      <Icon className={cn('h-3.5 w-3.5 shrink-0', isSelected ? 'text-indigo-600' : 'text-slate-500')} />
+                      <Icon className={cn('h-3.5 w-3.5 shrink-0', isSelected ? 'text-[#1574fe]' : 'text-slate-500')} />
                       <span className="truncate">{mod.name}</span>
                     </button>
                   );
@@ -1200,7 +1200,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Main Table Card */}
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3">
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                   <Users className="h-5 w-5" />
                 </div>
                 <div>
@@ -1293,7 +1293,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                               onClick={() => toast.info(`Configuring ${fc.name}`)}
                               className="h-7 px-2.5 text-xs font-medium text-slate-700 bg-white border-slate-200 hover:bg-slate-50 gap-1 rounded-md"
                             >
-                              <Settings className="h-3 w-3 text-indigo-600" />
+                              <Settings className="h-3 w-3 text-[#1574fe]" />
                               <span>Configure</span>
                             </Button>
                           </td>
@@ -1301,7 +1301,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                             <button
                               type="button"
                               onClick={() => toast.info(`Editing ${fc.name}`)}
-                              className="p-1 rounded-md text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-colors"
+                              className="p-1 rounded-md text-slate-500 hover:text-[#1574fe] hover:bg-slate-100 transition-colors"
                             >
                               <Edit2 className="h-3.5 w-3.5" />
                             </button>
@@ -1319,7 +1319,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
               {/* Quick Actions Card */}
               <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 space-y-2.5">
                 <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
-                  <Zap className="h-4 w-4 text-indigo-600" />
+                  <Zap className="h-4 w-4 text-[#1574fe]" />
                   <h4 className="text-xs font-bold text-slate-900">Quick Actions</h4>
                 </div>
                 <div className="space-y-1.5">
@@ -1371,7 +1371,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
               {/* Feature Settings Card */}
               <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 space-y-3">
                 <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
-                  <Settings className="h-4 w-4 text-indigo-600" />
+                  <Settings className="h-4 w-4 text-[#1574fe]" />
                   <h4 className="text-xs font-bold text-slate-900">Feature Settings</h4>
                 </div>
                 <div className="space-y-3 text-xs pt-1">
@@ -1421,7 +1421,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
               <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex flex-col justify-between space-y-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
-                    <Users className="h-4 w-4 text-indigo-600" />
+                    <Users className="h-4 w-4 text-[#1574fe]" />
                     <h4 className="text-xs font-bold text-slate-900">Feature Access Matrix</h4>
                   </div>
                   <p className="text-xs text-slate-500 pt-1">
@@ -1431,7 +1431,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                 <Button
                   type="button"
                   onClick={() => toast.success('Opening Access Matrix modal')}
-                  className="w-full bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs h-9 font-medium rounded-lg gap-2"
+                  className="w-full bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs h-9 font-medium rounded-lg gap-2"
                 >
                   <Shield className="h-4 w-4" />
                   <span>Manage Access Matrix</span>
@@ -1451,7 +1451,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Left Column (3 cols): Workflows List (12) */}
             <div className="lg:col-span-3 bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                   <Workflow className="h-4 w-4" />
                 </div>
                 <div>
@@ -1478,12 +1478,12 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                       className={cn(
                         'flex items-center justify-between p-2.5 rounded-lg border text-xs transition-all cursor-pointer',
                         isSelected
-                          ? 'bg-indigo-50/80 border-indigo-200 text-indigo-900 font-bold shadow-2xs'
+                          ? 'bg-blue-50/80 border-blue-200 text-[#0d62e0] font-bold shadow-2xs'
                           : 'bg-white border-slate-200/70 hover:bg-slate-50 text-slate-700'
                       )}
                     >
                       <div className="flex items-center gap-2 truncate">
-                        <Icon className={cn('h-3.5 w-3.5', isSelected ? 'text-indigo-600' : 'text-slate-500')} />
+                        <Icon className={cn('h-3.5 w-3.5', isSelected ? 'text-[#1574fe]' : 'text-slate-500')} />
                         <span className="truncate">{wf.name}</span>
                       </div>
                       <span
@@ -1514,7 +1514,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             <div className="lg:col-span-6 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                  <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                     <GitFork className="h-4 w-4" />
                   </div>
                   <div>
@@ -1529,10 +1529,10 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                     <span>Edit</span>
                   </Button>
                   <Button size="sm" variant="outline" className="h-7 text-xs px-2.5 gap-1 bg-white border-slate-200">
-                    <Play className="h-3 w-3 text-indigo-600" />
+                    <Play className="h-3 w-3 text-[#1574fe]" />
                     <span>Test</span>
                   </Button>
-                  <Button size="sm" className="h-7 text-xs px-2.5 gap-1 bg-[#4F46E5] text-white">
+                  <Button size="sm" className="h-7 text-xs px-2.5 gap-1 bg-[#1574fe] text-white">
                     <Upload className="h-3 w-3" />
                     <span>Publish</span>
                   </Button>
@@ -1591,10 +1591,10 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                   <ArrowRight className="h-4 w-4 text-slate-400 shrink-0" />
 
                   {/* Step 5: Enrolment */}
-                  <div className="p-2.5 px-3 bg-indigo-50 border border-indigo-300 rounded-xl text-center shadow-xs">
-                    <GraduationCap className="h-4 w-4 text-indigo-600 mx-auto mb-1" />
-                    <p className="text-[10px] font-bold text-indigo-800">Enrolment</p>
-                    <p className="text-[9px] text-indigo-600">Create Student & Section</p>
+                  <div className="p-2.5 px-3 bg-blue-50 border border-blue-300 rounded-xl text-center shadow-xs">
+                    <GraduationCap className="h-4 w-4 text-[#1574fe] mx-auto mb-1" />
+                    <p className="text-[10px] font-bold text-[#0d62e0]">Enrolment</p>
+                    <p className="text-[9px] text-[#1574fe]">Create Student & Section</p>
                   </div>
 
                   <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-xs shrink-0">
@@ -1607,7 +1607,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Right Column (3 cols): Workflow Settings */}
             <div className="lg:col-span-3 bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Settings className="h-4 w-4 text-indigo-600" />
+                <Settings className="h-4 w-4 text-[#1574fe]" />
                 <h3 className="text-sm font-bold text-slate-900">Workflow Settings</h3>
               </div>
 
@@ -1702,7 +1702,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Approval Matrix (7 cols) */}
             <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Users className="h-4 w-4 text-indigo-600" />
+                <Users className="h-4 w-4 text-[#1574fe]" />
                 <div>
                   <h4 className="text-xs font-bold text-slate-900">Approval Matrix</h4>
                   <p className="text-[11px] text-slate-500">Define approval levels, approvers and conditions</p>
@@ -1729,7 +1729,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                         <td className="py-2 px-2.5 text-slate-600 font-mono text-[11px]">{ap.condition}</td>
                         <td className="py-2 px-2.5 text-center">
                           <div className="flex items-center justify-center gap-1">
-                            <button type="button" className="p-1 text-slate-500 hover:text-indigo-600">
+                            <button type="button" className="p-1 text-slate-500 hover:text-[#1574fe]">
                               <Edit2 className="h-3 w-3" />
                             </button>
                             <button type="button" className="p-1 text-red-500 hover:text-red-700">
@@ -1747,7 +1747,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Automations & Actions (5 cols) */}
             <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Zap className="h-4 w-4 text-indigo-600" />
+                <Zap className="h-4 w-4 text-[#1574fe]" />
                 <div>
                   <h4 className="text-xs font-bold text-slate-900">Automation & Actions</h4>
                   <p className="text-[11px] text-slate-500">Define automated actions at each stage</p>
@@ -1765,7 +1765,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                           prev.map((item) => (item.id === a.id ? { ...item, checked: !item.checked } : item))
                         )
                       }
-                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                      className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
                     />
                     <span>{a.label}</span>
                   </label>
@@ -1786,7 +1786,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3.5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                  <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                     <Link2 className="h-4 w-4" />
                   </div>
                   <div>
@@ -1808,7 +1808,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                         className={cn(
                           'px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer whitespace-nowrap',
                           isSelected
-                            ? 'bg-[#4F46E5] text-white shadow-2xs'
+                            ? 'bg-[#1574fe] text-white shadow-2xs'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         )}
                       >
@@ -1863,7 +1863,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
               {/* Configured Integrations Table */}
               <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 space-y-3">
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                  <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                  <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                     <Link2 className="h-4 w-4" />
                   </div>
                   <div>
@@ -1896,7 +1896,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
               {/* API & Webhooks Card */}
               <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 space-y-3">
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                  <Code className="h-4 w-4 text-indigo-600" />
+                  <Code className="h-4 w-4 text-[#1574fe]" />
                   <div>
                     <h4 className="text-xs font-bold text-slate-900">API & Webhooks</h4>
                     <p className="text-[11px] text-slate-500">Manage API keys, webhooks and developer access</p>
@@ -1910,7 +1910,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                     onClick={() => toast.info('API Keys modal')}
                     className="h-8 text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 gap-1"
                   >
-                    <Key className="h-3.5 w-3.5 text-indigo-600" />
+                    <Key className="h-3.5 w-3.5 text-[#1574fe]" />
                     <span>API Keys</span>
                   </Button>
                   <Button
@@ -1919,7 +1919,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                     onClick={() => toast.info('Webhook Events modal')}
                     className="h-8 text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 gap-1"
                   >
-                    <Webhook className="h-3.5 w-3.5 text-indigo-600" />
+                    <Webhook className="h-3.5 w-3.5 text-[#1574fe]" />
                     <span>Webhook Events</span>
                   </Button>
                 </div>
@@ -1937,7 +1937,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           {/* Top-Left Card: Brand Identity */}
           <div className="lg:col-span-6 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
             <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-              <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+              <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                 <ImageIcon className="h-5 w-5" />
               </div>
               <div>
@@ -1954,7 +1954,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                 </label>
                 <div className="p-3 border border-slate-200 rounded-xl bg-slate-50/30 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <div className="p-1 px-2.5 bg-indigo-50 rounded-lg flex items-center gap-1.5 font-bold text-indigo-700 text-sm">
+                    <div className="p-1 px-2.5 bg-blue-50 rounded-lg flex items-center gap-1.5 font-bold text-[#1574fe] text-sm">
                       <GraduationCap className="h-4 w-4" />
                       <span>Pegatto Education</span>
                     </div>
@@ -1980,7 +1980,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700">Favicon</label>
                 <div className="p-3 border border-slate-200 rounded-xl bg-slate-50/30 flex items-center justify-between gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-[#1574fe]">
                     <GraduationCap className="h-4 w-4" />
                   </div>
                   <div className="flex items-center gap-2">
@@ -2028,7 +2028,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Theme & Colors Section */}
             <div>
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                   <Palette className="h-5 w-5" />
                 </div>
                 <div>
@@ -2117,9 +2117,9 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                     <div className="flex-1 p-2 bg-slate-50 space-y-1.5">
                       <div className="h-4 bg-white rounded border border-slate-200" />
                       <div className="flex items-end gap-1 h-8 pt-2">
-                        <div className="w-2 h-3 bg-indigo-300 rounded-t" />
-                        <div className="w-2 h-5 bg-indigo-500 rounded-t" />
-                        <div className="w-2 h-7 bg-indigo-700 rounded-t" />
+                        <div className="w-2 h-3 bg-blue-300 rounded-t" />
+                        <div className="w-2 h-5 bg-blue-500 rounded-t" />
+                        <div className="w-2 h-7 bg-[#0d62e0] rounded-t" />
                       </div>
                     </div>
                   </div>
@@ -2130,7 +2130,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* UI & Layout Settings Section */}
             <div className="pt-3 border-t border-slate-100">
               <div className="flex items-center gap-2.5 pb-2">
-                <div className="p-1 bg-indigo-50 text-indigo-600 rounded-md">
+                <div className="p-1 bg-blue-50 text-[#1574fe] rounded-md">
                   <Monitor className="h-4 w-4" />
                 </div>
                 <div>
@@ -2224,7 +2224,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                     className={cn(
                       'p-2 rounded-xl border text-center cursor-pointer transition-all flex flex-col justify-between h-20',
                       brandingForm.layoutStyle === 'modern'
-                        ? 'border-indigo-600 bg-indigo-50/30 ring-1 ring-indigo-500'
+                        ? 'border-[#1574fe] bg-blue-50/30 ring-1 ring-[#1574fe]'
                         : 'border-slate-200 hover:bg-slate-50'
                     )}
                   >
@@ -2237,7 +2237,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                     className={cn(
                       'p-2 rounded-xl border text-center cursor-pointer transition-all flex flex-col justify-between h-20',
                       brandingForm.layoutStyle === 'classic'
-                        ? 'border-indigo-600 bg-indigo-50/30 ring-1 ring-indigo-500'
+                        ? 'border-[#1574fe] bg-blue-50/30 ring-1 ring-[#1574fe]'
                         : 'border-slate-200 hover:bg-slate-50'
                     )}
                   >
@@ -2250,7 +2250,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                     className={cn(
                       'p-2 rounded-xl border text-center cursor-pointer transition-all flex flex-col justify-between h-20',
                       brandingForm.layoutStyle === 'minimal'
-                        ? 'border-indigo-600 bg-indigo-50/30 ring-1 ring-indigo-500'
+                        ? 'border-[#1574fe] bg-blue-50/30 ring-1 ring-[#1574fe]'
                         : 'border-slate-200 hover:bg-slate-50'
                     )}
                   >
@@ -2265,7 +2265,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           {/* Bottom-Left Card: Login & Portal Branding */}
           <div className="lg:col-span-6 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
             <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-              <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+              <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                 <Lock className="h-5 w-5" />
               </div>
               <div>
@@ -2278,13 +2278,13 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
               {/* Login screen preview */}
               <div className="p-4 bg-slate-100 rounded-xl border border-slate-200 text-center flex flex-col items-center justify-center space-y-2">
                 <div className="p-3 bg-white rounded-lg shadow-xs w-full max-w-[180px] space-y-2">
-                  <div className="font-bold text-indigo-700 text-xs flex items-center justify-center gap-1">
+                  <div className="font-bold text-[#1574fe] text-xs flex items-center justify-center gap-1">
                     <GraduationCap className="h-3 w-3" />
                     <span>Pegatto Education</span>
                   </div>
                   <div className="h-4 bg-slate-100 rounded" />
                   <div className="h-4 bg-slate-100 rounded" />
-                  <button type="button" className="w-full py-1 bg-indigo-600 text-white text-[10px] rounded font-semibold">
+                  <button type="button" className="w-full py-1 bg-[#1574fe] text-white text-[10px] rounded font-semibold">
                     Login
                   </button>
                 </div>
@@ -2308,7 +2308,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                           [item.key]: !(brandingForm as any)[item.key],
                         })
                       }
-                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer"
+                      className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4 cursor-pointer"
                     />
                     <span className="text-xs text-slate-800 font-medium">{item.label}</span>
                   </label>
@@ -2332,7 +2332,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           {/* Bottom-Right Card: Portal Experience (Multi-Role) */}
           <div className="lg:col-span-6 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
             <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-              <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+              <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                 <Users className="h-5 w-5" />
               </div>
               <div>
@@ -2385,7 +2385,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
       {activeTab === 'advanced' && (
         <div className="space-y-4">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-200/80">
-            <Sliders className="h-5 w-5 text-indigo-600" />
+            <Sliders className="h-5 w-5 text-[#1574fe]" />
             <div>
               <h2 className="text-base font-bold text-slate-900">Advanced</h2>
               <p className="text-xs text-slate-500">
@@ -2399,7 +2399,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Card 1: Security & Access */}
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4.5 space-y-3">
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                   <Shield className="h-4.5 w-4.5" />
                 </div>
                 <div>
@@ -2482,7 +2482,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Card 2: Data Management */}
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4.5 space-y-3">
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                   <Database className="h-4.5 w-4.5" />
                 </div>
                 <div>
@@ -2565,7 +2565,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Card 3: Performance & Scalability */}
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4.5 space-y-3">
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                   <Rocket className="h-4.5 w-4.5" />
                 </div>
                 <div>
@@ -2648,7 +2648,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Card 4: AI & Automation */}
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4.5 space-y-3">
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                   <Bot className="h-4.5 w-4.5" />
                 </div>
                 <div>
@@ -2675,7 +2675,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                             [item.key]: !(advancedSettings as any)[item.key],
                           })
                         }
-                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                        className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
                       />
                       <span className="text-slate-700 truncate">{item.label}</span>
                     </label>
@@ -2697,7 +2697,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Card 5: Developer & API */}
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4.5 space-y-3">
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                   <Code className="h-4.5 w-4.5" />
                 </div>
                 <div>
@@ -2780,7 +2780,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Card 6: Extension & Add-ons */}
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4.5 space-y-3">
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                   <Puzzle className="h-4.5 w-4.5" />
                 </div>
                 <div>
@@ -2862,7 +2862,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Card 7: Localization & Preferences */}
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4.5 space-y-3">
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                   <Globe className="h-4.5 w-4.5" />
                 </div>
                 <div>
@@ -2930,7 +2930,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Card 8: Compliance & Governance */}
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4.5 space-y-3">
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                   <FileCheck className="h-4.5 w-4.5" />
                 </div>
                 <div>
@@ -2956,7 +2956,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                           [item.key]: !(advancedSettings as any)[item.key],
                         })
                       }
-                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                      className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
                     />
                     <span className="text-slate-800 font-medium">{item.label}</span>
                   </label>
@@ -2967,7 +2967,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             {/* Card 9: Feature Management */}
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4.5 space-y-3">
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
-                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
                   <Flag className="h-4.5 w-4.5" />
                 </div>
                 <div>

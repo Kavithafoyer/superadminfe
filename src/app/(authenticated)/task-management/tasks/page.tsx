@@ -331,7 +331,7 @@ export default function TaskListPage() {
             <Button
               type="submit"
               disabled={isCreating || isUpdating}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 px-5"
+              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white gap-2 px-5"
             >
               <Save className="h-4 w-4" />
               {isCreating || isUpdating ? 'Saving...' : isEdit ? 'Save Changes' : 'Save Task'}
@@ -534,7 +534,7 @@ export default function TaskListPage() {
                         onClick={() => toggleTag(tag)}
                         className={`text-xs px-2.5 py-1 rounded-md border font-medium transition-colors ${
                           active
-                            ? 'bg-indigo-600 border-indigo-600 text-white'
+                            ? 'bg-[#1574fe] border-[#1574fe] text-white'
                             : 'bg-background border-border text-foreground hover:bg-muted'
                         }`}
                       >
@@ -581,7 +581,7 @@ export default function TaskListPage() {
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
               Task Management
             </h1>
-            <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300">
+            <Badge variant="outline" className="bg-blue-50 text-indigo-700 border-indigo-200 dark:bg-blue-950/40 dark:text-indigo-300">
               {totalRecords} Tasks
             </Badge>
           </div>
@@ -605,7 +605,7 @@ export default function TaskListPage() {
           <Button
             size="sm"
             onClick={handleOpenCreate}
-            className="h-9 gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+            className="h-9 gap-1.5 bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium"
           >
             <Plus className="h-4 w-4" />
             Create Task
@@ -617,7 +617,7 @@ export default function TaskListPage() {
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 text-sm font-medium">
         <Link
           href="/task-management/tasks"
-          className="px-3 py-1.5 rounded-md bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400"
+          className="px-3 py-1.5 rounded-md bg-blue-50 text-[#1574fe] dark:bg-blue-950/50 dark:text-indigo-400"
         >
           List Tasks
         </Link>
@@ -710,7 +710,7 @@ export default function TaskListPage() {
                 <tr>
                   <td colSpan={7} className="text-center py-12 text-slate-400">
                     <div className="flex items-center justify-center gap-2">
-                      <RefreshCw className="h-5 w-5 animate-spin text-indigo-600" />
+                      <RefreshCw className="h-5 w-5 animate-spin text-[#1574fe]" />
                       Loading tasks...
                     </div>
                   </td>
@@ -778,7 +778,7 @@ export default function TaskListPage() {
                           </div>
                           <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full ${isDone ? 'bg-emerald-500' : 'bg-indigo-600'}`}
+                              className={`h-full rounded-full ${isDone ? 'bg-emerald-500' : 'bg-[#1574fe]'}`}
                               style={{ width: completion.includes('%') ? completion : `${completion}%` }}
                             />
                           </div>
@@ -806,7 +806,7 @@ export default function TaskListPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleOpenView(task)}
-                            className="h-8 w-8 text-slate-500 hover:text-indigo-600"
+                            className="h-8 w-8 text-slate-500 hover:text-[#1574fe]"
                             title="View Details"
                           >
                             <Eye className="h-4 w-4" />
@@ -816,7 +816,7 @@ export default function TaskListPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleOpenEdit(task)}
-                            className="h-8 w-8 text-slate-500 hover:text-indigo-600"
+                            className="h-8 w-8 text-slate-500 hover:text-[#1574fe]"
                             title="Edit Task"
                           >
                             <Edit2 className="h-4 w-4" />
@@ -918,7 +918,7 @@ export default function TaskListPage() {
                 </div>
                 <div>
                   <span className="text-xs text-slate-500">Completion</span>
-                  <p className="font-medium text-indigo-600">
+                  <p className="font-medium text-[#1574fe]">
                     {selectedTask.Completion || '0%'}
                   </p>
                 </div>

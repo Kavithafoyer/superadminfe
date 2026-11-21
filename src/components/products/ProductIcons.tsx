@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export function IsometricBoxIcon({ className = 'h-8 w-8 text-indigo-600' }: { className?: string }) {
+export function IsometricBoxIcon({ className = 'h-8 w-8 text-[#1574fe]' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 32 32"
@@ -66,7 +66,7 @@ export function ProductBadgeIcon({
 
   if (t.includes('edu')) {
     return (
-      <div className={cn('flex items-center justify-center bg-indigo-50 text-indigo-600 border border-indigo-100', sizeClasses[size], className)}>
+      <div className={cn('flex items-center justify-center bg-blue-50 text-[#1574fe] border border-blue-100', sizeClasses[size], className)}>
         <GraduationCap className={iconSizes[size]} />
       </div>
     );
@@ -114,14 +114,14 @@ export function ProductBadgeIcon({
 
   if (t.includes('core') || t.includes('plat') || t.includes('free')) {
     return (
-      <div className={cn('flex items-center justify-center bg-indigo-50 text-indigo-600 border border-indigo-100', sizeClasses[size], className)}>
+      <div className={cn('flex items-center justify-center bg-blue-50 text-[#1574fe] border border-blue-100', sizeClasses[size], className)}>
         <Layers className={iconSizes[size]} />
       </div>
     );
   }
 
   return (
-    <div className={cn('flex items-center justify-center bg-slate-50 text-indigo-600 border border-slate-200', sizeClasses[size], className)}>
+    <div className={cn('flex items-center justify-center bg-slate-50 text-[#1574fe] border border-slate-200', sizeClasses[size], className)}>
       <Box className={iconSizes[size]} />
     </div>
   );

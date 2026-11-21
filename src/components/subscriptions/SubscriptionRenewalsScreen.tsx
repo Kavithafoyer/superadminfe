@@ -325,7 +325,7 @@ export function SubscriptionRenewalsScreen() {
           </Button>
           <Button
             onClick={() => toast.success('Batch renewal processing triggered')}
-            className="h-9 gap-1.5 bg-[#5046e5] hover:bg-[#4338ca] text-white text-xs font-semibold shadow-xs"
+            className="h-9 gap-1.5 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Process Batch Renewals
@@ -337,8 +337,8 @@ export function SubscriptionRenewalsScreen() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Total Upcoming */}
         <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3.5 shadow-xs">
-          <div className="h-11 w-11 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-            <CalendarClock className="h-5 w-5 text-[#5046e5]" />
+          <div className="h-11 w-11 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+            <CalendarClock className="h-5 w-5 text-[#1574fe]" />
           </div>
           <div>
             <div className="text-xs font-medium text-slate-500">Upcoming Renewals (30D)</div>
@@ -403,13 +403,13 @@ export function SubscriptionRenewalsScreen() {
                 className={cn(
                   'pb-3 text-sm font-medium transition-colors relative whitespace-nowrap cursor-pointer',
                   isActive
-                    ? 'text-[#5046e5] font-semibold'
+                    ? 'text-[#1574fe] font-semibold'
                     : 'text-slate-500 hover:text-slate-800'
                 )}
               >
                 {tab.label}
                 {isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#5046e5] rounded-full" />
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1574fe] rounded-full" />
                 )}
               </button>
             );
@@ -427,7 +427,7 @@ export function SubscriptionRenewalsScreen() {
               <select
                 value={filterProduct}
                 onChange={(e) => setFilterProduct(e.target.value)}
-                className="w-full h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#5046e5] cursor-pointer"
+                className="w-full h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
               >
                 <option>All Products</option>
                 <option>Pegatto CRM</option>
@@ -447,7 +447,7 @@ export function SubscriptionRenewalsScreen() {
               <select
                 value={filterPlan}
                 onChange={(e) => setFilterPlan(e.target.value)}
-                className="w-full h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#5046e5] cursor-pointer"
+                className="w-full h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
               >
                 <option>All Plans</option>
                 <option>Standard</option>
@@ -466,7 +466,7 @@ export function SubscriptionRenewalsScreen() {
               <select
                 value={filterCycle}
                 onChange={(e) => setFilterCycle(e.target.value)}
-                className="w-full h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#5046e5] cursor-pointer"
+                className="w-full h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
               >
                 <option>All Cycles</option>
                 <option>Monthly</option>
@@ -483,7 +483,7 @@ export function SubscriptionRenewalsScreen() {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#5046e5] cursor-pointer"
+                className="w-full h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
               >
                 <option>All Status</option>
                 <option>Upcoming</option>
@@ -518,7 +518,7 @@ export function SubscriptionRenewalsScreen() {
           <Button
             size="sm"
             onClick={() => toast.success('Renewal filters applied')}
-            className="h-8 bg-[#5046e5] hover:bg-[#4338ca] text-white text-xs font-semibold px-4 rounded-lg shadow-xs"
+            className="h-8 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold px-4 rounded-lg shadow-xs"
           >
             Apply
           </Button>
@@ -568,7 +568,7 @@ export function SubscriptionRenewalsScreen() {
                           filteredRenewals.length > 0
                         }
                         onChange={(e) => handleSelectAll(e.target.checked)}
-                        className="rounded border-slate-300 text-[#5046e5] focus:ring-[#5046e5] h-3.5 w-3.5 cursor-pointer"
+                        className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-3.5 w-3.5 cursor-pointer"
                       />
                     </th>
                     <th className="py-2.5 px-3 whitespace-nowrap">Subscription No.</th>
@@ -603,10 +603,10 @@ export function SubscriptionRenewalsScreen() {
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => {}}
-                            className="rounded border-slate-300 text-[#5046e5] focus:ring-[#5046e5] h-3.5 w-3.5 cursor-pointer"
+                            className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-3.5 w-3.5 cursor-pointer"
                           />
                         </td>
-                        <td className="py-3 px-3 font-semibold text-[#5046e5] whitespace-nowrap">
+                        <td className="py-3 px-3 font-semibold text-[#1574fe] whitespace-nowrap">
                           {item.subscriptionNo}
                         </td>
                         <td className="py-3 px-3 font-medium text-slate-800 whitespace-nowrap">
@@ -646,7 +646,7 @@ export function SubscriptionRenewalsScreen() {
                             onClick={() => handleToggleAutoRenew(item.id)}
                             className={cn(
                               'relative inline-flex h-4 w-8 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-                              item.autoRenew ? 'bg-[#5046e5]' : 'bg-slate-300'
+                              item.autoRenew ? 'bg-[#1574fe]' : 'bg-slate-300'
                             )}
                           >
                             <span
@@ -663,7 +663,7 @@ export function SubscriptionRenewalsScreen() {
                               'px-2 py-0.5 rounded-full text-[11px] font-semibold inline-block',
                               item.status === 'Upcoming' && 'bg-emerald-50 text-emerald-700',
                               item.status === 'Due Soon' && 'bg-amber-50 text-amber-700',
-                              item.status === 'Processing' && 'bg-indigo-50 text-[#5046e5]',
+                              item.status === 'Processing' && 'bg-blue-50 text-[#1574fe]',
                               item.status === 'Overdue' && 'bg-rose-50 text-rose-700',
                               item.status === 'Grace Period' && 'bg-orange-50 text-orange-700'
                             )}
@@ -685,7 +685,7 @@ export function SubscriptionRenewalsScreen() {
                               type="button"
                               onClick={() => handleProcessRenew(item)}
                               title="Process Renewal Now"
-                              className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-indigo-600"
+                              className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-[#1574fe]"
                             >
                               <RefreshCw className="h-3.5 w-3.5" />
                             </button>
@@ -714,7 +714,7 @@ export function SubscriptionRenewalsScreen() {
                   <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400">
                     <ChevronLeft className="h-3.5 w-3.5" />
                   </Button>
-                  <span className="px-2 py-0.5 bg-[#5046e5] text-white rounded text-xs font-semibold">
+                  <span className="px-2 py-0.5 bg-[#1574fe] text-white rounded text-xs font-semibold">
                     1
                   </span>
                   <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-600">
@@ -743,7 +743,7 @@ export function SubscriptionRenewalsScreen() {
                     'px-2 py-0.5 rounded-full text-[10px] font-semibold',
                     selectedRenewal.status === 'Upcoming' && 'bg-emerald-50 text-emerald-700',
                     selectedRenewal.status === 'Due Soon' && 'bg-amber-50 text-amber-700',
-                    selectedRenewal.status === 'Processing' && 'bg-indigo-50 text-[#5046e5]',
+                    selectedRenewal.status === 'Processing' && 'bg-blue-50 text-[#1574fe]',
                     selectedRenewal.status === 'Overdue' && 'bg-rose-50 text-rose-700'
                   )}
                 >
@@ -773,7 +773,7 @@ export function SubscriptionRenewalsScreen() {
                 className={cn(
                   'cursor-pointer pb-0.5 transition-colors',
                   detailTab === tab.id
-                    ? 'text-[#5046e5] font-semibold border-b-2 border-[#5046e5]'
+                    ? 'text-[#1574fe] font-semibold border-b-2 border-[#1574fe]'
                     : 'hover:text-slate-800'
                 )}
               >
@@ -796,7 +796,7 @@ export function SubscriptionRenewalsScreen() {
                 </div>
                 <div>
                   <span className="text-slate-400 block text-[11px]">Renewal Amount</span>
-                  <span className="font-bold text-[#5046e5] text-sm">{selectedRenewal.amount}</span>
+                  <span className="font-bold text-[#1574fe] text-sm">{selectedRenewal.amount}</span>
                 </div>
                 <div>
                   <span className="text-slate-400 block text-[11px]">Days Remaining</span>
@@ -817,7 +817,7 @@ export function SubscriptionRenewalsScreen() {
                   onClick={() => handleToggleAutoRenew(selectedRenewal.id)}
                   className={cn(
                     'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out',
-                    selectedRenewal.autoRenew ? 'bg-[#5046e5]' : 'bg-slate-300'
+                    selectedRenewal.autoRenew ? 'bg-[#1574fe]' : 'bg-slate-300'
                   )}
                 >
                   <span
@@ -858,7 +858,7 @@ export function SubscriptionRenewalsScreen() {
                 </div>
                 <div className="border-t border-slate-200 pt-1.5 flex justify-between font-bold text-slate-900">
                   <span>Total Estimated Renewal</span>
-                  <span className="text-[#5046e5]">{selectedRenewal.amount}</span>
+                  <span className="text-[#1574fe]">{selectedRenewal.amount}</span>
                 </div>
               </div>
               <Button
@@ -904,7 +904,7 @@ export function SubscriptionRenewalsScreen() {
                   <span className="font-medium text-slate-700 block">Last Reminder Sent</span>
                   <span className="text-[11px] text-slate-400">{selectedRenewal.lastReminderSent || 'None'}</span>
                 </div>
-                <span className="text-[11px] text-indigo-600 font-semibold">Dispatched</span>
+                <span className="text-[11px] text-[#1574fe] font-semibold">Dispatched</span>
               </div>
               <Button
                 size="sm"
@@ -922,7 +922,7 @@ export function SubscriptionRenewalsScreen() {
           <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
             <Button
               onClick={() => handleProcessRenew(selectedRenewal)}
-              className="w-full h-8 bg-[#5046e5] hover:bg-[#4338ca] text-white text-xs font-semibold shadow-xs"
+              className="w-full h-8 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs"
             >
               <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
               Renew Now ({selectedRenewal.amount})

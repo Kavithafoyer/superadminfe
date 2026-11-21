@@ -178,7 +178,7 @@ export function SubscriptionPlansScreen() {
         <Button
           type="button"
           onClick={() => router.push('/subscriptions/create')}
-          className="bg-[#5046e5] hover:bg-[#4338ca] text-white font-semibold text-xs sm:text-sm h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
+          className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-semibold text-xs sm:text-sm h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
           <span>Create Plan</span>
@@ -201,7 +201,7 @@ export function SubscriptionPlansScreen() {
               className={cn(
                 'pb-3 font-semibold transition-all relative cursor-pointer',
                 activeTab === tab.id
-                  ? 'text-[#5046e5] border-b-2 border-[#5046e5] -mb-[1px]'
+                  ? 'text-[#6222cc] border-b-2 border-[#6222cc] -mb-[1px]'
                   : 'text-slate-500 hover:text-slate-800'
               )}
             >
@@ -219,7 +219,7 @@ export function SubscriptionPlansScreen() {
               className={cn(
                 'px-3 py-1.5 rounded-md font-semibold transition-all cursor-pointer',
                 billingCycle === 'monthly'
-                  ? 'bg-[#5046e5] text-white shadow-2xs'
+                  ? 'bg-[#6222cc] text-white shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900'
               )}
             >
@@ -231,7 +231,7 @@ export function SubscriptionPlansScreen() {
               className={cn(
                 'px-3 py-1.5 rounded-md font-semibold transition-all cursor-pointer',
                 billingCycle === 'annual'
-                  ? 'bg-[#5046e5] text-white shadow-2xs'
+                  ? 'bg-[#6222cc] text-white shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900'
               )}
             >
@@ -254,14 +254,14 @@ export function SubscriptionPlansScreen() {
               className={cn(
                 'relative rounded-2xl p-5 flex flex-col justify-between transition-all duration-200',
                 plan.isPopular
-                  ? 'bg-[#fcfaff] border-2 border-[#5046e5] shadow-md shadow-indigo-500/10'
+                  ? 'bg-[#fcfaff] border-2 border-[#6222cc] shadow-md shadow-blue-500/10'
                   : 'bg-white border border-slate-200/90 shadow-2xs hover:border-slate-300'
               )}
             >
               {/* Most Popular badge on top right */}
               {plan.badge && (
                 <div className="absolute -top-3.5 right-6 z-10">
-                  <span className="bg-[#5046e5] text-white text-[11px] font-bold px-3 py-1 rounded-t-lg rounded-b-sm shadow-xs tracking-wide">
+                  <span className="bg-[#6222cc] text-white text-[11px] font-bold px-3 py-1 rounded-t-lg rounded-b-sm shadow-xs tracking-wide">
                     {plan.badge}
                   </span>
                 </div>
@@ -269,7 +269,7 @@ export function SubscriptionPlansScreen() {
 
               <div>
                 {/* Purple Icon Container */}
-                <div className="p-2.5 bg-purple-50 text-[#5046e5] rounded-xl border border-purple-100/70 inline-block">
+                <div className="p-2.5 bg-purple-50 text-[#6222cc] rounded-xl border border-purple-100/70 inline-block">
                   <Icon className="h-5 w-5 stroke-[1.8]" />
                 </div>
 
@@ -300,7 +300,7 @@ export function SubscriptionPlansScreen() {
                   <Button
                     type="button"
                     onClick={() => router.push(`/subscriptions/view/${plan.id}`)}
-                    className="w-full bg-[#5046e5] hover:bg-[#4338ca] text-white font-semibold text-xs h-9 rounded-lg shadow-xs cursor-pointer"
+                    className="w-full bg-[#6222cc] hover:bg-[#521cb0] text-white font-semibold text-xs h-9 rounded-lg shadow-xs cursor-pointer"
                   >
                     {plan.buttonLabel}
                   </Button>
@@ -309,7 +309,7 @@ export function SubscriptionPlansScreen() {
                     type="button"
                     variant="outline"
                     onClick={() => router.push(`/subscriptions/view/${plan.id}`)}
-                    className="w-full bg-white hover:bg-purple-50/70 border border-[#5046e5] text-[#5046e5] font-semibold text-xs h-9 rounded-lg shadow-2xs cursor-pointer"
+                    className="w-full bg-white hover:bg-purple-50/70 border border-[#6222cc] text-[#6222cc] font-semibold text-xs h-9 rounded-lg shadow-2xs cursor-pointer"
                   >
                     {plan.buttonLabel}
                   </Button>

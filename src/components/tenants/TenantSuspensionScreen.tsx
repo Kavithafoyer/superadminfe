@@ -103,7 +103,7 @@ export function TenantSuspensionScreen() {
       case 'retail':
         return <ShoppingCart className="h-4 w-4 text-rose-600" />;
       case 'real-estate':
-        return <Building2 className="h-4 w-4 text-indigo-600" />;
+        return <Building2 className="h-4 w-4 text-[#1574fe]" />;
       default:
         return <Users className="h-4 w-4 text-purple-600" />;
     }
@@ -113,8 +113,8 @@ export function TenantSuspensionScreen() {
     <div className="space-y-4 max-w-[1600px] mx-auto pb-10">
       {/* Header Bar matching Image 3 */}
       <div className="flex items-center gap-3">
-        <div className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl shadow-xs">
-          <PauseCircle className="h-7 w-7 text-indigo-600" />
+        <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
+          <PauseCircle className="h-7 w-7 text-[#1574fe]" />
         </div>
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -152,7 +152,7 @@ export function TenantSuspensionScreen() {
 
         {/* Reactivation Requests */}
         <div className="bg-white border border-slate-200/90 rounded-xl p-3.5 flex items-center gap-3.5 shadow-xs">
-          <div className="h-11 w-11 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 shrink-0">
+          <div className="h-11 w-11 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-[#1574fe] shrink-0">
             <RotateCcw className="h-6 w-6 stroke-[2.2]" />
           </div>
           <div>
@@ -191,7 +191,7 @@ export function TenantSuspensionScreen() {
               className={cn(
                 'px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg flex items-center gap-2 transition-all cursor-pointer shadow-xs',
                 isActive
-                  ? 'bg-[#4F46E5] text-white'
+                  ? 'bg-[#1574fe] text-white'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
               )}
             >
@@ -264,7 +264,7 @@ export function TenantSuspensionScreen() {
         <Button
           type="button"
           onClick={() => toast.info('Select a tenant from the table to suspend.')}
-          className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-semibold h-9 px-3.5 flex items-center gap-1.5 shrink-0 shadow-xs"
+          className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold h-9 px-3.5 flex items-center gap-1.5 shrink-0 shadow-xs"
         >
           <Plus className="h-4 w-4" />
           <span>Suspend Tenant</span>
@@ -300,7 +300,7 @@ export function TenantSuspensionScreen() {
                       onClick={() => setSelectedTenantId(tenant.id)}
                       className={cn(
                         'hover:bg-slate-50/70 transition-colors cursor-pointer',
-                        isSelected && 'bg-indigo-50/40'
+                        isSelected && 'bg-blue-50/40'
                       )}
                     >
                       <td className="py-3 px-3">
@@ -334,11 +334,11 @@ export function TenantSuspensionScreen() {
                       </td>
                       <td className="py-3 px-3 text-slate-500">{tenant.suspendedOn}</td>
                       <td className="py-3 px-3">
-                        <div className="flex items-center justify-center gap-1.5 text-indigo-600">
+                        <div className="flex items-center justify-center gap-1.5 text-[#1574fe]">
                           <button
                             type="button"
                             title="View Tenant"
-                            className="p-1 hover:bg-indigo-50 rounded"
+                            className="p-1 hover:bg-blue-50 rounded"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
@@ -362,7 +362,7 @@ export function TenantSuspensionScreen() {
         {/* Right Details Panel (4 Cols) */}
         <div className="lg:col-span-4 bg-white border border-slate-200/90 rounded-xl p-4 shadow-xs space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Building2 className="h-4 w-4 text-indigo-600" />
+            <Building2 className="h-4 w-4 text-[#1574fe]" />
             <h3 className="text-sm font-bold text-slate-900">
               Selected Tenant – {selectedTenant.name}
             </h3>
@@ -402,7 +402,7 @@ export function TenantSuspensionScreen() {
           {/* Lifecycle Timeline */}
           <div className="pt-2 border-t border-slate-100">
             <div className="flex items-center gap-1.5 mb-2.5 text-xs font-bold text-slate-900">
-              <Clock className="h-3.5 w-3.5 text-indigo-600" />
+              <Clock className="h-3.5 w-3.5 text-[#1574fe]" />
               <span>Lifecycle Timeline</span>
             </div>
 
@@ -456,7 +456,7 @@ export function TenantSuspensionScreen() {
         {/* Card 1: Suspend Tenant */}
         <div className="bg-white border border-slate-200/90 rounded-xl p-4 shadow-xs space-y-3.5">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
-            <PauseCircle className="h-4 w-4 text-indigo-600" />
+            <PauseCircle className="h-4 w-4 text-[#1574fe]" />
             <h3 className="text-sm font-bold text-slate-900">Suspend Tenant</h3>
           </div>
 
@@ -549,7 +549,7 @@ export function TenantSuspensionScreen() {
             <Button
               type="button"
               onClick={handleSuspend}
-              className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-semibold h-8 shadow-xs"
+              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold h-8 shadow-xs"
             >
               Suspend Tenant
             </Button>
@@ -559,7 +559,7 @@ export function TenantSuspensionScreen() {
         {/* Card 2: Reactivate Tenant */}
         <div className="bg-white border border-slate-200/90 rounded-xl p-4 shadow-xs space-y-3.5">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
-            <RefreshCw className="h-4 w-4 text-indigo-600" />
+            <RefreshCw className="h-4 w-4 text-[#1574fe]" />
             <h3 className="text-sm font-bold text-slate-900">Reactivate Tenant</h3>
           </div>
 
@@ -616,7 +616,7 @@ export function TenantSuspensionScreen() {
             <Button
               type="button"
               onClick={handleReactivate}
-              className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs font-semibold h-8 shadow-xs"
+              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold h-8 shadow-xs"
             >
               Reactivate Tenant
             </Button>

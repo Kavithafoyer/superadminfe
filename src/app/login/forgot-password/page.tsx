@@ -305,9 +305,9 @@ export default function ForgotPasswordPage() {
 
           {/* Stage 1: Top Logo Container */}
           <div className="flex items-center gap-2 select-none shrink-0">
-            <img src="/logo_blue.png" alt="PEGATTO SuperAdmin Logo" className="h-10 w-auto object-contain" />
+            <img src="/pegatto_logo.png" alt="PEGATTO SuperAdmin Logo" className="h-10 w-auto object-contain" />
             <span className="text-2xl font-extrabold text-[#0f172a] tracking-tight">
-              PEGATTO <span className="text-blue-500">SuperAdmin</span>
+              PEGATTO <span className="text-purple-600">SuperAdmin</span>
             </span>
           </div>
 
@@ -510,9 +510,9 @@ export default function ForgotPasswordPage() {
 
           {/* Mobile Logo Branding (visible only on mobile) */}
           <div className="flex lg:hidden items-center gap-2 mb-6 select-none">
-            <img src="/logo_blue.png" alt="PEGATTO SuperAdmin Logo" className="h-9 w-auto object-contain" />
+            <img src="/pegatto_logo.png" alt="PEGATTO SuperAdmin Logo" className="h-9 w-auto object-contain" />
             <span className="text-xl font-extrabold text-[#0f172a] dark:text-slate-100 tracking-tight">
-              PEGATTO <span className="text-blue-600">SuperAdmin</span>
+              PEGATTO <span className="text-purple-600">SuperAdmin</span>
             </span>
           </div>
 

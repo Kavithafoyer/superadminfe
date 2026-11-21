@@ -145,7 +145,7 @@ export default function TaskGanttChartPage() {
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
               Task Gantt Chart
             </h1>
-            <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300">
+            <Badge variant="outline" className="bg-blue-50 text-indigo-700 border-indigo-200 dark:bg-blue-950/40 dark:text-indigo-300">
               Interactive Timeline
             </Badge>
           </div>
@@ -169,7 +169,7 @@ export default function TaskGanttChartPage() {
           <Button
             size="sm"
             onClick={handleOpenCreate}
-            className="h-9 gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+            className="h-9 gap-1.5 bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium"
           >
             <Plus className="h-4 w-4" />
             Add Timeline Task
@@ -222,7 +222,7 @@ export default function TaskGanttChartPage() {
           </div>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-rose-500" /> High</span>
-            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-indigo-500" /> Normal</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-blue-500" /> Normal</span>
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-slate-400" /> Low</span>
           </div>
         </div>
@@ -230,7 +230,7 @@ export default function TaskGanttChartPage() {
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
           {isLoading ? (
             <div className="py-16 text-center text-slate-500">
-              <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-indigo-600" />
+              <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-[#1574fe]" />
               Loading Gantt timeline...
             </div>
           ) : filteredTasks.length === 0 ? (
@@ -253,7 +253,7 @@ export default function TaskGanttChartPage() {
                 task.Priority === 'High'
                   ? 'bg-rose-500'
                   : task.Priority === 'Normal'
-                  ? 'bg-indigo-500'
+                  ? 'bg-blue-500'
                   : 'bg-slate-400';
 
               const completionPct = task.Completion || '0%';
@@ -403,7 +403,7 @@ export default function TaskGanttChartPage() {
               <Button
                 type="submit"
                 disabled={isCreating}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="bg-[#1574fe] hover:bg-[#0d62e0] text-white"
               >
                 {isCreating ? 'Saving...' : 'Add to Timeline'}
               </Button>

@@ -2,72 +2,63 @@
 
 import React, { useState, useMemo } from 'react';
 import {
-  Layers,
+  TrendingUp,
   Plus,
   Search,
   CheckCircle2,
   Clock,
-  Tag,
-  Percent,
+  Layers,
+  Coins,
   FileDown,
   ChevronLeft,
   ChevronRight,
-  Info,
-  RotateCcw,
   MoreVertical,
-  Eye,
   Pencil,
   Trash2,
-  ArrowLeft,
-  Sparkles,
-  X,
-  RefreshCw,
-  Save,
-  Coins,
+  Columns,
+  Percent,
+  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog';
 import { INITIAL_TIERED_PRICING } from '../mockData';
 import { TieredPricingRecord, TierVolumeConfig } from '../types';
 
-type ScreenViewMode = 'list' | 'create' | 'edit' | 'overview';
-
 export function TieredPricingScreen() {
-  const [plans, setPlans] = useState<TieredPricingRecord[]>(INITIAL_TIERED_PRICING);
-  const [viewMode, setViewMode] = useState<ScreenViewMode>('list');
-  const [selectedPlanId, setSelectedPlanId] = useState<string>(INITIAL_TIERED_PRICING[0]?.id || '');
+  const [schedules, setSchedules] = useState<TieredPricingRecord[]>(INITIAL_TIERED_PRICING);
+  const [selectedScheduleId, setSelectedScheduleId] = useState<string>(INITIAL_TIERED_PRICING[0]?.id || '');
+  const [isCreatingNew, setIsCreatingNew] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'basic' | 'tiers' | 'applicability' | 'advanced'>('tiers');
+  const [activeSubTab, setActiveSubTab] = useState<'pricing' | 'templates' | 'bulk' | 'history'>('pricing');
 
   // Filters
-  const [addonFilter, setAddonFilter] = useState('All Add-ons');
-  const [cycleFilter, setCycleFilter] = useState('All Cycles');
-  const [statusFilter, setStatusFilter] = useState('All Status');
   const [searchQuery, setSearchQuery] = useState('');
-
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  // Row selection
-  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
-
-  // Active Dropdown Menu
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([INITIAL_TIERED_PRICING[0]?.id || '']);
   const [activeMenuRowId, setActiveMenuRowId] = useState<string | null>(null);
 
   // Delete dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<TieredPricingRecord | null>(null);
 
-  const selectedPlan = useMemo(() => {
-    return plans.find((p) => p.id === selectedPlanId) || plans[0];
-  }, [plans, selectedPlanId]);
+  // Toast
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const selectedSchedule = useMemo(() => {
+    return schedules.find((s) => s.id === selectedScheduleId) || schedules[0];
+  }, [schedules, selectedScheduleId]);
 
   const [formData, setFormData] = useState<TieredPricingRecord>(
-    selectedPlan || {
-      id: '',
-      code: '',
-      name: '',
+    selectedSchedule || {
+      id: 'tp-1',
+      code: 'TP-001',
+      name: 'AI Lead Scoring – Volume',
       addonName: 'AI Lead Scoring',
       billingCycle: 'Monthly',
       tiersCount: 3,
@@ -81,1080 +72,762 @@ export function TieredPricingScreen() {
     }
   );
 
-  const filteredPlans = useMemo(() => {
-    return plans.filter((item) => {
-      const matchesSearch =
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.addonName.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesAddon = addonFilter === 'All Add-ons' || item.addonName === addonFilter;
-      const matchesCycle = cycleFilter === 'All Cycles' || item.billingCycle === cycleFilter;
-      const matchesStatus = statusFilter === 'All Status' || item.status === statusFilter;
-      return matchesSearch && matchesAddon && matchesCycle && matchesStatus;
-    });
-  }, [plans, searchQuery, addonFilter, cycleFilter, statusFilter]);
+  const handleSelectSchedule = (item: TieredPricingRecord) => {
+    setIsCreatingNew(false);
+    setSelectedScheduleId(item.id);
+    setSelectedRowIds([item.id]);
+    setFormData({ ...item });
+    setActiveMenuRowId(null);
+  };
 
-  const totalPages = Math.ceil(filteredPlans.length / rowsPerPage) || 1;
-  const paginatedPlans = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage;
-    return filteredPlans.slice(start, start + rowsPerPage);
-  }, [filteredPlans, currentPage, rowsPerPage]);
-
-  const totalCount = plans.length;
-  const activeCount = plans.filter((p) => p.status === 'Active').length;
-
-  const handleOpenCreate = () => {
-    setFormData({
-      id: `tp-${Date.now()}`,
-      code: '',
-      name: '',
+  const handleStartCreateNew = () => {
+    setIsCreatingNew(true);
+    const newId = `tp-${Date.now()}`;
+    const blank: TieredPricingRecord = {
+      id: newId,
+      code: 'TP-CUSTOM',
+      name: 'New Custom Tiering',
       addonName: 'AI Lead Scoring',
       billingCycle: 'Monthly',
-      tiersCount: 3,
+      tiersCount: 2,
       status: 'Active',
-      unitMetric: 'API Calls',
+      unitMetric: 'Units / Month',
       tiers: [
-        { tierId: '1', tierLabel: 'Tier 1', usageRange: '1 – 1,000', pricePerUnit: 0.5, effectivePrice: 500, discount: '—' },
-        { tierId: '2', tierLabel: 'Tier 2', usageRange: '1,001 – 5,000', pricePerUnit: 0.4, effectivePrice: 1800, discount: '20%' },
-        { tierId: '3', tierLabel: 'Tier 3', usageRange: '5,001 – 10,000', pricePerUnit: 0.3, effectivePrice: 3000, discount: '40%' },
+        { tierId: '1', tierLabel: 'Tier 1', usageRange: '1 – 500', pricePerUnit: 1.0, effectivePrice: 500, discount: '—' },
+        { tierId: '2', tierLabel: 'Tier 2', usageRange: '501 – 2,000', pricePerUnit: 0.8, effectivePrice: 1600, discount: '20%' },
       ],
-    });
-    setViewMode('create');
-    setActiveMenuRowId(null);
-  };
-
-  const handleOpenEdit = (plan: TieredPricingRecord) => {
-    setSelectedPlanId(plan.id);
-    setFormData({ ...plan });
-    setViewMode('edit');
-    setActiveMenuRowId(null);
-  };
-
-  const handleOpenOverview = (plan: TieredPricingRecord) => {
-    setSelectedPlanId(plan.id);
-    setViewMode('overview');
-    setActiveMenuRowId(null);
+    };
+    setFormData(blank);
   };
 
   const handleSaveForm = (asDraft = false) => {
-    const updatedStatus = asDraft ? 'Draft' : formData.status || 'Active';
+    const targetStatus = asDraft ? 'Draft' : formData.status || 'Active';
     const recordToSave: TieredPricingRecord = {
       ...formData,
-      status: updatedStatus,
-      code: formData.code.trim() || `TP-${Date.now().toString().slice(-3)}`,
-      name: formData.name.trim() || 'Untitled Tiered Plan',
-      tiersCount: formData.tiers?.length || 3,
+      status: targetStatus,
+      code: formData.code.trim() || `TP-${Date.now().toString().slice(-4)}`,
+      name: formData.name.trim() || 'Untitled Schedule',
     };
 
-    if (viewMode === 'create') {
-      setPlans((prev) => [recordToSave, ...prev]);
+    if (isCreatingNew) {
+      setSchedules((prev) => [recordToSave, ...prev]);
+      setIsCreatingNew(false);
+      setSelectedScheduleId(recordToSave.id);
+      setSelectedRowIds([recordToSave.id]);
+      showToast(`Schedule "${recordToSave.name}" created!`);
     } else {
-      setPlans((prev) =>
+      setSchedules((prev) =>
         prev.map((item) => (item.id === recordToSave.id ? recordToSave : item))
       );
+      showToast(`Schedule "${recordToSave.name}" updated!`);
     }
-    setSelectedPlanId(recordToSave.id);
-    setViewMode('list');
   };
 
-  const handleDeletePrompt = (plan: TieredPricingRecord) => {
-    setItemToDelete(plan);
+  const handleDeletePrompt = (item: TieredPricingRecord) => {
+    setItemToDelete(item);
     setDeleteDialogOpen(true);
     setActiveMenuRowId(null);
   };
 
   const handleConfirmDelete = () => {
     if (!itemToDelete) return;
-    setPlans((prev) => prev.filter((item) => item.id !== itemToDelete.id));
-    if (selectedPlanId === itemToDelete.id) {
-      const remaining = plans.filter((item) => item.id !== itemToDelete.id);
-      setSelectedPlanId(remaining[0]?.id || '');
+    const remaining = schedules.filter((item) => item.id !== itemToDelete.id);
+    setSchedules(remaining);
+    if (selectedScheduleId === itemToDelete.id) {
+      if (remaining.length > 0) {
+        setSelectedScheduleId(remaining[0].id);
+        setSelectedRowIds([remaining[0].id]);
+        setFormData({ ...remaining[0] });
+      }
     }
     setDeleteDialogOpen(false);
+    showToast(`Schedule deleted.`);
     setItemToDelete(null);
   };
 
-  const handleAddTierRow = () => {
-    const count = (formData.tiers || []).length + 1;
-    const newTier: TierVolumeConfig = {
-      tierId: String(count),
-      tierLabel: `Tier ${count}`,
-      usageRange: '10,001 – 25,000',
-      pricePerUnit: 0.2,
-      effectivePrice: 4500,
-      discount: '50%',
-    };
-    setFormData({
-      ...formData,
-      tiers: [...(formData.tiers || []), newTier],
-      tiersCount: count,
+  const filteredSchedules = useMemo(() => {
+    return schedules.filter((item) => {
+      const q = searchQuery.toLowerCase();
+      return (
+        item.name.toLowerCase().includes(q) ||
+        item.code.toLowerCase().includes(q) ||
+        item.addonName.toLowerCase().includes(q)
+      );
     });
-  };
+  }, [schedules, searchQuery]);
 
-  const handleRemoveTierRow = (idx: number) => {
-    const updated = (formData.tiers || []).filter((_, i) => i !== idx);
-    setFormData({
-      ...formData,
-      tiers: updated,
-      tiersCount: updated.length,
-    });
-  };
+  const totalPages = Math.ceil(filteredSchedules.length / rowsPerPage) || 1;
+  const paginatedSchedules = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+    return filteredSchedules.slice(start, start + rowsPerPage);
+  }, [filteredSchedules, currentPage, rowsPerPage]);
 
-  const handleUpdateTierRow = (idx: number, updates: Partial<TierVolumeConfig>) => {
-    const updated = [...(formData.tiers || [])];
-    updated[idx] = { ...updated[idx], ...updates };
-    setFormData({ ...formData, tiers: updated });
-  };
+  const totalCount = schedules.length;
 
   const handleToggleSelectAll = () => {
-    if (selectedRowIds.length === paginatedPlans.length) {
+    if (selectedRowIds.length === paginatedSchedules.length) {
       setSelectedRowIds([]);
     } else {
-      setSelectedRowIds(paginatedPlans.map((item) => item.id));
+      setSelectedRowIds(paginatedSchedules.map((s) => s.id));
     }
   };
 
-  const handleToggleRow = (id: string) => {
+  const handleToggleRow = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     setSelectedRowIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   };
 
-  // =========================================================================
-  // VIEW MODE: CREATE OR EDIT (Single Unified Card Container - HRM Style)
-  // =========================================================================
-  if (viewMode === 'create' || viewMode === 'edit') {
-    const isEditing = viewMode === 'edit';
+  const handleAddTierRow = () => {
+    const currentTiers = formData.tiers || [];
+    const count = currentTiers.length + 1;
+    const newTier: TierVolumeConfig = {
+      tierId: String(count),
+      tierLabel: `Tier ${count}`,
+      usageRange: '10,001+',
+      pricePerUnit: 0.25,
+      effectivePrice: 2500,
+      discount: '50%',
+    };
+    setFormData({ ...formData, tiers: [...currentTiers, newTier], tiersCount: count });
+  };
 
-    return (
-      <div className="w-full space-y-6 pb-12">
-        {/* Top Header & Breadcrumbs */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
-              <span>Add-on Marketplace</span>
-              <span>&gt;</span>
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                className="hover:text-purple-600 transition-colors"
-              >
-                Tiered Pricing
-              </button>
-              <span>&gt;</span>
-              <span className="text-purple-600 dark:text-purple-400 font-medium">
-                {isEditing ? 'Edit Tiered Plan' : 'Create Tiered Plan'}
-              </span>
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              {isEditing ? `Edit Tiered Plan: ${formData.name}` : 'Create Tiered Pricing'}
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              {isEditing
-                ? 'Adjust volume discount bands, unit metrics, and effective tier pricing.'
-                : 'Configure volume consumption tiers with graduated discounts for high-volume tenants.'}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setViewMode('list')}
-              className="text-xs border-slate-200 dark:border-slate-800"
-            >
-              <X className="h-3.5 w-3.5 mr-1" />
-              Cancel
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleSaveForm(true)}
-              className="text-xs border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300"
-            >
-              Save as Draft
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => handleSaveForm(false)}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-5 shadow-sm"
-            >
-              <Save className="h-3.5 w-3.5 mr-1.5" />
-              {isEditing ? 'Update Plan' : 'Save Plan'}
-            </Button>
-          </div>
-        </div>
-
-        {/* Single Unified Card (HRM Style) */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
-          {/* Card Header Strip */}
-          <div className="bg-gradient-to-r from-purple-50/80 via-indigo-50/40 to-slate-50/60 dark:from-purple-950/40 dark:via-slate-900 dark:to-slate-900 px-6 py-4 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-950 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold">
-                <Percent className="h-4 w-4" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  Volume Tier Configuration
-                </h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Fill in all required fields marked with an asterisk (<span className="text-rose-500">*</span>)
-                </p>
-              </div>
-            </div>
-            <Badge
-              variant="outline"
-              className={
-                formData.status === 'Active'
-                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700 text-[11px]'
-                  : 'border-amber-200 bg-amber-50 text-amber-700 text-[11px]'
-              }
-            >
-              ● {formData.status || 'Active'}
-            </Badge>
-          </div>
-
-          {/* Form Body - 3 Column Grid */}
-          <div className="p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  Plan Name <span className="text-rose-500">*</span>
-                </label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g. Lead Scoring Volume"
-                  className="h-10 text-xs rounded-lg border-slate-200 dark:border-slate-800 focus:ring-1 focus:ring-purple-600"
-                />
-                <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 block">
-                  Public display label for this tiered pricing matrix
-                </span>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  Plan Code <span className="text-rose-500">*</span>
-                </label>
-                <Input
-                  value={formData.code}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                  placeholder="e.g. TP-LEAD"
-                  className="h-10 text-xs font-mono uppercase rounded-lg border-slate-200 dark:border-slate-800 focus:ring-1 focus:ring-purple-600"
-                />
-                <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 block">
-                  Unique code identifier
-                </span>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  Associated Add-on <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={formData.addonName}
-                  onChange={(e) => setFormData({ ...formData, addonName: e.target.value })}
-                  className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-700 dark:text-slate-300 focus:ring-1 focus:ring-purple-600"
-                >
-                  <option>AI Lead Scoring</option>
-                  <option>Document Generator</option>
-                  <option>WhatsApp CRM Integration</option>
-                  <option>AI Bug Fixing Agent</option>
-                  <option>AI Calling Agent</option>
-                </select>
-                <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 block">
-                  Target add-on service consuming this quota
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  Unit Metric <span className="text-rose-500">*</span>
-                </label>
-                <Input
-                  value={formData.unitMetric}
-                  onChange={(e) => setFormData({ ...formData, unitMetric: e.target.value })}
-                  placeholder="e.g. Leads / Month, API Calls"
-                  className="h-10 text-xs rounded-lg border-slate-200 dark:border-slate-800 focus:ring-1 focus:ring-purple-600"
-                />
-                <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 block">
-                  Metric meter measured per billing cycle
-                </span>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  Billing Cycle <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={formData.billingCycle}
-                  onChange={(e) => setFormData({ ...formData, billingCycle: e.target.value as any })}
-                  className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-700 dark:text-slate-300 focus:ring-1 focus:ring-purple-600"
-                >
-                  <option>Monthly</option>
-                  <option>Annual</option>
-                  <option>Usage-based</option>
-                </select>
-                <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 block">
-                  Tier recalculation and invoice frequency
-                </span>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  Status <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                  className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-700 dark:text-slate-300 focus:ring-1 focus:ring-purple-600"
-                >
-                  <option>Active</option>
-                  <option>Draft</option>
-                  <option>Inactive</option>
-                </select>
-                <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 block">
-                  Catalog availability
-                </span>
-              </div>
-            </div>
-
-            {/* Dynamic Volume Tiers Table */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Volume Usage Tiers & Rate Bands
-                </label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddTierRow}
-                  className="text-xs border-purple-200 text-purple-700 hover:bg-purple-50 h-8"
-                >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Add Tier
-                </Button>
-              </div>
-
-              <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/40 dark:bg-slate-900/40">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-purple-50/50 dark:bg-purple-950/30 text-slate-600 dark:text-slate-300 text-[11px] font-semibold">
-                      <th className="py-2.5 px-4 text-left">Tier Label</th>
-                      <th className="py-2.5 px-4 text-left">Usage Range</th>
-                      <th className="py-2.5 px-4 text-left">Rate / Unit (₹)</th>
-                      <th className="py-2.5 px-4 text-left">Fixed Price (₹)</th>
-                      <th className="py-2.5 px-4 text-left">Volume Discount</th>
-                      <th className="py-2.5 px-4 text-center w-12">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200/60 dark:divide-slate-800">
-                    {(formData.tiers || []).map((t, idx) => (
-                      <tr key={idx} className="bg-white dark:bg-slate-900">
-                        <td className="py-3 px-4 font-semibold text-slate-800 dark:text-slate-200">
-                          <Input
-                            value={t.tierLabel}
-                            onChange={(e) =>
-                              handleUpdateTierRow(idx, { tierLabel: e.target.value })
-                            }
-                            className="h-8 w-28 text-xs font-semibold"
-                          />
-                        </td>
-                        <td className="py-3 px-4">
-                          <Input
-                            value={t.usageRange}
-                            onChange={(e) =>
-                              handleUpdateTierRow(idx, { usageRange: e.target.value })
-                            }
-                            className="h-8 w-36 text-xs"
-                          />
-                        </td>
-                        <td className="py-3 px-4">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={t.pricePerUnit}
-                            onChange={(e) =>
-                              handleUpdateTierRow(idx, {
-                                pricePerUnit: Number(e.target.value),
-                              })
-                            }
-                            className="h-8 w-24 text-xs font-mono"
-                          />
-                        </td>
-                        <td className="py-3 px-4">
-                          <Input
-                            type="number"
-                            value={t.effectivePrice}
-                            onChange={(e) =>
-                              handleUpdateTierRow(idx, {
-                                effectivePrice: Number(e.target.value),
-                              })
-                            }
-                            className="h-8 w-28 text-xs font-mono font-bold"
-                          />
-                        </td>
-                        <td className="py-3 px-4">
-                          <Input
-                            value={t.discount}
-                            onChange={(e) =>
-                              handleUpdateTierRow(idx, { discount: e.target.value })
-                            }
-                            className="h-8 w-20 text-xs text-purple-700 font-semibold"
-                          />
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          {(formData.tiers || []).length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveTierRow(idx)}
-                              className="text-slate-400 hover:text-rose-500 transition-colors p-1"
-                              title="Delete Row"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Action Footer */}
-          <div className="px-6 py-4 bg-slate-50/70 dark:bg-slate-900/70 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setViewMode('list')}
-              className="text-xs border-slate-200 dark:border-slate-800 hover:bg-slate-100"
-            >
-              Cancel
-            </Button>
-            <div className="flex items-center gap-2.5">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleSaveForm(true)}
-                className="text-xs border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300"
-              >
-                Save as Draft
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => handleSaveForm(false)}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-6 shadow-sm"
-              >
-                <Save className="h-3.5 w-3.5 mr-1.5" />
-                {isEditing ? 'Update Plan' : 'Save Plan'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // =========================================================================
-  // VIEW MODE: OVERVIEW
-  // =========================================================================
-  if (viewMode === 'overview') {
-    const plan = selectedPlan;
-
-    return (
-      <div className="w-full space-y-6 pb-12">
-        {/* Top Header & Breadcrumbs */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
-              <span>Add-on Marketplace</span>
-              <span>&gt;</span>
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                className="hover:text-purple-600 transition-colors"
-              >
-                Tiered Pricing
-              </button>
-              <span>&gt;</span>
-              <span className="text-purple-600 dark:text-purple-400 font-medium">
-                {plan.name}
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                {plan.name}
-              </h1>
-              <Badge
-                variant="outline"
-                className="font-mono text-xs border-purple-200 bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300"
-              >
-                {plan.code}
-              </Badge>
-              <Badge
-                variant="outline"
-                className={
-                  plan.status === 'Active'
-                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 text-xs'
-                    : 'border-amber-200 bg-amber-50 text-amber-700 text-xs'
-                }
-              >
-                ● {plan.status}
-              </Badge>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setViewMode('list')}
-              className="text-xs border-slate-200 dark:border-slate-800"
-            >
-              <ArrowLeft className="h-3.5 w-3.5 mr-1" />
-              Back to List
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => handleOpenEdit(plan)}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 shadow-sm"
-            >
-              <Pencil className="h-3.5 w-3.5 mr-1.5" />
-              Edit Tiered Plan
-            </Button>
-          </div>
-        </div>
-
-        {/* 4 Light KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl border border-purple-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm">
-            <p className="text-xs font-medium text-purple-900 dark:text-purple-300">Target Add-on</p>
-            <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1 truncate">
-              {plan.addonName}
-            </p>
-            <p className="text-[11px] text-purple-600 dark:text-purple-400 mt-1">Consumption model</p>
-          </div>
-
-          <div className="p-4 rounded-xl border border-emerald-200/80 dark:border-emerald-800/40 bg-gradient-to-br from-emerald-50 via-emerald-50/40 to-white dark:from-emerald-950/30 dark:via-emerald-900/10 dark:to-slate-900 shadow-sm">
-            <p className="text-xs font-medium text-emerald-900 dark:text-emerald-300">Unit Metric</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
-              {plan.unitMetric}
-            </p>
-            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1">Measured rate unit</p>
-          </div>
-
-          <div className="p-4 rounded-xl border border-blue-200/80 dark:border-blue-800/40 bg-gradient-to-br from-blue-50 via-blue-50/40 to-white dark:from-blue-950/30 dark:via-blue-900/10 dark:to-slate-900 shadow-sm">
-            <p className="text-xs font-medium text-blue-900 dark:text-blue-300">Billing Interval</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
-              {plan.billingCycle}
-            </p>
-            <p className="text-[11px] text-blue-600 dark:text-blue-400 mt-1">Recurring invoice schedule</p>
-          </div>
-
-          <div className="p-4 rounded-xl border border-amber-200/80 dark:border-amber-800/40 bg-gradient-to-br from-amber-50 via-amber-50/40 to-white dark:from-amber-950/30 dark:via-amber-900/10 dark:to-slate-900 shadow-sm">
-            <p className="text-xs font-medium text-amber-900 dark:text-amber-300">Max Discount</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
-              40% Off
-            </p>
-            <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">Top volume bracket</p>
-          </div>
-        </div>
-
-        {/* Tier Details Table */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-50/80 via-indigo-50/40 to-slate-50/60 dark:from-purple-950/40 dark:via-slate-900 dark:to-slate-900 px-6 py-4 border-b border-slate-200/80 dark:border-slate-800">
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Volume Range & Unit Price Schedule
-            </h3>
-          </div>
-          <div className="p-6">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 uppercase">
-                  <th className="py-2.5 px-4">Tier Label</th>
-                  <th className="py-2.5 px-4">Usage Range</th>
-                  <th className="py-2.5 px-4">Rate / Unit</th>
-                  <th className="py-2.5 px-4">Fixed Effective Price</th>
-                  <th className="py-2.5 px-4">Discount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {(plan.tiers || []).map((t, idx) => (
-                  <tr key={idx}>
-                    <td className="py-3 px-4 font-semibold text-slate-800 dark:text-slate-200">
-                      {t.tierLabel}
-                    </td>
-                    <td className="py-3 px-4 font-mono text-slate-700 dark:text-slate-300">
-                      {t.usageRange}
-                    </td>
-                    <td className="py-3 px-4 font-mono text-purple-600 dark:text-purple-400 font-bold">
-                      ₹{t.pricePerUnit}
-                    </td>
-                    <td className="py-3 px-4 font-bold text-slate-900 dark:text-slate-100">
-                      ₹{t.effectivePrice}
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-emerald-600 dark:text-emerald-400">
-                      {t.discount}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // =========================================================================
-  // VIEW MODE: LIST (Full-Width HRM Style with Light-Colored Cards)
-  // =========================================================================
   return (
-    <div className="w-full space-y-6 pb-12">
+    <div className="w-full space-y-5 pb-12">
+      {/* Toast */}
+      {toastMessage && (
+        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 bg-[#6222cc] text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="h-4 w-4 text-white" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Top Header & Breadcrumbs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
             <span>Add-on Marketplace</span>
             <span>&gt;</span>
-            <span className="text-purple-600 dark:text-purple-400 font-medium">Tiered Pricing</span>
+            <span className="text-[#6222cc] dark:text-purple-300 font-medium">Tiered Pricing</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            Tiered Pricing ({totalCount})
+            Tiered Pricing
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Configure volume consumption tiers with graduated discounts for high-volume tenants.
+            Configure volume-based and graduated pricing tiers for usage and license-based add-ons.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Button
-            variant="outline"
-            onClick={() => {
-              setSearchQuery('');
-              setAddonFilter('All Add-ons');
-              setStatusFilter('All Status');
-            }}
-            className="h-9 px-3.5 text-xs font-medium border-slate-200 dark:border-slate-800 shadow-xs"
+          <button
+            type="button"
+            onClick={handleStartCreateNew}
+            className="h-9 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
           >
-            <RefreshCw className="h-4 w-4 mr-1.5" />
-            Refresh
-          </Button>
-          <Button
-            variant="outline"
-            className="h-9 px-3.5 text-xs font-medium border-slate-200 dark:border-slate-800 shadow-xs"
-          >
-            <FileDown className="h-4 w-4 mr-1.5" />
-            Export
-          </Button>
-          <Button
-            onClick={handleOpenCreate}
-            className="h-9 px-4.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm"
-          >
-            <Plus className="h-4 w-4 mr-1.5" />
-            Create Tiered Plan
-          </Button>
+            <Plus className="h-4 w-4" />
+            <span>Create Tier Schedule</span>
+          </button>
         </div>
       </div>
 
-      {/* 4 Light-Colored KPI Stat Cards */}
+      {/* 4 KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl border border-purple-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
           <div>
-            <p className="text-xs font-medium text-purple-900 dark:text-purple-300">Total Plans</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Tier Schedules</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{totalCount}</p>
           </div>
-          <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-purple-600 dark:text-purple-300">
-            <Layers className="h-5 w-5" />
+          <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-[#6222cc] dark:text-purple-300">
+            <TrendingUp className="h-5 w-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-xl border border-emerald-200/80 dark:border-emerald-800/40 bg-gradient-to-br from-emerald-50 via-emerald-50/40 to-white dark:from-emerald-950/30 dark:via-emerald-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
           <div>
-            <p className="text-xs font-medium text-emerald-900 dark:text-emerald-300">Active Schedules</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{activeCount}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Volume Based</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">4</p>
           </div>
-          <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center text-emerald-600 dark:text-emerald-300">
+          <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="h-5 w-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-xl border border-blue-200/80 dark:border-blue-800/40 bg-gradient-to-br from-blue-50 via-blue-50/40 to-white dark:from-blue-950/30 dark:via-blue-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
           <div>
-            <p className="text-xs font-medium text-blue-900 dark:text-blue-300">Billing Model</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">Usage-based</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Graduated (Tiered)</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">2</p>
           </div>
-          <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/60 flex items-center justify-center text-blue-600 dark:text-blue-300">
-            <Coins className="h-5 w-5" />
+          <div className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
+            <Layers className="h-5 w-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-xl border border-amber-200/80 dark:border-amber-800/40 bg-gradient-to-br from-amber-50 via-amber-50/40 to-white dark:from-amber-950/30 dark:via-amber-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
           <div>
-            <p className="text-xs font-medium text-amber-900 dark:text-amber-300">Top Tier Discount</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">40% Off</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Avg Discount</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">22%</p>
           </div>
-          <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-900/60 flex items-center justify-center text-amber-600 dark:text-amber-300">
+          <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-[#6222cc] dark:text-purple-300">
             <Percent className="h-5 w-5" />
           </div>
         </div>
       </div>
 
-      {/* Light-Tinted Search & Filter Panel (Matching Add-on Master 4-Column Balanced Layout) */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-slate-50 via-purple-50/20 to-white dark:from-slate-900 dark:via-purple-950/20 dark:to-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5">
-          <div>
-            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
-              Search Plan
-            </label>
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
-              <Input
-                placeholder="Search by Code, Name..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="pl-8 h-9 text-xs bg-white dark:bg-slate-900 rounded-lg border-slate-200 dark:border-slate-800"
-              />
+      {/* 2-COLUMN SPLIT GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* LEFT COLUMN: Table List */}
+        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
+          {/* Table Header toolbar */}
+          <div className="p-4 border-b border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Tier Schedules ({filteredSchedules.length})
+              </span>
             </div>
-          </div>
 
-          <div>
-            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
-              Target Add-on
-            </label>
-            <select
-              value={addonFilter}
-              onChange={(e) => {
-                setAddonFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-700 dark:text-slate-300"
-            >
-              <option>All Add-ons</option>
-              <option>AI Lead Scoring</option>
-              <option>Document Generator</option>
-              <option>WhatsApp CRM Integration</option>
-              <option>AI Bug Fixing Agent</option>
-              <option>AI Calling Agent</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
-              Billing Cycle
-            </label>
-            <select
-              value={cycleFilter}
-              onChange={(e) => {
-                setCycleFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-700 dark:text-slate-300"
-            >
-              <option>All Cycles</option>
-              <option>Monthly</option>
-              <option>Annual</option>
-              <option>Usage-based</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 block mb-1">
-              Status
-            </label>
-            <div className="flex gap-2">
-              <select
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-700 dark:text-slate-300"
-              >
-                <option>All Status</option>
-                <option>Active</option>
-                <option>Draft</option>
-                <option>Inactive</option>
-              </select>
+            <div className="flex items-center gap-2">
+              <div className="relative w-48 sm:w-56">
+                <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  placeholder="Search schedules..."
+                  className="h-8 pl-8 text-xs bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg"
+                />
+              </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  setSearchQuery('');
-                  setAddonFilter('All Add-ons');
-                  setCycleFilter('All Cycles');
-                  setStatusFilter('All Status');
-                }}
-                className="text-xs px-3 border-slate-200 dark:border-slate-800 shrink-0"
+                onClick={() => showToast('Exporting Tier Schedules...')}
+                className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 dark:border-slate-700"
               >
-                Reset
+                <FileDown className="h-3.5 w-3.5 mr-1" />
+                Export
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 dark:border-slate-700"
+              >
+                <Columns className="h-3.5 w-3.5 mr-1" />
+                Columns
               </Button>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Table Section */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Tiered Rate Schedules
-            </h3>
-            <Badge
-              variant="secondary"
-              className="bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 text-xs"
-            >
-              {filteredPlans.length} Plans
-            </Badge>
-          </div>
-          <span className="text-xs text-slate-400">
-            Showing volume brackets
-          </span>
-        </div>
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50/80 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800 font-medium">
+                <tr>
+                  <th className="py-2.5 px-3 w-8">
+                    <input
+                      type="checkbox"
+                      checked={
+                        paginatedSchedules.length > 0 &&
+                        selectedRowIds.length === paginatedSchedules.length
+                      }
+                      onChange={handleToggleSelectAll}
+                      className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
+                    />
+                  </th>
+                  <th className="py-2.5 px-3 font-semibold">Schedule Code</th>
+                  <th className="py-2.5 px-3 font-semibold">Schedule Name</th>
+                  <th className="py-2.5 px-3 font-semibold">Add-on Name</th>
+                  <th className="py-2.5 px-3 font-semibold">Billing Cycle</th>
+                  <th className="py-2.5 px-3 font-semibold">Tiers Count</th>
+                  <th className="py-2.5 px-3 font-semibold">Status</th>
+                  <th className="py-2.5 px-3 text-right font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {paginatedSchedules.map((item) => {
+                  const isSelected = selectedScheduleId === item.id && !isCreatingNew;
+                  const isChecked = selectedRowIds.includes(item.id);
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-                <th className="py-3 px-4 w-10">
-                  <input
-                    type="checkbox"
-                    checked={
-                      paginatedPlans.length > 0 &&
-                      selectedRowIds.length === paginatedPlans.length
-                    }
-                    onChange={handleToggleSelectAll}
-                    className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                  />
-                </th>
-                <th className="py-3 px-4">
-                  <div className="flex items-center gap-1 cursor-pointer select-none">
-                    <span>PLAN CODE</span>
-                    <span className="text-[10px] text-slate-400">⇅</span>
-                  </div>
-                </th>
-                <th className="py-3 px-4">
-                  <div className="flex items-center gap-1 cursor-pointer select-none">
-                    <span>PLAN NAME</span>
-                    <span className="text-[10px] text-slate-400">⇅</span>
-                  </div>
-                </th>
-                <th className="py-3 px-4">ADD-ON</th>
-                <th className="py-3 px-4">UNIT METRIC</th>
-                <th className="py-3 px-4">BILLING CYCLE</th>
-                <th className="py-3 px-4 text-center">TIERS</th>
-                <th className="py-3 px-4">
-                  <div className="flex items-center gap-1 cursor-pointer select-none">
-                    <span>STATUS</span>
-                    <span className="text-[10px] text-slate-400">⇅</span>
-                  </div>
-                </th>
-                <th className="py-3 px-4 text-right">ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
-              {paginatedPlans.map((plan) => {
-                const isSelected = selectedRowIds.includes(plan.id);
-                const isMenuOpen = activeMenuRowId === plan.id;
-
-                return (
-                  <tr
-                    key={plan.id}
-                    className={`transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/40 ${isSelected ? 'bg-blue-50/40 dark:bg-blue-950/20' : ''
+                  return (
+                    <tr
+                      key={item.id}
+                      onClick={() => handleSelectSchedule(item)}
+                      className={`cursor-pointer transition-colors ${
+                        isSelected
+                          ? 'bg-purple-50/60 dark:bg-purple-950/30'
+                          : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40'
                       }`}
-                  >
-                    <td className="py-3.5 px-4">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => handleToggleRow(plan.id)}
-                        className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                      />
-                    </td>
-                    <td className="py-3.5 px-4 font-mono font-medium text-purple-700 dark:text-purple-300">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenOverview(plan)}
-                        className="hover:underline font-semibold"
-                      >
-                        {plan.code}
-                      </button>
-                    </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800 dark:text-slate-200">
-                      {plan.name}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-600 dark:text-slate-400 font-medium">
-                      {plan.addonName}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-600 dark:text-slate-400">
-                      {plan.unitMetric}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-600 dark:text-slate-400">
-                      {plan.billingCycle}
-                    </td>
-                    <td className="py-3.5 px-4 text-center font-semibold">
-                      {plan.tiersCount}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium ${plan.status === 'Active'
-                          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                          : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
-                          }`}
-                      >
-                        <span
-                          className={`h-1.5 w-1.5 rounded-full ${plan.status === 'Active' ? 'bg-emerald-500' : 'bg-amber-500'
-                            }`}
+                    >
+                      <td className="py-3 px-3" onClick={(e) => handleToggleRow(item.id, e)}>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}}
+                          className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
                         />
-                        {plan.status}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right relative">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenEdit(plan)}
-                          className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-purple-600 transition-colors"
-                          title="Quick Edit"
+                      </td>
+                      <td className="py-3 px-3 font-semibold text-[#6222cc] dark:text-purple-300 hover:underline">
+                        {item.code}
+                      </td>
+                      <td className="py-3 px-3 font-medium text-slate-900 dark:text-slate-100">
+                        {item.name}
+                      </td>
+                      <td className="py-3 px-3 text-slate-600 dark:text-slate-400">
+                        {item.addonName}
+                      </td>
+                      <td className="py-3 px-3 text-slate-600 dark:text-slate-400">
+                        {item.billingCycle}
+                      </td>
+                      <td className="py-3 px-3 font-semibold text-slate-800 dark:text-slate-200">
+                        {item.tiers?.length || item.tiersCount} tiers
+                      </td>
+                      <td className="py-3 px-3">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                            item.status === 'Active'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                              : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
+                          }`}
                         >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-
-                        <div className="relative">
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <div
+                          className="flex items-center justify-end gap-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <button
                             type="button"
-                            onClick={() =>
-                              setActiveMenuRowId(isMenuOpen ? null : plan.id)
-                            }
-                            className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400"
-                            title="Actions"
+                            onClick={() => handleSelectSchedule(item)}
+                            className="p-1 rounded text-slate-400 hover:text-[#6222cc] hover:bg-slate-100 dark:hover:bg-slate-800"
+                            title="Edit Tier Schedule"
                           >
-                            <MoreVertical className="h-4 w-4" />
+                            <Pencil className="h-3.5 w-3.5" />
                           </button>
-
-                          {/* 3-Dots Action Popover */}
-                          {isMenuOpen && (
-                            <div className="absolute right-0 top-8 z-30 w-36 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl py-1 text-xs">
-                              <button
-                                type="button"
-                                onClick={() => handleOpenOverview(plan)}
-                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition-colors"
-                              >
-                                <Eye className="h-3.5 w-3.5 text-slate-400" />
-                                Overview
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleOpenEdit(plan)}
-                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition-colors"
-                              >
-                                <Pencil className="h-3.5 w-3.5 text-slate-400" />
-                                Edit
-                              </button>
-                              <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
-                              <button
-                                type="button"
-                                onClick={() => handleDeletePrompt(plan)}
-                                className="w-full px-3 py-2 text-left flex items-center gap-2 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                              >
-                                <Trash2 className="h-3.5 w-3.5 text-rose-500" />
-                                Delete
-                              </button>
-                            </div>
-                          )}
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setActiveMenuRowId(
+                                  activeMenuRowId === item.id ? null : item.id
+                                )
+                              }
+                              className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            >
+                              <MoreVertical className="h-3.5 w-3.5" />
+                            </button>
+                            {activeMenuRowId === item.id && (
+                              <div className="absolute right-0 top-full mt-1 w-32 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-30 py-1 text-xs">
+                                <button
+                                  type="button"
+                                  onClick={() => handleSelectSchedule(item)}
+                                  className="w-full text-left px-3 py-1.5 hover:bg-purple-50 dark:hover:bg-purple-950/50 text-slate-700 dark:text-slate-300 flex items-center gap-1.5"
+                                >
+                                  <Pencil className="h-3 w-3 text-[#6222cc]" />
+                                  Edit Record
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeletePrompt(item)}
+                                  className="w-full text-left px-3 py-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-600 flex items-center gap-1.5"
+                                >
+                                  <Trash2 className="h-3 w-3 text-rose-500" />
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination Section */}
-        <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <span>Rows per page:</span>
-            <select
-              value={rowsPerPage}
-              onChange={(e) => {
-                setRowsPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="h-8 px-2 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-700 dark:text-slate-300"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-            </select>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span>
-              Page {currentPage} of {totalPages}
+          {/* Pagination */}
+          <div className="p-3 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
+            <div>
+              Showing {filteredSchedules.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}-
+              {Math.min(currentPage * rowsPerPage, filteredSchedules.length)} of {filteredSchedules.length} schedules
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(1)}
+                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
+                >
+                  &laquo;
+                </button>
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </button>
+                {Array.from({ length: totalPages }).map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setCurrentPage(idx + 1)}
+                    className={`h-6 w-6 rounded text-xs font-medium flex items-center justify-center ${
+                      currentPage === idx + 1
+                        ? 'bg-[#6222cc] text-white'
+                        : 'text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    {idx + 1}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
+                >
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(totalPages)}
+                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
+                >
+                  &raquo;
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Create / Edit Tiered Pricing Card */}
+        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
+          {/* Card Top Title & Status */}
+          <div className="p-4 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                {isCreatingNew ? 'Create Tier Schedule' : 'Create / Edit Tiered Pricing'}
+              </h2>
+            </div>
+            <span
+              className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                formData.status === 'Active'
+                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                  : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+              }`}
+            >
+              {formData.status}
             </span>
-            <div className="flex items-center gap-1">
+          </div>
+
+          {/* Subtabs inside Card */}
+          <div className="flex items-center gap-4 px-4 pt-3 border-b border-slate-200/80 dark:border-slate-800 text-xs">
+            <button
+              type="button"
+              onClick={() => setActiveTab('basic')}
+              className={`pb-2 transition-colors relative ${
+                activeTab === 'basic' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
+              }`}
+            >
+              Basic Details
+              {activeTab === 'basic' && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('tiers')}
+              className={`pb-2 transition-colors relative ${
+                activeTab === 'tiers' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
+              }`}
+            >
+              Tier Configuration
+              {activeTab === 'tiers' && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('applicability')}
+              className={`pb-2 transition-colors relative ${
+                activeTab === 'applicability' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
+              }`}
+            >
+              Applicability
+              {activeTab === 'applicability' && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('advanced')}
+              className={`pb-2 transition-colors relative ${
+                activeTab === 'advanced' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
+              }`}
+            >
+              Advanced
+              {activeTab === 'advanced' && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
+              )}
+            </button>
+          </div>
+
+          {/* Form Content */}
+          <div className="p-4 space-y-4 text-xs">
+            {activeTab === 'tiers' && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Plan Code <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      value={formData.code || 'TP-001'}
+                      onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                      className="h-8 text-xs font-mono font-semibold uppercase"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Plan Name <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      value={formData.name || 'AI Lead Scoring - Volume'}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Add-on <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={formData.addonName}
+                      onChange={(e) => setFormData({ ...formData, addonName: e.target.value })}
+                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white"
+                    >
+                      <option>AI Lead Scoring</option>
+                      <option>AI CRM Assistant</option>
+                      <option>WhatsApp CRM Integration</option>
+                      <option>Document Generator</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Billing Cycle <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={formData.billingCycle}
+                      onChange={(e) => setFormData({ ...formData, billingCycle: e.target.value as 'Monthly' | 'Annual' })}
+                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white"
+                    >
+                      <option>Monthly</option>
+                      <option>Annual</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <span className="font-bold text-slate-900 dark:text-slate-100 block text-xs">
+                    Tier Configuration
+                  </span>
+
+                  <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 dark:bg-slate-800 text-slate-700 font-semibold border-b border-slate-200 dark:border-slate-700">
+                        <tr>
+                          <th className="py-2 px-2.5">Tier</th>
+                          <th className="py-2 px-2.5">Usage Range (Leads/Month)</th>
+                          <th className="py-2 px-2.5">Price per Unit (₹)</th>
+                          <th className="py-2 px-2.5">Effective Price (₹)</th>
+                          <th className="py-2 px-2.5">Discount</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tr>
+                          <td className="py-2 px-2.5 font-medium">Tier 1</td>
+                          <td className="py-2 px-2.5 text-slate-600">1 – 1,000</td>
+                          <td className="py-2 px-2.5 font-mono text-slate-700">0.50</td>
+                          <td className="py-2 px-2.5 font-semibold text-slate-900">₹499</td>
+                          <td className="py-2 px-2.5 text-slate-400 font-semibold">—</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 px-2.5 font-medium">Tier 2</td>
+                          <td className="py-2 px-2.5 text-slate-600">1,001 – 5,000</td>
+                          <td className="py-2 px-2.5 font-mono text-slate-700">0.40</td>
+                          <td className="py-2 px-2.5 font-semibold text-slate-900">₹1,999</td>
+                          <td className="py-2 px-2.5 text-emerald-600 font-semibold">20%</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 px-2.5 font-medium">Tier 3</td>
+                          <td className="py-2 px-2.5 text-slate-600">5,001 – 10,000</td>
+                          <td className="py-2 px-2.5 font-mono text-slate-700">0.30</td>
+                          <td className="py-2 px-2.5 font-semibold text-slate-900">₹2,999</td>
+                          <td className="py-2 px-2.5 text-emerald-600 font-semibold">40%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAddTierRow}
+                    className="text-xs font-semibold text-[#6222cc] hover:text-[#521cb0] inline-flex items-center gap-1 cursor-pointer pt-1"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Add Tier</span>
+                  </button>
+
+                  {/* Example helper box */}
+                  <div className="p-3 rounded-lg border border-purple-100 bg-purple-50/50 text-slate-700 flex items-start gap-2">
+                    <Info className="h-4 w-4 text-[#6222cc] shrink-0 mt-0.5" />
+                    <p className="text-[11px] text-slate-600 leading-snug">
+                      <strong>Example:</strong> At 3,000 leads/month, customer pays ₹1,999 (₹0.40 per lead, 20% discount).
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'basic' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Schedule Code <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      value={formData.code}
+                      onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                      className="h-8 text-xs font-mono font-semibold uppercase"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Schedule Name <span className="text-rose-500">*</span>
+                    </label>
+                    <Input
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Add-on Name
+                    </label>
+                    <Input
+                      value={formData.addonName}
+                      onChange={(e) => setFormData({ ...formData, addonName: e.target.value })}
+                      className="h-8 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                      Billing Cycle
+                    </label>
+                    <select
+                      value={formData.billingCycle}
+                      onChange={(e) => setFormData({ ...formData, billingCycle: e.target.value as 'Monthly' | 'Annual' })}
+                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white"
+                    >
+                      <option>Monthly</option>
+                      <option>Annual</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                    Unit Metric
+                  </label>
+                  <Input
+                    value={formData.unitMetric}
+                    onChange={(e) => setFormData({ ...formData, unitMetric: e.target.value })}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'applicability' && (
+              <div className="space-y-3">
+                <span className="font-semibold text-slate-700 block">Assigned Add-on Scope</span>
+                <p className="text-slate-500 text-xs">
+                  This schedule governs billing metrics for <strong>{formData.addonName}</strong> across all active tenants.
+                </p>
+              </div>
+            )}
+
+            {activeTab === 'advanced' && (
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="rounded text-[#6222cc]" />
+                  <span>Enforce minimum monthly spend commitment</span>
+                </label>
+                <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="rounded text-[#6222cc]" />
+                  <span>Alert tenant when approaching next discount threshold</span>
+                </label>
+              </div>
+            )}
+          </div>
+
+          {/* Card Footer Actions */}
+          <div className="p-4 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-800/20">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => {
+                if (selectedSchedule) {
+                  setFormData({ ...selectedSchedule });
+                  setIsCreatingNew(false);
+                }
+              }}
+              className="h-8 px-3 text-xs border-slate-200"
+            >
+              Cancel
+            </Button>
+
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                size="icon"
-                className="h-7 w-7 border-slate-200 dark:border-slate-800"
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
+                type="button"
+                onClick={() => handleSaveForm(true)}
+                className="h-8 px-3 text-xs border-slate-200 hover:bg-slate-100 text-slate-700"
               >
-                «
+                Save as Draft
               </Button>
               <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7 border-slate-200 dark:border-slate-800"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
+                type="button"
+                onClick={() => handleSaveForm(false)}
+                className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
               >
-                ‹
-              </Button>
-              <span className="h-7 px-2.5 rounded bg-blue-600 text-white font-medium flex items-center justify-center text-xs">
-                {currentPage}
-              </span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7 border-slate-200 dark:border-slate-800"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
-                ›
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7 border-slate-200 dark:border-slate-800"
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage === totalPages}
-              >
-                »
+                Update Tiered Pricing
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Dialog */}
       <ConfirmDeleteDialog
         isOpen={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Delete Tiered Plan"
-        description={`Are you sure you want to delete the tiered pricing plan "${itemToDelete?.name}" (${itemToDelete?.code})?`}
+        title="Delete Tier Schedule"
+        description={`Are you sure you want to delete tier schedule "${itemToDelete?.name}"?`}
       />
     </div>
   );

@@ -536,8 +536,8 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
       {/* 1. TOP HEADER - EXACT MATCH WITH SCREENSHOTS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div className="flex items-center gap-3.5">
-          <div className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl shadow-xs">
-            <IsometricBoxIcon className="h-8 w-8 text-indigo-600" />
+          <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
+            <IsometricBoxIcon className="h-8 w-8 text-[#1574fe]" />
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
@@ -571,7 +571,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
               });
               setIsDrawerOpen(true);
             }}
-            className="bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium text-sm px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition-all"
+            className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-sm px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition-all"
           >
             <Plus className="h-4 w-4" />
             <span>Add Product</span>
@@ -623,7 +623,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search by product name, code or category..."
-                      className="pl-9 pr-3 py-1.5 text-xs sm:text-sm h-9 bg-white border-slate-200 rounded-lg placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-indigo-500"
+                      className="pl-9 pr-3 py-1.5 text-xs sm:text-sm h-9 bg-white border-slate-200 rounded-lg placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#1574fe]"
                     />
                   </div>
                 </div>
@@ -636,7 +636,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="h-9 px-3 text-xs sm:text-sm bg-white border border-slate-200 rounded-lg text-slate-700 outline-hidden focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                    className="h-9 px-3 text-xs sm:text-sm bg-white border border-slate-200 rounded-lg text-slate-700 outline-hidden focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
                   >
                     <option value="All">All</option>
                     <option value="Active">Active</option>
@@ -653,7 +653,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                   <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="h-9 px-3 text-xs sm:text-sm bg-white border border-slate-200 rounded-lg text-slate-700 outline-hidden focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                    className="h-9 px-3 text-xs sm:text-sm bg-white border border-slate-200 rounded-lg text-slate-700 outline-hidden focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
                   >
                     {uniqueCategories.map((cat) => (
                       <option key={cat} value={cat}>
@@ -667,7 +667,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="text-indigo-600 hover:text-indigo-800 text-xs sm:text-sm font-semibold pb-2 px-1 transition-colors cursor-pointer self-end"
+                  className="text-[#1574fe] hover:text-[#0d62e0] text-xs sm:text-sm font-semibold pb-2 px-1 transition-colors cursor-pointer self-end"
                 >
                   Reset
                 </button>
@@ -698,7 +698,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                             className={cn(
                               'cursor-pointer transition-colors',
                               isSelected
-                                ? 'bg-indigo-50/60 font-medium'
+                                ? 'bg-blue-50/60 font-medium'
                                 : 'hover:bg-slate-50/70'
                             )}
                           >
@@ -728,7 +728,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                                   e.stopPropagation();
                                   handleOpenEditionsView(p);
                                 }}
-                                className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-md bg-slate-100 hover:bg-indigo-100 text-slate-700 hover:text-indigo-700 transition-colors"
+                                className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-md bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-[#1574fe] transition-colors"
                                 title="Click to view & manage editions"
                               >
                                 {p.editions_count}
@@ -803,7 +803,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                     </button>
                     <button
                       type="button"
-                      className="w-7 h-7 flex items-center justify-center rounded-md bg-[#4F46E5] text-white font-semibold shadow-xs"
+                      className="w-7 h-7 flex items-center justify-center rounded-md bg-[#1574fe] text-white font-semibold shadow-xs"
                     >
                       1
                     </button>
@@ -841,7 +841,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                 <button
                   type="button"
                   onClick={handleBackToProductList}
-                  className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                  className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#1574fe] hover:text-[#0d62e0] transition-colors"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   <span>Back to Product List</span>
@@ -882,7 +882,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                   className={cn(
                     'px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all',
                     activeTab === 'details'
-                      ? 'bg-[#4F46E5] text-white shadow-xs'
+                      ? 'bg-[#1574fe] text-white shadow-xs'
                       : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
                   )}
                 >
@@ -897,7 +897,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                   className={cn(
                     'px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all',
                     activeTab === 'editions'
-                      ? 'bg-[#4F46E5] text-white shadow-xs'
+                      ? 'bg-[#1574fe] text-white shadow-xs'
                       : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
                   )}
                 >
@@ -909,7 +909,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                   className={cn(
                     'px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all',
                     activeTab === 'features'
-                      ? 'bg-[#4F46E5] text-white shadow-xs'
+                      ? 'bg-[#1574fe] text-white shadow-xs'
                       : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
                   )}
                 >
@@ -924,7 +924,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                   className={cn(
                     'px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all',
                     activeTab === 'plans'
-                      ? 'bg-[#4F46E5] text-white shadow-xs'
+                      ? 'bg-[#1574fe] text-white shadow-xs'
                       : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
                   )}
                 >
@@ -935,7 +935,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
               {/* Edition Master Section Header */}
               <div className="flex items-center justify-between gap-4 pt-1">
                 <div className="flex items-center gap-2">
-                  <Layers className="h-5 w-5 text-indigo-600" />
+                  <Layers className="h-5 w-5 text-[#1574fe]" />
                   <h3 className="text-base font-bold text-slate-900">Edition Master</h3>
                 </div>
 
@@ -951,7 +951,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                     });
                     setIsDrawerOpen(true);
                   }}
-                  className="bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium text-xs sm:text-sm px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs transition-all"
+                  className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs transition-all"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Add Edition</span>
@@ -986,7 +986,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                             className={cn(
                               'cursor-pointer transition-colors',
                               isSelected
-                                ? 'bg-indigo-50/60 font-medium'
+                                ? 'bg-blue-50/60 font-medium'
                                 : 'hover:bg-slate-50/70'
                             )}
                           >
@@ -995,7 +995,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                             </td>
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-2.5">
-                                <div className="p-1 rounded-md bg-indigo-50 text-indigo-600">
+                                <div className="p-1 rounded-md bg-blue-50 text-[#1574fe]">
                                   <Layers className="h-4 w-4" />
                                 </div>
                                 <span className="font-semibold text-slate-900">{ed.name}</span>
@@ -1074,7 +1074,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                     </button>
                     <button
                       type="button"
-                      className="w-7 h-7 flex items-center justify-center rounded-md bg-[#4F46E5] text-white font-semibold shadow-xs"
+                      className="w-7 h-7 flex items-center justify-center rounded-md bg-[#1574fe] text-white font-semibold shadow-xs"
                     >
                       1
                     </button>
@@ -1111,7 +1111,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                 <button
                   type="button"
                   onClick={handleBackToProductList}
-                  className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#1574fe] hover:text-[#0d62e0] transition-colors cursor-pointer"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   <span>Back to Product List</span>
@@ -1165,7 +1165,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                 className={cn(
                   'px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all',
                   activeTab === 'details'
-                    ? 'bg-[#4F46E5] text-white shadow-xs'
+                    ? 'bg-[#1574fe] text-white shadow-xs'
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
                 )}
               >
@@ -1181,7 +1181,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                 className={cn(
                   'px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all',
                   activeTab === 'editions'
-                    ? 'bg-[#4F46E5] text-white shadow-xs'
+                    ? 'bg-[#1574fe] text-white shadow-xs'
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
                 )}
               >
@@ -1193,7 +1193,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                 className={cn(
                   'px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all',
                   activeTab === 'features'
-                    ? 'bg-[#4F46E5] text-white shadow-xs'
+                    ? 'bg-[#1574fe] text-white shadow-xs'
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
                 )}
               >
@@ -1208,7 +1208,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                 className={cn(
                   'px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all',
                   activeTab === 'plans'
-                    ? 'bg-[#4F46E5] text-white shadow-xs'
+                    ? 'bg-[#1574fe] text-white shadow-xs'
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
                 )}
               >
@@ -1222,7 +1222,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
             {activeTab === 'details' && (
               <form onSubmit={handleSaveProduct} className="space-y-3.5">
                 {drawerMode === 'add_product' && (
-                  <div className="p-2.5 bg-indigo-50/70 border border-indigo-100 rounded-lg text-xs text-indigo-700 font-semibold">
+                  <div className="p-2.5 bg-blue-50/70 border border-blue-100 rounded-lg text-xs text-[#1574fe] font-semibold">
                     Creating New Product Master
                   </div>
                 )}
@@ -1271,7 +1271,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                       onChange={(e) =>
                         setProductForm({ ...productForm, category: e.target.value })
                       }
-                      className="w-full h-8.5 px-3 text-xs sm:text-sm bg-white border border-slate-200 rounded-lg text-slate-700 outline-hidden focus:ring-1 focus:ring-indigo-500"
+                      className="w-full h-8.5 px-3 text-xs sm:text-sm bg-white border border-slate-200 rounded-lg text-slate-700 outline-hidden focus:ring-1 focus:ring-[#1574fe]"
                     >
                       <option value="Education">Education</option>
                       <option value="IT / Services">IT / Services</option>
@@ -1297,7 +1297,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                             status: e.target.value as any,
                           })
                         }
-                        className="w-full h-8.5 pl-7 pr-3 text-xs sm:text-sm bg-white border border-slate-200 rounded-lg text-slate-700 outline-hidden focus:ring-1 focus:ring-indigo-500"
+                        className="w-full h-8.5 pl-7 pr-3 text-xs sm:text-sm bg-white border border-slate-200 rounded-lg text-slate-700 outline-hidden focus:ring-1 focus:ring-[#1574fe]"
                       >
                         <option value="Active">Active</option>
                         <option value="Inactive">Inactive</option>
@@ -1465,7 +1465,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                 <div className="flex items-center gap-2.5 pt-3">
                   <Button
                     type="submit"
-                    className="bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all"
+                    className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all"
                   >
                     <Check className="h-4 w-4" />
                     <span>{drawerMode === 'add_product' ? 'Create Product' : 'Update Product'}</span>
@@ -1670,7 +1670,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                 <div className="flex items-center gap-2.5 pt-3">
                   <Button
                     type="submit"
-                    className="bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all"
+                    className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all"
                   >
                     <Check className="h-4 w-4" />
                     <span>{drawerMode === 'add_edition' ? 'Create Edition' : 'Update Edition'}</span>
@@ -1705,7 +1705,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                   {capabilities.map((cap) => (
                     <div
                       key={cap.id}
-                      className="p-3 border border-slate-200 rounded-lg bg-slate-50/40 hover:bg-indigo-50/20 transition-colors flex items-start justify-between gap-3"
+                      className="p-3 border border-slate-200 rounded-lg bg-slate-50/40 hover:bg-blue-50/20 transition-colors flex items-start justify-between gap-3"
                     >
                       <div className="flex items-start gap-2.5">
                         <CapabilityIcon type={cap.iconType} className="w-4 h-4 text-blue-600 mt-0.5" />
@@ -1758,15 +1758,15 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
                     </div>
                   </div>
 
-                  <div className="p-3.5 border-2 border-indigo-500 rounded-xl bg-indigo-50/20 space-y-2">
+                  <div className="p-3.5 border-2 border-[#1574fe] rounded-xl bg-blue-50/20 space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-xs text-slate-900">Standard Tier</span>
-                        <span className="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-full font-semibold">
+                        <span className="text-[10px] bg-[#1574fe] text-white px-2 py-0.5 rounded-full font-semibold">
                           Recommended
                         </span>
                       </div>
-                      <span className="text-xs font-bold text-indigo-700">$99 / month</span>
+                      <span className="text-xs font-bold text-[#1574fe]">$99 / month</span>
                     </div>
                     <p className="text-[11px] text-slate-600">
                       Complete admission, academics, and school management with portal access.
@@ -1807,7 +1807,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
         <DialogContent className="sm:max-w-md bg-white">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Upload className="h-5 w-5 text-indigo-600" />
+              <Upload className="h-5 w-5 text-[#1574fe]" />
               <span>Import / Export Catalog</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
@@ -1818,24 +1818,24 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
           <div className="space-y-3 py-3">
             <div
               onClick={handleExportJson}
-              className="p-3.5 border border-slate-200 rounded-xl hover:border-indigo-400 hover:bg-indigo-50/30 cursor-pointer transition-all flex items-center justify-between"
+              className="p-3.5 border border-slate-200 rounded-xl hover:border-blue-400 hover:bg-blue-50/30 cursor-pointer transition-all flex items-center justify-between"
             >
               <div>
                 <p className="text-sm font-semibold text-slate-900">Export as JSON</p>
                 <p className="text-xs text-slate-500">Complete catalog including edition capability matrices</p>
               </div>
-              <Download className="h-4 w-4 text-indigo-600" />
+              <Download className="h-4 w-4 text-[#1574fe]" />
             </div>
 
             <div
               onClick={handleExportCsv}
-              className="p-3.5 border border-slate-200 rounded-xl hover:border-indigo-400 hover:bg-indigo-50/30 cursor-pointer transition-all flex items-center justify-between"
+              className="p-3.5 border border-slate-200 rounded-xl hover:border-blue-400 hover:bg-blue-50/30 cursor-pointer transition-all flex items-center justify-between"
             >
               <div>
                 <p className="text-sm font-semibold text-slate-900">Export as CSV</p>
                 <p className="text-xs text-slate-500">Tabular product overview for spreadsheets & BI tools</p>
               </div>
-              <Download className="h-4 w-4 text-indigo-600" />
+              <Download className="h-4 w-4 text-[#1574fe]" />
             </div>
           </div>
 
@@ -1858,7 +1858,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
         <DialogContent className="sm:max-w-lg bg-white">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <HelpCircle className="h-5 w-5 text-indigo-600" />
+              <HelpCircle className="h-5 w-5 text-[#1574fe]" />
               <span>Product Master Guide</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
@@ -1893,7 +1893,7 @@ export function ProductMasterScreen({ initialTab }: ProductMasterScreenProps) {
             <Button
               variant="default"
               onClick={() => setIsHelpOpen(false)}
-              className="bg-[#4F46E5] hover:bg-[#4338CA] text-white text-xs"
+              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs"
             >
               Got it
             </Button>

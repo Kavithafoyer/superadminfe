@@ -793,4 +793,8 @@ export const INITIAL_INVOICES: InvoiceRecord[] = [
   },
 ];
 
+export const INITIAL_QUEUE = INITIAL_QUEUE_REQUESTS;
+export const INITIAL_PAYMENT_TXNS = INITIAL_TRANSACTIONS;
+
+
 
