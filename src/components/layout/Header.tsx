@@ -117,9 +117,9 @@ export function Header() {
                   </div>
                 </SheetTitle>
               </SheetHeader>
-              <ScrollArea className="h-[calc(100vh-70px)] p-3">
+              <div className="h-[calc(100vh-70px)] p-3 overflow-y-auto overflow-x-hidden sidebar-scroll">
                 <Navigation onNavigate={() => setIsSheetOpen(false)} />
-              </ScrollArea>
+              </div>
             </SheetContent>
           </Sheet>
 

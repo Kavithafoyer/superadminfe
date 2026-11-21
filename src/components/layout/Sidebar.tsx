@@ -47,9 +47,9 @@ export function Sidebar() {
         </div>
 
         {/* Navigation items */}
-        <ScrollArea className="flex-1 px-3 py-3">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-3 sidebar-scroll">
           <Navigation collapsed={!isSidebarOpen} />
-        </ScrollArea>
+        </div>
 
         {/* Footer collapse button */}
         <div className="px-3 py-3 border-t border-[#12192d] mt-auto shrink-0">
