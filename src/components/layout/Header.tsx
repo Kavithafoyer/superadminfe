@@ -1,10 +1,11 @@
 'use client';
 
-import { Menu, Bell, Sun, Moon, Monitor, Sparkles, LayoutGrid, HelpCircle, Mail, Table, FileText, Check } from 'lucide-react';
+import { Menu, Bell, Sun, Moon, Monitor, Sparkles, LayoutGrid, HelpCircle, Mail, Table, FileText, Check, Search } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +28,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function Header() {
   const {
+    isSidebarOpen,
     toggleSidebar,
     primaryColor,
     mode,
@@ -40,7 +42,7 @@ export function Header() {
   const pathname = usePathname() || '';
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isMailConfigOpen, setIsMailConfigOpen] = useState(false);
-  const [unreadNotifications, setUnreadNotifications] = useState(3);
+  const [unreadNotifications, setUnreadNotifications] = useState(4);
 
   const currentTheme = mode === 'system'
     ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
@@ -55,67 +57,113 @@ export function Header() {
     toast.success('All notifications marked as read');
   };
 
+  const getBreadcrumbs = () => {
+    if (pathname.includes('/addon-marketplace')) {
+      let pageTitle = 'Add-on Master';
+      if (pathname.includes('/categories')) pageTitle = 'Add-on Categories';
+      else if (pathname.includes('/pricing')) pageTitle = 'Add-on Pricing';
+      else if (pathname.includes('/price-templates')) pageTitle = 'Price Templates';
+      else if (pathname.includes('/tiered-pricing')) pageTitle = 'Tiered Pricing';
+      else if (pathname.includes('/discounts-coupons')) pageTitle = 'Discounts & Coupons';
+      else if (pathname.includes('/price-history')) pageTitle = 'Price History';
+      else if (pathname.includes('/compatibility')) pageTitle = 'Product Compatibility';
+      return { parent: 'Add-on Marketplace', current: pageTitle };
+    }
+    const parts = pathname.split('/').filter(Boolean);
+    if (parts.length >= 2) {
+      return {
+        parent: parts[0].replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+        current: parts[1].replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+      };
+    }
+    return null;
+  };
+
+  const breadcrumbs = getBreadcrumbs();
+
   return (
-    <header className="fixed top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={cn(
+        "fixed top-0 right-0 z-30 h-16 border-b border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur transition-all duration-300 w-full",
+        isSidebarOpen ? "md:left-[260px] md:w-[calc(100%-260px)]" : "md:left-[80px] md:w-[calc(100%-80px)]"
+      )}
+    >
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
-        {/* Left side: Hamburger button & Logo */}
-        <div className="flex items-center gap-4">
+        {/* Left side: Hamburger button (mobile) / Breadcrumb */}
+        <div className="flex items-center gap-3">
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger
               render={
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="icon"
-                  className="md:hidden h-10 w-10 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:bg-slate-50 dark:hover:bg-slate-800"
+                  className="md:hidden h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
                 />
               }
             >
-              <Menu className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+              <Menu className="h-5 w-5" />
             </SheetTrigger>
-            <SheetContent side="left" className="w-[260px] p-0">
-              <SheetHeader className="p-6 border-b">
-                <SheetTitle className="flex items-center gap-2 cursor-pointer" onClick={() => { router.push('/dashboard'); setIsSheetOpen(false); }}>
-                  <img src="/logo_blue.png" alt="PEGATTO SuperAdmin Logo" style={{ height: '55px', width: 'auto', objectFit: 'contain' }} />
+            <SheetContent side="left" className="w-[260px] p-0 bg-[#0c1427] border-r border-[#1a233d] text-white">
+              <SheetHeader className="p-4 border-b border-[#1a233d]">
+                <SheetTitle className="flex items-center gap-3 cursor-pointer" onClick={() => { router.push('/dashboard'); setIsSheetOpen(false); }}>
+                  <div className="h-9 w-9 rounded-xl bg-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                    P
+                  </div>
+                  <div className="flex flex-col text-left">
+                    <span className="text-white font-bold text-sm tracking-tight leading-tight">Pegatto</span>
+                    <span className="text-[11px] text-slate-400 font-medium">Super Admin</span>
+                  </div>
                 </SheetTitle>
               </SheetHeader>
-              <ScrollArea className="h-[calc(100vh-80px)] p-4">
+              <ScrollArea className="h-[calc(100vh-70px)] p-3">
                 <Navigation onNavigate={() => setIsSheetOpen(false)} />
               </ScrollArea>
             </SheetContent>
           </Sheet>
 
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleSidebar}
-            className="hidden md:flex h-10 w-10 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-200"
-          >
-            <Menu className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-          </Button>
-
-          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push('/dashboard')}>
-            <img src="/logo_blue.png" alt="PEGATTO SuperAdmin Logo" style={{ height: '55px', width: 'auto', objectFit: 'contain' }} />
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 hidden sm:inline-block">
-              SuperAdmin
-            </span>
-          </div>
+          {/* Desktop Breadcrumbs */}
+          {breadcrumbs ? (
+            <div className="flex items-center gap-2 text-xs">
+              <span className="font-medium text-slate-500 dark:text-slate-400">{breadcrumbs.parent}</span>
+              <span className="text-slate-300 dark:text-slate-600 font-semibold">&gt;</span>
+              <span className="font-semibold text-slate-900 dark:text-slate-100">{breadcrumbs.current}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 capitalize">
+                {pathname.split('/')[1] || 'Dashboard'}
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Right side: Notifications, Quick Apps, Theme, & User profile */}
+        {/* Right side: Search, Notifications, Help, Theme, & User profile */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Search Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-full text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            title="Search"
+          >
+            <Search className="h-4 w-4" />
+          </Button>
+
           {/* Notifications Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="icon"
-                  className="relative h-10 w-10 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center cursor-pointer transition-colors"
+                  className="relative h-9 w-9 rounded-full text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center cursor-pointer"
                   title="Notifications"
                 >
-                  <Bell className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                  <Bell className="h-4 w-4" />
                   {unreadNotifications > 0 && (
-                    <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-blue-600 border-2 border-background dark:border-slate-900" />
+                    <span className="absolute top-1.5 right-1.5 h-4 w-4 rounded-full bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center">
+                      {unreadNotifications}
+                    </span>
                   )}
                 </Button>
               }
@@ -127,7 +175,7 @@ export function Header() {
                   {unreadNotifications > 0 && (
                     <button
                       onClick={handleClearNotifications}
-                      className="text-[11px] text-primary hover:underline font-medium"
+                      className="text-[11px] text-purple-600 hover:underline font-medium"
                     >
                       Mark all as read
                     </button>
@@ -148,102 +196,28 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Quick Navigation Grid Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-10 w-10 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center cursor-pointer transition-colors"
-                  title="Quick Links"
-                >
-                  <LayoutGrid className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                </Button>
-              }
-            />
-            <DropdownMenuContent className="w-72 p-3 border dark:border-slate-800 rounded-2xl shadow-xl bg-white dark:bg-slate-950" align="end">
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: 'Dashboard', icon: LayoutGrid, path: '/' },
-                  { label: 'Reusable Table', icon: Table, path: '/tables' },
-                  { label: 'Sample Form', icon: FileText, path: '/forms' },
-                  { label: 'Mail Config', icon: Mail, action: () => setIsMailConfigOpen(true) },
-                ].map((item, idx) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        if (item.action) {
-                          item.action();
-                        } else if (item.path) {
-                          router.push(item.path);
-                        }
-                      }}
-                      className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900 transition-all duration-200 border border-transparent hover:border-slate-100 dark:hover:border-slate-800 text-center cursor-pointer group"
-                    >
-                      <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform duration-200">
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-2 block tracking-tight">
-                        {item.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           {/* Help & Support Button */}
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             onClick={() => toast.info('Help system loaded. Screen analysis & scanner ready.')}
-            className="h-10 w-10 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center cursor-pointer transition-colors"
+            className="h-9 w-9 rounded-full text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center cursor-pointer"
             title="Help & Support"
           >
-            <HelpCircle className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+            <HelpCircle className="h-4 w-4" />
           </Button>
 
-          {/* Dark / Light Toggle Button */}
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleThemeMode}
-            className="h-10 w-10 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center cursor-pointer transition-colors"
-            title={currentTheme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {currentTheme === 'dark' ? (
-              <Sun className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-            ) : (
-              <Moon className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-            )}
-          </Button>
-
-          {/* Vertical Divider */}
-          <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
-
-          {/* Profile Dropdown */}
+          {/* User Profile Avatar SA */}
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
-                <Button
-                  variant="ghost"
-                  className="relative h-auto py-1 px-2 flex items-center gap-3 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 rounded-xl transition-all duration-200"
+                <button
+                  type="button"
+                  className="h-8 w-8 rounded-full bg-purple-600 text-white font-bold text-xs flex items-center justify-center shadow-xs cursor-pointer hover:bg-purple-700 transition-colors shrink-0 ml-1"
+                  title={user.name || 'Super Admin'}
                 >
-                  <div className="flex flex-col items-end text-right hidden sm:flex">
-                    <span className="text-sm font-bold text-slate-800 dark:text-slate-100 leading-tight">{user.name}</span>
-                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{user.jobTitle || user.role}</span>
-                  </div>
-                  <Avatar className="h-10 w-10 border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <AvatarImage src={user.avatarUrl} alt={user.name} />
-                    <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
-                      {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'AD'}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
+                  SA
+                </button>
               }
             />
             <DropdownMenuContent className="w-56" align="end">

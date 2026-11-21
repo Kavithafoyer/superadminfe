@@ -157,7 +157,7 @@ export function PriceHistoryScreen() {
           </Button>
           <Button
             onClick={() => setIsLogModalOpen(true)}
-            className="h-9 px-4.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm"
+            className="h-9 px-4.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shadow-sm"
           >
             <Plus className="h-4 w-4 mr-1.5" />
             Log Price Change
@@ -197,12 +197,12 @@ export function PriceHistoryScreen() {
           </div>
         </div>
 
-        <div className="p-4 rounded-xl border border-blue-200/80 dark:border-blue-800/40 bg-gradient-to-br from-blue-50 via-blue-50/40 to-white dark:from-blue-950/30 dark:via-blue-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
+        <div className="p-4 rounded-xl border border-purple-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-blue-900 dark:text-blue-300">Last Change</p>
+            <p className="text-xs font-medium text-purple-900 dark:text-purple-300">Last Change</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{lastChangeDate}</p>
           </div>
-          <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/60 flex items-center justify-center text-blue-600 dark:text-blue-300">
+          <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-purple-600 dark:text-purple-300">
             <Calendar className="h-5 w-5" />
           </div>
         </div>
@@ -291,7 +291,7 @@ export function PriceHistoryScreen() {
             <Button
               size="sm"
               onClick={handleApplyFilter}
-              className="h-9 bg-blue-600 hover:bg-blue-700 text-white text-xs px-5 shadow-sm"
+              className="h-9 bg-purple-600 hover:bg-purple-700 text-white text-xs px-5 shadow-sm"
             >
               Apply
             </Button>
@@ -571,8 +571,8 @@ export function PriceHistoryScreen() {
                     <div
                       className={`absolute -left-6 top-1 h-3.5 w-3.5 rounded-full border-2 transition-transform ${
                         isFirst
-                          ? 'bg-blue-600 border-blue-600 ring-4 ring-blue-100 dark:ring-blue-950'
-                          : 'bg-white dark:bg-slate-900 border-blue-400'
+                          ? 'bg-purple-600 border-purple-600 ring-4 ring-purple-100 dark:ring-purple-950'
+                          : 'bg-white dark:bg-slate-900 border-purple-400'
                       }`}
                     />
 
@@ -693,7 +693,7 @@ export function PriceHistoryScreen() {
               <Button
                 size="sm"
                 onClick={handleLogPriceChange}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-5 shadow-sm"
+                className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-5 shadow-sm"
               >
                 <Save className="h-3.5 w-3.5 mr-1.5" />
                 Record Price Change

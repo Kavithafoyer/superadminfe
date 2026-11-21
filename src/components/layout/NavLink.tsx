@@ -44,16 +44,16 @@ export function NavLink({
   const labelText = typeof content === 'string' ? content : '';
 
   const defaultClasses = cn(
-    "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer",
+    "flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-xl transition-all duration-150 cursor-pointer",
     collapsed ? "justify-center px-2" : "justify-start",
     isCurrentActive
-      ? "bg-blue-50/90 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold rounded-lg"
-      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/70 dark:hover:bg-slate-800/60"
+      ? "bg-purple-600 text-white font-semibold shadow-xs"
+      : "text-slate-300 hover:text-white hover:bg-slate-800/50"
   );
 
   const resolvedClass = typeof className === 'function'
     ? className({ isActive: isCurrentActive })
-    : cn(defaultClasses, className);
+    : (className ? className : defaultClasses);
 
   const resolvedStyle = typeof style === 'function' ? style({ isActive: isCurrentActive }) : style;
 
@@ -68,7 +68,7 @@ export function NavLink({
         <Icon
           className={cn(
             "h-4 w-4 shrink-0 transition-colors",
-            isCurrentActive ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"
+            isCurrentActive ? "text-white" : "text-slate-400 group-hover:text-white"
           )}
         />
       )}
@@ -80,7 +80,7 @@ export function NavLink({
     return (
       <Tooltip>
         <TooltipTrigger render={linkNode} />
-        <TooltipContent side="right" className="font-semibold text-xs">
+        <TooltipContent side="right" className="font-semibold text-xs bg-slate-900 text-white border-slate-800">
           {labelText}
         </TooltipContent>
       </Tooltip>
