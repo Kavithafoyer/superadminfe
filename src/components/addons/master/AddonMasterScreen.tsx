@@ -294,7 +294,7 @@ export function AddonMasterScreen() {
   const getCategoryIcon = (cat: string) => {
     switch (cat) {
       case 'AI & Automation':
-        return <Bot className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+        return <Bot className="h-4 w-4 text-[#6222cc] dark:text-purple-300" />;
       case 'Communication':
         return <MessageSquare className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />;
       case 'Productivity':
@@ -302,7 +302,7 @@ export function AddonMasterScreen() {
       case 'Compliance':
         return <ShieldCheck className="h-4 w-4 text-rose-600 dark:text-rose-400" />;
       default:
-        return <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+        return <Sparkles className="h-4 w-4 text-[#6222cc] dark:text-purple-300" />;
     }
   };
 
@@ -310,7 +310,7 @@ export function AddonMasterScreen() {
     <div className="w-full space-y-5 pb-12">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium animate-in fade-in slide-in-from-top-2">
+        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 bg-[#6222cc] text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium animate-in fade-in slide-in-from-top-2">
           <CheckCircle2 className="h-4 w-4 text-white" />
           <span>{toastMessage}</span>
         </div>
@@ -322,7 +322,7 @@ export function AddonMasterScreen() {
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
             <span>Add-on Marketplace</span>
             <span>&gt;</span>
-            <span className="text-purple-600 dark:text-purple-400 font-medium">Add-on Master</span>
+            <span className="text-[#6222cc] dark:text-purple-300 font-medium">Add-on Master</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Add-on Master
@@ -336,7 +336,7 @@ export function AddonMasterScreen() {
           <button
             type="button"
             onClick={handleStartCreateNew}
-            className="h-9 px-4 text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
+            className="h-9 px-4 text-xs font-semibold bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             <span>Create Add-on</span>
@@ -352,7 +352,7 @@ export function AddonMasterScreen() {
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Add-ons</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">36</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400">
+          <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-[#6222cc] dark:text-purple-300">
             <PackagePlus className="h-5 w-5" />
           </div>
         </div>
@@ -398,13 +398,13 @@ export function AddonMasterScreen() {
           onClick={() => setActiveSubTab('addons')}
           className={`pb-2.5 transition-colors relative ${
             activeSubTab === 'addons'
-              ? 'text-purple-600 dark:text-purple-400 font-semibold'
+              ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
               : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
           }`}
         >
           Add-ons
           {activeSubTab === 'addons' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 dark:bg-purple-400 rounded-full" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] dark:bg-purple-400 rounded-full" />
           )}
         </button>
         <button
@@ -412,13 +412,13 @@ export function AddonMasterScreen() {
           onClick={() => setActiveSubTab('mapping')}
           className={`pb-2.5 transition-colors relative ${
             activeSubTab === 'mapping'
-              ? 'text-purple-600 dark:text-purple-400 font-semibold'
+              ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
               : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
           }`}
         >
           Feature Mapping
           {activeSubTab === 'mapping' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 dark:bg-purple-400 rounded-full" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] dark:bg-purple-400 rounded-full" />
           )}
         </button>
         <button
@@ -426,13 +426,13 @@ export function AddonMasterScreen() {
           onClick={() => setActiveSubTab('compatibility')}
           className={`pb-2.5 transition-colors relative ${
             activeSubTab === 'compatibility'
-              ? 'text-purple-600 dark:text-purple-400 font-semibold'
+              ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
               : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
           }`}
         >
           Compatibility
           {activeSubTab === 'compatibility' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 dark:bg-purple-400 rounded-full" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] dark:bg-purple-400 rounded-full" />
           )}
         </button>
         <button
@@ -440,13 +440,13 @@ export function AddonMasterScreen() {
           onClick={() => setActiveSubTab('versions')}
           className={`pb-2.5 transition-colors relative ${
             activeSubTab === 'versions'
-              ? 'text-purple-600 dark:text-purple-400 font-semibold'
+              ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
               : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
           }`}
         >
           Versions
           {activeSubTab === 'versions' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 dark:bg-purple-400 rounded-full" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] dark:bg-purple-400 rounded-full" />
           )}
         </button>
       </div>
@@ -460,7 +460,7 @@ export function AddonMasterScreen() {
           <select
             value={productFilter}
             onChange={(e) => setProductFilter(e.target.value)}
-            className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-600"
+            className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
           >
             <option>All Products</option>
             <option>Pegatto CRM</option>
@@ -477,7 +477,7 @@ export function AddonMasterScreen() {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-600"
+            className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
           >
             <option>All Categories</option>
             <option>AI & Automation</option>
@@ -495,7 +495,7 @@ export function AddonMasterScreen() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-600"
+            className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
           >
             <option>All Status</option>
             <option>Published</option>
@@ -514,7 +514,7 @@ export function AddonMasterScreen() {
           </Button>
           <Button
             onClick={handleApplyFilters}
-            className="h-8 px-4 text-xs font-medium bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-xs"
+            className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
           >
             Apply
           </Button>
@@ -544,14 +544,14 @@ export function AddonMasterScreen() {
               <button
                 type="button"
                 onClick={() => showToast('Exporting current view...')}
-                className="h-8 px-3 text-xs font-medium border border-purple-200 text-purple-600 bg-white hover:bg-purple-50 dark:bg-slate-900 dark:border-purple-800 dark:text-purple-400 rounded-lg flex items-center gap-1.5 transition-colors"
+                className="h-8 px-3 text-xs font-medium border border-purple-200 text-[#6222cc] bg-white hover:bg-purple-50 dark:bg-slate-900 dark:border-purple-800 dark:text-purple-400 rounded-lg flex items-center gap-1.5 transition-colors"
               >
                 <FileDown className="h-3.5 w-3.5" />
                 <span>Export</span>
               </button>
               <button
                 type="button"
-                className="h-8 px-3 text-xs font-medium border border-purple-200 text-purple-600 bg-white hover:bg-purple-50 dark:bg-slate-900 dark:border-purple-800 dark:text-purple-400 rounded-lg flex items-center gap-1.5 transition-colors"
+                className="h-8 px-3 text-xs font-medium border border-purple-200 text-[#6222cc] bg-white hover:bg-purple-50 dark:bg-slate-900 dark:border-purple-800 dark:text-purple-400 rounded-lg flex items-center gap-1.5 transition-colors"
               >
                 <Columns className="h-3.5 w-3.5" />
                 <span>Columns</span>
@@ -572,7 +572,7 @@ export function AddonMasterScreen() {
                         selectedRowIds.length === paginatedAddons.length
                       }
                       onChange={handleToggleSelectAll}
-                      className="rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                      className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
                     />
                   </th>
                   <th className="py-2.5 px-3 font-semibold">ADD-ON CODE</th>
@@ -605,10 +605,10 @@ export function AddonMasterScreen() {
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => {}}
-                          className="rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                          className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
                         />
                       </td>
-                      <td className="py-3 px-3 font-semibold text-purple-600 dark:text-purple-400 hover:underline">
+                      <td className="py-3 px-3 font-semibold text-[#6222cc] dark:text-purple-300 hover:underline">
                         {addon.code}
                       </td>
                       <td className="py-3 px-3 font-medium text-slate-900 dark:text-slate-100">
@@ -673,7 +673,7 @@ export function AddonMasterScreen() {
                           <button
                             type="button"
                             onClick={() => handleSelectRow(addon)}
-                            className="p-1 rounded text-slate-400 hover:text-purple-600 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            className="p-1 rounded text-slate-400 hover:text-[#6222cc] hover:bg-slate-100 dark:hover:bg-slate-800"
                             title="Edit Add-on"
                           >
                             <Pencil className="h-3.5 w-3.5" />
@@ -697,7 +697,7 @@ export function AddonMasterScreen() {
                                   onClick={() => handleSelectRow(addon)}
                                   className="w-full text-left px-3 py-1.5 hover:bg-purple-50 dark:hover:bg-purple-950/50 text-slate-700 dark:text-slate-300 flex items-center gap-1.5"
                                 >
-                                  <Pencil className="h-3 w-3 text-purple-600" />
+                                  <Pencil className="h-3 w-3 text-[#6222cc]" />
                                   Edit Record
                                 </button>
                                 <button
@@ -767,7 +767,7 @@ export function AddonMasterScreen() {
                     onClick={() => setCurrentPage(page)}
                     className={`h-6 w-6 rounded text-xs font-medium flex items-center justify-center ${
                       currentPage === page
-                        ? 'bg-purple-600 text-white font-semibold'
+                        ? 'bg-[#6222cc] text-white font-semibold'
                         : 'text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
@@ -827,13 +827,13 @@ export function AddonMasterScreen() {
               onClick={() => setActiveRightTab('basic')}
               className={`pb-2 whitespace-nowrap transition-colors relative ${
                 activeRightTab === 'basic'
-                  ? 'text-purple-600 dark:text-purple-400 font-semibold'
+                  ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Basic Details
               {activeRightTab === 'basic' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
               )}
             </button>
             <button
@@ -841,13 +841,13 @@ export function AddonMasterScreen() {
               onClick={() => setActiveRightTab('features')}
               className={`pb-2 whitespace-nowrap transition-colors relative ${
                 activeRightTab === 'features'
-                  ? 'text-purple-600 dark:text-purple-400 font-semibold'
+                  ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Features & Mapping
               {activeRightTab === 'features' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
               )}
             </button>
             <button
@@ -855,13 +855,13 @@ export function AddonMasterScreen() {
               onClick={() => setActiveRightTab('pricing')}
               className={`pb-2 whitespace-nowrap transition-colors relative ${
                 activeRightTab === 'pricing'
-                  ? 'text-purple-600 dark:text-purple-400 font-semibold'
+                  ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Pricing
               {activeRightTab === 'pricing' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
               )}
             </button>
             <button
@@ -869,13 +869,13 @@ export function AddonMasterScreen() {
               onClick={() => setActiveRightTab('compatibility')}
               className={`pb-2 whitespace-nowrap transition-colors relative ${
                 activeRightTab === 'compatibility'
-                  ? 'text-purple-600 dark:text-purple-400 font-semibold'
+                  ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Compatibility
               {activeRightTab === 'compatibility' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
               )}
             </button>
             <button
@@ -883,13 +883,13 @@ export function AddonMasterScreen() {
               onClick={() => setActiveRightTab('versions')}
               className={`pb-2 whitespace-nowrap transition-colors relative ${
                 activeRightTab === 'versions'
-                  ? 'text-purple-600 dark:text-purple-400 font-semibold'
+                  ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Versions
               {activeRightTab === 'versions' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
               )}
             </button>
           </div>
@@ -908,7 +908,7 @@ export function AddonMasterScreen() {
                       value={formData.code}
                       onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                       placeholder="e.g. AI-LEAD"
-                      className="h-8 text-xs font-mono font-semibold text-purple-600 uppercase"
+                      className="h-8 text-xs font-mono font-semibold text-[#6222cc] uppercase"
                     />
                   </div>
                   <div>
@@ -933,7 +933,7 @@ export function AddonMasterScreen() {
                     <select
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-purple-600"
+                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-[#6222cc]"
                     >
                       <option>AI & Automation</option>
                       <option>Communication</option>
@@ -949,7 +949,7 @@ export function AddonMasterScreen() {
                     <select
                       value={formData.licenseModel}
                       onChange={(e) => setFormData({ ...formData, licenseModel: e.target.value as 'Per Tenant' | 'Per User' | 'Usage Based' })}
-                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-purple-600"
+                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-[#6222cc]"
                     >
                       <option>Per Tenant</option>
                       <option>Per User</option>
@@ -1025,7 +1025,7 @@ export function AddonMasterScreen() {
                     value={formData.fullDescription}
                     onChange={(e) => setFormData({ ...formData, fullDescription: e.target.value })}
                     placeholder="Uses AI to analyze lead data and predict conversion probability..."
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-purple-600 focus:outline-none"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-[#6222cc] focus:outline-none"
                   />
                 </div>
 
@@ -1039,7 +1039,7 @@ export function AddonMasterScreen() {
                       onChange={(e) =>
                         setFormData({ ...formData, trialAvailable: e.target.checked })
                       }
-                      className="rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer h-4 w-4"
+                      className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer h-4 w-4"
                     />
                     <label htmlFor="trialToggle" className="font-medium text-slate-800 dark:text-slate-200 cursor-pointer">
                       Trial Available
@@ -1089,7 +1089,7 @@ export function AddonMasterScreen() {
                           status: e.target.value as 'Published' | 'Draft' | 'Inactive',
                         })
                       }
-                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-purple-600"
+                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-[#6222cc]"
                     >
                       <option>Published</option>
                       <option>Draft</option>
@@ -1130,7 +1130,7 @@ export function AddonMasterScreen() {
                     <Button
                       type="button"
                       onClick={handleAddFeatureTag}
-                      className="h-8 px-3 text-xs bg-purple-600 hover:bg-purple-700 text-white shrink-0"
+                      className="h-8 px-3 text-xs bg-[#6222cc] hover:bg-[#521cb0] text-white shrink-0"
                     >
                       Add
                     </Button>
@@ -1166,15 +1166,15 @@ export function AddonMasterScreen() {
                 <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 space-y-2">
                   <span className="font-semibold text-slate-700 block">Core Module Entitlements</span>
                   <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="rounded text-purple-600" />
+                    <input type="checkbox" defaultChecked className="rounded text-[#6222cc]" />
                     Read CRM Contact Pipeline records
                   </label>
                   <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="rounded text-purple-600" />
+                    <input type="checkbox" defaultChecked className="rounded text-[#6222cc]" />
                     Trigger outbound webhook event streams
                   </label>
                   <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
-                    <input type="checkbox" className="rounded text-purple-600" />
+                    <input type="checkbox" className="rounded text-[#6222cc]" />
                     Direct modification of tenant billing tiers
                   </label>
                 </div>
@@ -1284,7 +1284,7 @@ export function AddonMasterScreen() {
               <Button
                 type="button"
                 onClick={() => handleSaveForm(false)}
-                className="h-8 px-4 text-xs font-medium bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-xs"
+                className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
               >
                 {isCreatingNew ? 'Create Add-on' : 'Update Add-on'}
               </Button>

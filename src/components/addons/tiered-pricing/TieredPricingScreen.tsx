@@ -196,7 +196,7 @@ export function TieredPricingScreen() {
     <div className="w-full space-y-5 pb-12">
       {/* Toast */}
       {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium animate-in fade-in slide-in-from-top-2">
+        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 bg-[#6222cc] text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium animate-in fade-in slide-in-from-top-2">
           <CheckCircle2 className="h-4 w-4 text-white" />
           <span>{toastMessage}</span>
         </div>
@@ -208,7 +208,7 @@ export function TieredPricingScreen() {
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
             <span>Add-on Marketplace</span>
             <span>&gt;</span>
-            <span className="text-purple-600 dark:text-purple-400 font-medium">Tiered Pricing</span>
+            <span className="text-[#6222cc] dark:text-purple-300 font-medium">Tiered Pricing</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Tiered Pricing
@@ -222,7 +222,7 @@ export function TieredPricingScreen() {
           <button
             type="button"
             onClick={handleStartCreateNew}
-            className="h-9 px-4 text-xs font-medium bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
+            className="h-9 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             <span>Create Tier Schedule</span>
@@ -237,7 +237,7 @@ export function TieredPricingScreen() {
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Tier Schedules</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{totalCount}</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400">
+          <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-[#6222cc] dark:text-purple-300">
             <TrendingUp className="h-5 w-5" />
           </div>
         </div>
@@ -267,7 +267,7 @@ export function TieredPricingScreen() {
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Avg Discount</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">22%</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400">
+          <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-[#6222cc] dark:text-purple-300">
             <Percent className="h-5 w-5" />
           </div>
         </div>
@@ -331,7 +331,7 @@ export function TieredPricingScreen() {
                         selectedRowIds.length === paginatedSchedules.length
                       }
                       onChange={handleToggleSelectAll}
-                      className="rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                      className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
                     />
                   </th>
                   <th className="py-2.5 px-3 font-semibold">Schedule Code</th>
@@ -363,10 +363,10 @@ export function TieredPricingScreen() {
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => {}}
-                          className="rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                          className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
                         />
                       </td>
-                      <td className="py-3 px-3 font-semibold text-purple-600 dark:text-purple-400 hover:underline">
+                      <td className="py-3 px-3 font-semibold text-[#6222cc] dark:text-purple-300 hover:underline">
                         {item.code}
                       </td>
                       <td className="py-3 px-3 font-medium text-slate-900 dark:text-slate-100">
@@ -400,7 +400,7 @@ export function TieredPricingScreen() {
                           <button
                             type="button"
                             onClick={() => handleSelectSchedule(item)}
-                            className="p-1 rounded text-slate-400 hover:text-purple-600 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            className="p-1 rounded text-slate-400 hover:text-[#6222cc] hover:bg-slate-100 dark:hover:bg-slate-800"
                             title="Edit Tier Schedule"
                           >
                             <Pencil className="h-3.5 w-3.5" />
@@ -424,7 +424,7 @@ export function TieredPricingScreen() {
                                   onClick={() => handleSelectSchedule(item)}
                                   className="w-full text-left px-3 py-1.5 hover:bg-purple-50 dark:hover:bg-purple-950/50 text-slate-700 dark:text-slate-300 flex items-center gap-1.5"
                                 >
-                                  <Pencil className="h-3 w-3 text-purple-600" />
+                                  <Pencil className="h-3 w-3 text-[#6222cc]" />
                                   Edit Record
                                 </button>
                                 <button
@@ -478,7 +478,7 @@ export function TieredPricingScreen() {
                     onClick={() => setCurrentPage(idx + 1)}
                     className={`h-6 w-6 rounded text-xs font-medium flex items-center justify-center ${
                       currentPage === idx + 1
-                        ? 'bg-purple-600 text-white'
+                        ? 'bg-[#6222cc] text-white'
                         : 'text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
@@ -532,48 +532,48 @@ export function TieredPricingScreen() {
               type="button"
               onClick={() => setActiveTab('basic')}
               className={`pb-2 transition-colors relative ${
-                activeTab === 'basic' ? 'text-purple-600 font-semibold' : 'text-slate-500'
+                activeTab === 'basic' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
               }`}
             >
               Basic Details
               {activeTab === 'basic' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
               )}
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('tiers')}
               className={`pb-2 transition-colors relative ${
-                activeTab === 'tiers' ? 'text-purple-600 font-semibold' : 'text-slate-500'
+                activeTab === 'tiers' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
               }`}
             >
               Tier Configuration
               {activeTab === 'tiers' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
               )}
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('applicability')}
               className={`pb-2 transition-colors relative ${
-                activeTab === 'applicability' ? 'text-purple-600 font-semibold' : 'text-slate-500'
+                activeTab === 'applicability' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
               }`}
             >
               Applicability
               {activeTab === 'applicability' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
               )}
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('advanced')}
               className={`pb-2 transition-colors relative ${
-                activeTab === 'advanced' ? 'text-purple-600 font-semibold' : 'text-slate-500'
+                activeTab === 'advanced' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
               }`}
             >
               Advanced
               {activeTab === 'advanced' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
               )}
             </button>
           </div>
@@ -590,7 +590,7 @@ export function TieredPricingScreen() {
                     type="button"
                     size="sm"
                     onClick={handleAddTierRow}
-                    className="h-7 px-2.5 text-xs bg-purple-600 hover:bg-purple-700 text-white"
+                    className="h-7 px-2.5 text-xs bg-[#6222cc] hover:bg-[#521cb0] text-white"
                   >
                     <Plus className="h-3 w-3 mr-1" />
                     Add Tier
@@ -612,7 +612,7 @@ export function TieredPricingScreen() {
                         <tr key={idx}>
                           <td className="py-2 px-2.5 font-medium">{t.tierLabel}</td>
                           <td className="py-2 px-2.5 text-slate-600">{t.usageRange}</td>
-                          <td className="py-2 px-2.5 font-semibold text-purple-600">₹{t.pricePerUnit}</td>
+                          <td className="py-2 px-2.5 font-semibold text-[#6222cc]">₹{t.pricePerUnit}</td>
                           <td className="py-2 px-2.5 text-emerald-600 font-medium">{t.discount}</td>
                         </tr>
                       ))}
@@ -704,11 +704,11 @@ export function TieredPricingScreen() {
             {activeTab === 'advanced' && (
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="rounded text-purple-600" />
+                  <input type="checkbox" defaultChecked className="rounded text-[#6222cc]" />
                   <span>Enforce minimum monthly spend commitment</span>
                 </label>
                 <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="rounded text-purple-600" />
+                  <input type="checkbox" defaultChecked className="rounded text-[#6222cc]" />
                   <span>Alert tenant when approaching next discount threshold</span>
                 </label>
               </div>
@@ -743,7 +743,7 @@ export function TieredPricingScreen() {
               <Button
                 type="button"
                 onClick={() => handleSaveForm(false)}
-                className="h-8 px-4 text-xs font-medium bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-xs"
+                className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
               >
                 {isCreatingNew ? 'Create Schedule' : 'Update Schedule'}
               </Button>

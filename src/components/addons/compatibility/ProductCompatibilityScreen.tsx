@@ -109,7 +109,7 @@ export function ProductCompatibilityScreen() {
     <div className="w-full space-y-5 pb-12">
       {/* Toast */}
       {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium animate-in fade-in slide-in-from-top-2">
+        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 bg-[#6222cc] text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium animate-in fade-in slide-in-from-top-2">
           <CheckCircle2 className="h-4 w-4 text-white" />
           <span>{toastMessage}</span>
         </div>
@@ -121,7 +121,7 @@ export function ProductCompatibilityScreen() {
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
             <span>Add-on Marketplace</span>
             <span>&gt;</span>
-            <span className="text-purple-600 dark:text-purple-400 font-medium">Product Compatibility</span>
+            <span className="text-[#6222cc] dark:text-purple-300 font-medium">Product Compatibility</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Product Compatibility
@@ -135,7 +135,7 @@ export function ProductCompatibilityScreen() {
           <button
             type="button"
             onClick={() => showToast('Opening Rule Wizard...')}
-            className="h-9 px-4 text-xs font-medium bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
+            className="h-9 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             <span>Add Compatibility Rule</span>
@@ -163,7 +163,7 @@ export function ProductCompatibilityScreen() {
         </div>
         <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-3.5 rounded-xl shadow-xs">
           <p className="text-[11px] text-slate-500 font-medium">Pending Review</p>
-          <p className="text-xl font-bold text-purple-600 mt-1">1</p>
+          <p className="text-xl font-bold text-[#6222cc] mt-1">1</p>
         </div>
       </div>
 
@@ -173,48 +173,48 @@ export function ProductCompatibilityScreen() {
           type="button"
           onClick={() => setActiveSubTab('matrix')}
           className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'matrix' ? 'text-purple-600 font-semibold' : 'text-slate-500'
+            activeSubTab === 'matrix' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
           }`}
         >
           Compatibility Matrix
           {activeSubTab === 'matrix' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
           )}
         </button>
         <button
           type="button"
           onClick={() => setActiveSubTab('rules')}
           className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'rules' ? 'text-purple-600 font-semibold' : 'text-slate-500'
+            activeSubTab === 'rules' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
           }`}
         >
           Rules & Dependencies
           {activeSubTab === 'rules' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
           )}
         </button>
         <button
           type="button"
           onClick={() => setActiveSubTab('conflicts')}
           className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'conflicts' ? 'text-purple-600 font-semibold' : 'text-slate-500'
+            activeSubTab === 'conflicts' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
           }`}
         >
           Conflicts
           {activeSubTab === 'conflicts' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
           )}
         </button>
         <button
           type="button"
           onClick={() => setActiveSubTab('versions')}
           className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'versions' ? 'text-purple-600 font-semibold' : 'text-slate-500'
+            activeSubTab === 'versions' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
           }`}
         >
           Version Compatibility
           {activeSubTab === 'versions' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full" />
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
           )}
         </button>
       </div>
@@ -284,7 +284,7 @@ export function ProductCompatibilityScreen() {
                       }`}
                     >
                       <td className="py-3 px-3">
-                        <span className="font-semibold text-purple-600 dark:text-purple-400 block hover:underline">
+                        <span className="font-semibold text-[#6222cc] dark:text-purple-300 block hover:underline">
                           {item.addonName}
                         </span>
                         <span className="text-slate-500 text-[11px]">
@@ -307,7 +307,7 @@ export function ProductCompatibilityScreen() {
                         <button
                           type="button"
                           onClick={() => handleSelectRow(item)}
-                          className="p-1 rounded text-slate-400 hover:text-purple-600"
+                          className="p-1 rounded text-slate-400 hover:text-[#6222cc]"
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
@@ -354,7 +354,7 @@ export function ProductCompatibilityScreen() {
               <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 Compatibility Rule Details
               </h2>
-              <p className="text-[11px] text-purple-600 font-medium">
+              <p className="text-[11px] text-[#6222cc] font-medium">
                 Target Add-on: {selectedRow?.addonName}
               </p>
             </div>
@@ -376,7 +376,7 @@ export function ProductCompatibilityScreen() {
                     name="compatType"
                     checked={ruleType === 'Compatible'}
                     onChange={() => setRuleType('Compatible')}
-                    className="text-purple-600 focus:ring-purple-500"
+                    className="text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc]"
                   />
                   <span>Fully Compatible (Plug-and-Play)</span>
                 </label>
@@ -386,7 +386,7 @@ export function ProductCompatibilityScreen() {
                     name="compatType"
                     checked={ruleType === 'Dependency'}
                     onChange={() => setRuleType('Dependency')}
-                    className="text-purple-600 focus:ring-purple-500"
+                    className="text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc]"
                   />
                   <span>Conditional Dependency (Requires Core Suite or Add-on)</span>
                 </label>
@@ -396,7 +396,7 @@ export function ProductCompatibilityScreen() {
                     name="compatType"
                     checked={ruleType === 'Incompatible'}
                     onChange={() => setRuleType('Incompatible')}
-                    className="text-purple-600 focus:ring-purple-500"
+                    className="text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc]"
                   />
                   <span>Incompatible / Collision (Mutual Exclusion)</span>
                 </label>
@@ -438,7 +438,7 @@ export function ProductCompatibilityScreen() {
                 rows={3}
                 value={ruleDescription}
                 onChange={(e) => setRuleDescription(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white dark:bg-slate-900 focus:ring-1 focus:ring-purple-600 focus:outline-none"
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white dark:bg-slate-900 focus:ring-1 focus:ring-[#6222cc] focus:outline-none"
               />
             </div>
           </div>
@@ -451,7 +451,7 @@ export function ProductCompatibilityScreen() {
             <Button
               type="button"
               onClick={handleSaveRule}
-              className="h-8 px-4 text-xs font-medium bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-xs"
+              className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
             >
               Save Rule
             </Button>

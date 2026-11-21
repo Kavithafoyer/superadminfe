@@ -735,7 +735,7 @@ export function ActivationQueueScreen() {
               variant="outline"
               size="sm"
               onClick={() => handleMoveToReview(selectedRequest.id)}
-              className="text-xs border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold flex items-center gap-1 justify-center cursor-pointer"
+              className="text-xs border-purple-200 dark:border-purple-900 text-[#6222cc] dark:text-purple-300 hover:bg-purple-50 font-semibold flex items-center gap-1 justify-center cursor-pointer shadow-2xs"
             >
               <RotateCw className="h-3.5 w-3.5" />
               <span>Move to Review</span>

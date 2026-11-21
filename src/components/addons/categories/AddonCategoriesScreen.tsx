@@ -193,21 +193,21 @@ export function AddonCategoriesScreen() {
   const renderIcon = (iconName: string) => {
     switch (iconName) {
       case 'cpu':
-        return <Cpu className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+        return <Cpu className="h-4 w-4 text-[#6222cc] dark:text-purple-300" />;
       case 'message':
-        return <MessageSquare className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+        return <MessageSquare className="h-4 w-4 text-[#6222cc] dark:text-purple-300" />;
       case 'chart':
-        return <BarChart2 className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+        return <BarChart2 className="h-4 w-4 text-[#6222cc] dark:text-purple-300" />;
       case 'shield':
-        return <ShieldCheck className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+        return <ShieldCheck className="h-4 w-4 text-[#6222cc] dark:text-purple-300" />;
       case 'link':
-        return <Link2 className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+        return <Link2 className="h-4 w-4 text-[#6222cc] dark:text-purple-300" />;
       case 'users':
-        return <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+        return <Users className="h-4 w-4 text-[#6222cc] dark:text-purple-300" />;
       case 'grad':
-        return <GraduationCap className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+        return <GraduationCap className="h-4 w-4 text-[#6222cc] dark:text-purple-300" />;
       default:
-        return <Layers className="h-4 w-4 text-purple-600 dark:text-purple-400" />;
+        return <Layers className="h-4 w-4 text-[#6222cc] dark:text-purple-300" />;
     }
   };
 
@@ -215,7 +215,7 @@ export function AddonCategoriesScreen() {
     <div className="w-full space-y-5 pb-12">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 bg-purple-600 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium animate-in fade-in slide-in-from-top-2">
+        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 bg-[#6222cc] text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium animate-in fade-in slide-in-from-top-2">
           <CheckCircle2 className="h-4 w-4 text-white" />
           <span>{toastMessage}</span>
         </div>
@@ -227,7 +227,7 @@ export function AddonCategoriesScreen() {
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
             <span>Add-on Marketplace</span>
             <span>&gt;</span>
-            <span className="text-purple-600 dark:text-purple-400 font-medium">Add-on Categories</span>
+            <span className="text-[#6222cc] dark:text-purple-300 font-medium">Add-on Categories</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Add-on Categories
@@ -241,7 +241,7 @@ export function AddonCategoriesScreen() {
           <button
             type="button"
             onClick={handleStartCreateNew}
-            className="h-9 px-4 text-xs font-medium bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
+            className="h-9 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             <span>Create Category</span>
@@ -257,7 +257,7 @@ export function AddonCategoriesScreen() {
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Categories</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{totalCount}</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-purple-600 dark:text-purple-400">
+          <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-[#6222cc] dark:text-purple-300">
             <Layers className="h-5 w-5" />
           </div>
         </div>
@@ -354,7 +354,7 @@ export function AddonCategoriesScreen() {
                         selectedRowIds.length === paginatedCategories.length
                       }
                       onChange={handleToggleSelectAll}
-                      className="rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                      className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
                     />
                   </th>
                   <th className="py-2.5 px-3 font-semibold">Category Code</th>
@@ -386,10 +386,10 @@ export function AddonCategoriesScreen() {
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => {}}
-                          className="rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                          className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
                         />
                       </td>
-                      <td className="py-3 px-3 font-semibold text-purple-600 dark:text-purple-400 hover:underline">
+                      <td className="py-3 px-3 font-semibold text-[#6222cc] dark:text-purple-300 hover:underline">
                         <div className="flex items-center gap-1.5 font-mono">
                           {renderIcon(cat.icon || 'cpu')}
                           <span>{cat.code}</span>
@@ -406,12 +406,12 @@ export function AddonCategoriesScreen() {
                       </td>
                       <td className="py-3 px-3">
                         <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                             cat.status === 'Active'
-                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                              ? 'bg-[#dcfce7] text-[#15803d]'
                               : cat.status === 'Draft'
-                              ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
-                              : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
+                              ? 'bg-[#fef9c3] text-[#a16207]'
+                              : 'bg-[#fee2e2] text-[#b91c1c]'
                           }`}
                         >
                           {cat.status}
@@ -428,7 +428,7 @@ export function AddonCategoriesScreen() {
                           <button
                             type="button"
                             onClick={() => handleSelectCategory(cat)}
-                            className="p-1 rounded text-slate-400 hover:text-purple-600 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            className="p-1 rounded text-slate-400 hover:text-[#6222cc] hover:bg-slate-100 dark:hover:bg-slate-800"
                             title="Edit Category"
                           >
                             <Pencil className="h-3.5 w-3.5" />
@@ -452,7 +452,7 @@ export function AddonCategoriesScreen() {
                                   onClick={() => handleSelectCategory(cat)}
                                   className="w-full text-left px-3 py-1.5 hover:bg-purple-50 dark:hover:bg-purple-950/50 text-slate-700 dark:text-slate-300 flex items-center gap-1.5"
                                 >
-                                  <Pencil className="h-3 w-3 text-purple-600" />
+                                  <Pencil className="h-3 w-3 text-[#6222cc]" />
                                   Edit Record
                                 </button>
                                 <button
@@ -522,7 +522,7 @@ export function AddonCategoriesScreen() {
                     onClick={() => setCurrentPage(idx + 1)}
                     className={`h-6 w-6 rounded text-xs font-medium flex items-center justify-center ${
                       currentPage === idx + 1
-                        ? 'bg-purple-600 text-white'
+                        ? 'bg-[#6222cc] text-white'
                         : 'text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
@@ -610,7 +610,7 @@ export function AddonCategoriesScreen() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="AI-driven sales, marketing and productivity add-ons for Pegatto products."
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-purple-600 focus:outline-none"
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-[#6222cc] focus:outline-none"
               />
             </div>
 
@@ -623,7 +623,7 @@ export function AddonCategoriesScreen() {
                 <select
                   value={formData.parentCategory || '-- None (Top Level) --'}
                   onChange={(e) => setFormData({ ...formData, parentCategory: e.target.value })}
-                  className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-purple-600"
+                  className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:ring-1 focus:ring-[#6222cc]"
                 >
                   <option>-- None (Top Level) --</option>
                   <option>Product Extensions</option>
@@ -651,7 +651,7 @@ export function AddonCategoriesScreen() {
                   type="checkbox"
                   checked={formData.showInMarketplace}
                   onChange={(e) => setFormData({ ...formData, showInMarketplace: e.target.checked })}
-                  className="h-4 w-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                  className="h-4 w-4 rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc]"
                 />
                 <span className="font-medium text-slate-700 dark:text-slate-300">
                   Show in Marketplace
@@ -666,7 +666,7 @@ export function AddonCategoriesScreen() {
                   onChange={(e) =>
                     setFormData({ ...formData, status: e.target.checked ? 'Active' : 'Inactive' })
                   }
-                  className="h-4 w-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                  className="h-4 w-4 rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc]"
                 />
                 <span className="font-medium text-slate-700 dark:text-slate-300">Active</span>
               </label>
@@ -737,7 +737,7 @@ export function AddonCategoriesScreen() {
               <Button
                 type="button"
                 onClick={() => handleSaveForm(false)}
-                className="h-8 px-4 text-xs font-medium bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-xs"
+                className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
               >
                 {isCreatingNew ? 'Create Category' : 'Update Category'}
               </Button>

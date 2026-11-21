@@ -129,7 +129,7 @@ export function PriceHistoryScreen() {
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
             <span>Add-on Marketplace</span>
             <span>&gt;</span>
-            <span className="text-[#1574fe] dark:text-purple-400 font-medium">Price History</span>
+            <span className="text-[#6222cc] dark:text-purple-300 font-medium">Price History</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Price History
@@ -157,7 +157,7 @@ export function PriceHistoryScreen() {
           </Button>
           <Button
             onClick={() => setIsLogModalOpen(true)}
-            className="h-9 px-4.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shadow-sm"
+            className="h-9 px-4.5 bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs font-semibold shadow-sm"
           >
             <Plus className="h-4 w-4 mr-1.5" />
             Log Price Change
@@ -172,7 +172,7 @@ export function PriceHistoryScreen() {
             <p className="text-xs font-medium text-purple-900 dark:text-blue-300">Total Price Changes</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{totalChangesCount}</p>
           </div>
-          <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/60 text-[#1574fe] flex items-center justify-center text-[#1574fe] dark:text-blue-300">
+          <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/60 text-[#6222cc] flex items-center justify-center text-[#6222cc] dark:text-blue-300">
             <Tag className="h-5 w-5" />
           </div>
         </div>
@@ -219,7 +219,7 @@ export function PriceHistoryScreen() {
               onClick={() => setActiveTab(tab)}
               className={`pb-2.5 transition-colors relative ${
                 isActive
-                  ? 'text-[#1574fe] dark:text-purple-400 font-bold border-b-2 border-purple-600'
+                  ? 'text-[#6222cc] dark:text-purple-300 font-bold border-b-2 border-[#6222cc]'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
@@ -291,7 +291,7 @@ export function PriceHistoryScreen() {
             <Button
               size="sm"
               onClick={handleApplyFilter}
-              className="h-9 bg-purple-600 hover:bg-purple-700 text-white text-xs px-5 shadow-sm"
+              className="h-9 bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs px-5 shadow-sm"
             >
               Apply
             </Button>
@@ -311,7 +311,7 @@ export function PriceHistoryScreen() {
               </h3>
               <Badge
                 variant="outline"
-                className="text-xs border-blue-200 bg-blue-50 text-[#1574fe] font-mono"
+                className="text-xs border-blue-200 bg-blue-50 text-[#6222cc] font-mono"
               >
                 Current: ₹{selectedItem.currentPrice}
               </Badge>
@@ -345,8 +345,8 @@ export function PriceHistoryScreen() {
               >
                 <defs>
                   <linearGradient id="purpleStepGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1574fe" stopOpacity="0.22" />
-                    <stop offset="100%" stopColor="#1574fe" stopOpacity="0.00" />
+                    <stop offset="0%" stopColor="#6222cc" stopOpacity="0.22" />
+                    <stop offset="100%" stopColor="#6222cc" stopOpacity="0.00" />
                   </linearGradient>
                 </defs>
 
@@ -381,7 +381,7 @@ export function PriceHistoryScreen() {
                     L 550,30
                   "
                   fill="none"
-                  stroke="#1574fe"
+                  stroke="#6222cc"
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -389,13 +389,13 @@ export function PriceHistoryScreen() {
 
                 {/* Step Data Points */}
                 {/* Point 1: 01 Aug - ₹499 */}
-                <circle cx="30" cy="150" r="4.5" fill="#ffffff" stroke="#1574fe" strokeWidth="2.5" />
+                <circle cx="30" cy="150" r="4.5" fill="#ffffff" stroke="#6222cc" strokeWidth="2.5" />
                 {/* Point 2: 15 Aug - ₹599 */}
-                <circle cx="110" cy="125" r="4.5" fill="#ffffff" stroke="#1574fe" strokeWidth="2.5" />
+                <circle cx="110" cy="125" r="4.5" fill="#ffffff" stroke="#6222cc" strokeWidth="2.5" />
                 {/* Point 3: 01 Oct - ₹799 */}
-                <circle cx="250" cy="75" r="4.5" fill="#ffffff" stroke="#1574fe" strokeWidth="2.5" />
+                <circle cx="250" cy="75" r="4.5" fill="#ffffff" stroke="#6222cc" strokeWidth="2.5" />
                 {/* Point 4: 18 Nov - ₹999 */}
-                <circle cx="450" cy="30" r="4.5" fill="#ffffff" stroke="#1574fe" strokeWidth="2.5" />
+                <circle cx="450" cy="30" r="4.5" fill="#ffffff" stroke="#6222cc" strokeWidth="2.5" />
               </svg>
 
               {/* Floating Price Badges */}
@@ -415,7 +415,7 @@ export function PriceHistoryScreen() {
                 </span>
               </div>
               <div className="absolute top-[10px] left-[450px] -translate-x-1/2">
-                <span className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-blue-200 dark:border-purple-800 shadow-sm text-[10px] font-bold text-[#1574fe] dark:text-blue-300 font-mono">
+                <span className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-blue-200 dark:border-purple-800 shadow-sm text-[10px] font-bold text-[#6222cc] dark:text-blue-300 font-mono">
                   ₹999
                 </span>
               </div>
@@ -429,7 +429,7 @@ export function PriceHistoryScreen() {
                 <span>01 Oct</span>
                 <span>15 Oct</span>
                 <span>01 Nov</span>
-                <span className="font-semibold text-[#1574fe]">18 Nov</span>
+                <span className="font-semibold text-[#6222cc]">18 Nov</span>
               </div>
             </div>
           </div>
@@ -443,7 +443,7 @@ export function PriceHistoryScreen() {
                 </h3>
                 <Badge
                   variant="secondary"
-                  className="bg-blue-50 text-[#1574fe] dark:bg-blue-950 dark:text-blue-300 text-xs"
+                  className="bg-blue-50 text-[#6222cc] dark:bg-blue-950 dark:text-blue-300 text-xs"
                 >
                   {selectedItem.addonName}
                 </Badge>
@@ -514,7 +514,7 @@ export function PriceHistoryScreen() {
             </h3>
 
             <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-purple-100 dark:border-purple-900/40 mb-4">
-              <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/60 text-[#1574fe] flex items-center justify-center text-[#1574fe] dark:text-blue-300">
+              <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/60 text-[#6222cc] flex items-center justify-center text-[#6222cc] dark:text-blue-300">
                 <Bot className="h-5 w-5" />
               </div>
               <div>
@@ -542,7 +542,7 @@ export function PriceHistoryScreen() {
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
                 <span className="text-slate-500">Total Changes</span>
-                <span className="font-semibold text-[#1574fe] dark:text-purple-400">
+                <span className="font-semibold text-[#6222cc] dark:text-purple-300">
                   {selectedItem.totalChanges}
                 </span>
               </div>
@@ -571,7 +571,7 @@ export function PriceHistoryScreen() {
                     <div
                       className={`absolute -left-6 top-1 h-3.5 w-3.5 rounded-full border-2 transition-transform ${
                         isFirst
-                          ? 'bg-purple-600 border-purple-600 ring-4 ring-purple-100 dark:ring-purple-950'
+                          ? 'bg-[#6222cc] border-[#6222cc] ring-4 ring-purple-100 dark:ring-purple-950'
                           : 'bg-white dark:bg-slate-900 border-purple-400'
                       }`}
                     />
@@ -579,7 +579,7 @@ export function PriceHistoryScreen() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-purple-800 font-mono text-xs font-bold text-[#1574fe] dark:text-blue-300">
+                          <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-purple-800 font-mono text-xs font-bold text-[#6222cc] dark:text-blue-300">
                             ₹{record.newPrice}
                           </span>
                           <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
@@ -693,7 +693,7 @@ export function PriceHistoryScreen() {
               <Button
                 size="sm"
                 onClick={handleLogPriceChange}
-                className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-5 shadow-sm"
+                className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs px-5 shadow-sm"
               >
                 <Save className="h-3.5 w-3.5 mr-1.5" />
                 Record Price Change
