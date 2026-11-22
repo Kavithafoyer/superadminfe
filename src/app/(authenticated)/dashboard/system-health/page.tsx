@@ -286,25 +286,18 @@ export default function SystemHealthAlertsPage() {
           </div>
         </div>
 
-        {/* View Switcher Pills */}
+        {/* Action Button */}
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => router.push('/dashboard')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer bg-[#1574fe] text-white hover:bg-[#0d62e0] shadow-blue-500/20"
-          >
-            <TrendingUp className="h-4 w-4" />
-            Executive Dashboard
-          </button>
-
-          <button
-            type="button"
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleRefresh}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
+            disabled={isRefreshing}
+            className="h-9 px-3 gap-1.5 cursor-pointer text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 shadow-2xs"
           >
-            <Server className="h-4 w-4" />
-            System Health
-          </button>
+            <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin text-blue-600' : 'text-slate-500'}`} />
+            <span>Refresh</span>
+          </Button>
         </div>
       </div>
 

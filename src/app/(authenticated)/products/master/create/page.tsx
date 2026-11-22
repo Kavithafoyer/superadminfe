@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { ProductMasterCreateScreen } from '@/components/products/ProductMasterCreateScreen';
+import { ProductMasterScreen } from '@/components/products/ProductMasterScreen';
 
 export default function ProductMasterCreatePage() {
   return (
     <div className="w-full">
-      <ProductMasterCreateScreen mode="create" />
+      <ProductMasterScreen initialMode="add_product" />
     </div>
   );
 }

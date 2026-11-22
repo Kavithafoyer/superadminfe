@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo } from 'react';
 import {
-  TrendingUp,
   Activity,
   Layers,
   Building2,
@@ -380,7 +379,6 @@ const INITIAL_HEALTH_SERVICES: ServiceHealth[] = [
 ];
 
 export default function ExecutiveDashboardPage() {
-  const [activeTab, setActiveTab] = useState<'executive' | 'health'>('executive');
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [isApplying, setIsApplying] = useState(false);
   const [isRefreshingHealth, setIsRefreshingHealth] = useState(false);
@@ -420,23 +418,10 @@ export default function ExecutiveDashboardPage() {
     }, 600);
   };
 
-  const scrollToHealth = () => {
-    setActiveTab('health');
-    const el = document.getElementById('system-health-section');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const scrollToTop = () => {
-    setActiveTab('executive');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
     <div className="space-y-5 pb-10">
       {/* ══════════════════════════════════════════════════════════════════════
-          1. HEADER & VIEW NAVIGATION BUTTONS
+          1. HEADER
       ══════════════════════════════════════════════════════════════════════ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -451,35 +436,6 @@ export default function ExecutiveDashboardPage() {
               Business, Product, Customer, Partner and Revenue Overview
             </p>
           </div>
-        </div>
-
-        {/* View Switcher Pills */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={scrollToTop}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer ${
-              activeTab === 'executive'
-                ? 'bg-[#1574fe] text-white hover:bg-[#0d62e0] shadow-blue-500/20'
-                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-            }`}
-          >
-            <TrendingUp className="h-4 w-4" />
-            Executive Dashboard
-          </button>
-
-          <button
-            type="button"
-            onClick={scrollToHealth}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer ${
-              activeTab === 'health'
-                ? 'bg-[#1574fe] text-white hover:bg-[#0d62e0] shadow-blue-500/20'
-                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Server className="h-4 w-4" />
-            System Health
-          </button>
         </div>
       </div>
 

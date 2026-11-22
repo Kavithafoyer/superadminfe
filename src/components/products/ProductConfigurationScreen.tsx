@@ -53,6 +53,7 @@ import {
   Database,
   Lock,
   Layout,
+  LayoutGrid,
   Sun,
   Moon,
   Monitor,
@@ -329,7 +330,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
         };
       case 'integrations':
         return {
-          icon: <Link2 className="h-7 w-7 text-[#1574fe]" />,
+          icon: <Link2 className="h-6 w-6 text-[#6366f1]" />,
           title: 'Integrations',
           desc: 'Connect Pegatto with external systems, apps and services for a seamless experience',
           actionLabel: 'Add Integration',
@@ -370,11 +371,18 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
   const headerInfo = getHeaderInfo();
 
   return (
-    <div className="space-y-4 max-w-[1600px] mx-auto pb-8">
+    <div className="space-y-4 max-w-[1600px] mx-auto pb-8 font-sans">
       {/* 1. Header Bar matching images */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-0.5">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
+          <div
+            className={cn(
+              'p-2.5 rounded-xl border shadow-xs',
+              activeTab === 'integrations'
+                ? 'bg-purple-50 border-purple-100 text-[#6366f1]'
+                : 'bg-blue-50 border-blue-100'
+            )}
+          >
             {headerInfo.icon}
           </div>
           <div>
@@ -392,7 +400,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-xs">
             <span className="text-slate-400 font-medium">Product</span>
             <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-              <GraduationCap className="h-4 w-4 text-[#1574fe]" />
+              <GraduationCap className={cn('h-4 w-4', activeTab === 'integrations' ? 'text-[#6366f1]' : 'text-[#1574fe]')} />
               <select
                 value={selectedProduct}
                 onChange={(e) => setSelectedProduct(e.target.value)}
@@ -422,11 +430,22 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           )}
 
           <Button
-            onClick={() => toast.success('Configuration saved successfully!')}
-            className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all"
+            onClick={() => {
+              if (activeTab === 'integrations') {
+                toast.info('Add Integration dialog');
+              } else {
+                toast.success('Configuration saved successfully!');
+              }
+            }}
+            className={cn(
+              'text-white font-semibold text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-xs transition-all cursor-pointer',
+              activeTab === 'integrations'
+                ? 'bg-[#6366f1] hover:bg-[#5046e5]'
+                : 'bg-[#1574fe] hover:bg-[#0d62e0]'
+            )}
           >
-            <Check className="h-4 w-4" />
-            <span>{headerInfo.actionLabel}</span>
+            {activeTab === 'integrations' ? <Plus className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+            <span>{activeTab === 'integrations' ? 'Add Integration' : headerInfo.actionLabel}</span>
           </Button>
 
           {headerInfo.showReset && (
@@ -461,13 +480,13 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
               type="button"
               onClick={() => setActiveTab(tab.key as any)}
               className={cn(
-                'px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer',
+                'px-4 py-2 text-xs sm:text-sm font-semibold rounded-2xl flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shadow-xs',
                 isActive
-                  ? 'bg-[#1574fe] text-white shadow-xs'
-                  : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
+                  ? 'bg-[#6366f1] text-white hover:bg-[#5046e5] shadow-purple-500/20'
+                  : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/90'
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-white' : 'text-slate-700')} />
               <span>{tab.label}</span>
             </button>
           );
@@ -1781,145 +1800,482 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
          ============================================================== */}
       {activeTab === 'integrations' && (
         <div className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-            {/* Left 8 cols: 12 Integrations Grid */}
-            <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3.5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
-                    <Link2 className="h-4 w-4" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            {/* Left 8 cols: Available Integrations & Flow Diagram */}
+            <div className="lg:col-span-8 space-y-4">
+              {/* Card 1: Available Integrations */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-purple-50 text-[#6366f1] rounded-xl">
+                      <LayoutGrid className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900">Available Integrations</h3>
+                      <p className="text-xs text-slate-500">Connect and enable integrations for your edition</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900">Available Integrations</h3>
-                    <p className="text-xs text-slate-500">Connect and enable integrations for your edition</p>
+
+                  {/* Filter Pills */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto text-xs scrollbar-none">
+                    {['All (12)', 'Communication', 'Payments', 'Identity & Access', 'Productivity', 'Others'].map((cat) => {
+                      const cleanCat = cat.replace(' (12)', '');
+                      const isSelected =
+                        integrationCategory === cleanCat ||
+                        (cat === 'All (12)' && integrationCategory === 'All');
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setIntegrationCategory(cleanCat)}
+                          className={cn(
+                            'px-3 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap',
+                            isSelected
+                              ? 'bg-[#6366f1] text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          )}
+                        >
+                          {cat}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Filter Pills */}
-                <div className="flex items-center gap-1 overflow-x-auto text-xs">
-                  {['All (12)', 'Communication', 'Payments', 'Identity & Access', 'Productivity', 'Others'].map((cat) => {
-                    const cleanCat = cat.replace(' (12)', '');
-                    const isSelected = integrationCategory === cleanCat || (cat === 'All (12)' && integrationCategory === 'All');
-                    return (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => setIntegrationCategory(cleanCat)}
-                        className={cn(
-                          'px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer whitespace-nowrap',
-                          isSelected
-                            ? 'bg-[#1574fe] text-white shadow-2xs'
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                        )}
+                {/* 10 Integration Cards Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-1">
+                  {[
+                    {
+                      id: 'int-1',
+                      name: 'WhatsApp Business (Cloud API)',
+                      desc: 'Send notifications, alerts and follow-ups',
+                      connected: true,
+                      category: 'Communication',
+                      iconEl: (
+                        <div className="w-8 h-8 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-xs">
+                          <MessageSquare className="h-4.5 w-4.5 fill-current" />
+                        </div>
+                      ),
+                    },
+                    {
+                      id: 'int-2',
+                      name: 'Email (SMTP)',
+                      desc: 'Transactional & bulk emails (e.g., GoDaddy)',
+                      connected: true,
+                      category: 'Communication',
+                      iconEl: (
+                        <div className="w-8 h-8 rounded-lg bg-[#0ea5e9] text-white flex items-center justify-center shadow-xs">
+                          <Mail className="h-4.5 w-4.5" />
+                        </div>
+                      ),
+                    },
+                    {
+                      id: 'int-3',
+                      name: 'SMS Gateway',
+                      desc: 'OTP, alerts and notifications',
+                      connected: false,
+                      category: 'Communication',
+                      iconEl: (
+                        <div className="w-8 h-8 rounded-lg bg-[#3b82f6] text-white flex items-center justify-center shadow-xs font-bold text-[10px]">
+                          SMS
+                        </div>
+                      ),
+                    },
+                    {
+                      id: 'int-4',
+                      name: 'Payment Gateway',
+                      desc: 'Online fee & invoice payments (Razorpay / PayU / Stripe)',
+                      connected: true,
+                      category: 'Payments',
+                      iconEl: (
+                        <div className="w-8 h-8 rounded-lg bg-[#0284c7] text-white flex items-center justify-center shadow-xs">
+                          <CreditCard className="h-4.5 w-4.5" />
+                        </div>
+                      ),
+                    },
+                    {
+                      id: 'int-5',
+                      name: 'Biometric Attendance (ZKTeco)',
+                      desc: 'Integrate attendance devices (ZKTeco)',
+                      connected: true,
+                      category: 'Productivity',
+                      iconEl: (
+                        <div className="w-8 h-8 rounded-full bg-[#6366f1] text-white flex items-center justify-center shadow-xs">
+                          <Fingerprint className="h-4.5 w-4.5" />
+                        </div>
+                      ),
+                    },
+                    {
+                      id: 'int-6',
+                      name: 'Microsoft Entra ID (Azure AD)',
+                      desc: 'Single sign-on (SSO) & user sync',
+                      connected: true,
+                      category: 'Identity & Access',
+                      iconEl: (
+                        <div className="w-8 h-8 rounded-lg bg-[#00a4ef] flex items-center justify-center shadow-xs p-1.5">
+                          <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
+                            <div className="bg-white rounded-[1px]" />
+                            <div className="bg-white rounded-[1px]" />
+                            <div className="bg-white rounded-[1px]" />
+                            <div className="bg-white rounded-[1px]" />
+                          </div>
+                        </div>
+                      ),
+                    },
+                    {
+                      id: 'int-7',
+                      name: 'Google Workspace',
+                      desc: 'SSO, Calendar, Drive and Gmail integration',
+                      connected: false,
+                      category: 'Identity & Access',
+                      iconEl: (
+                        <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shadow-xs">
+                          <span className="font-extrabold text-[#ea4335] text-base leading-none">G</span>
+                        </div>
+                      ),
+                    },
+                    {
+                      id: 'int-8',
+                      name: 'Slack',
+                      desc: 'Team notifications and alerts',
+                      connected: false,
+                      category: 'Productivity',
+                      iconEl: (
+                        <div className="w-8 h-8 rounded-lg bg-[#4A154B] text-white flex items-center justify-center shadow-xs font-bold text-base">
+                          #
+                        </div>
+                      ),
+                    },
+                    {
+                      id: 'int-9',
+                      name: 'LinkedIn Ads & Leads',
+                      desc: 'Capture and sync leads from LinkedIn',
+                      connected: true,
+                      category: 'Communication',
+                      iconEl: (
+                        <div className="w-8 h-8 rounded-lg bg-[#0a66c2] text-white flex items-center justify-center shadow-xs font-bold text-xs">
+                          in
+                        </div>
+                      ),
+                    },
+                    {
+                      id: 'int-10',
+                      name: 'Meta (Facebook / Instagram)',
+                      desc: 'Lead capture from FB & Instagram forms',
+                      connected: true,
+                      category: 'Communication',
+                      iconEl: (
+                        <div className="w-8 h-8 rounded-lg bg-[#0081fb] text-white flex items-center justify-center shadow-xs">
+                          <span className="text-sm font-bold leading-none">∞</span>
+                        </div>
+                      ),
+                    },
+                  ]
+                    .filter((item) => integrationCategory === 'All' || item.category === integrationCategory)
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-3 border border-slate-200/90 rounded-2xl bg-white hover:border-purple-200 transition-all flex flex-col justify-between gap-2.5 shadow-2xs"
                       >
-                        {cat}
-                      </button>
-                    );
-                  })}
+                        <div className="space-y-1.5">
+                          {item.iconEl}
+                          <h4 className="text-xs font-bold text-slate-900 leading-snug">{item.name}</h4>
+                          <p className="text-[10px] text-slate-500 leading-tight line-clamp-2">{item.desc}</p>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              toast.success(`${item.name} status updated`);
+                            }}
+                            className={cn(
+                              'w-8 h-4.5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer shrink-0',
+                              item.connected ? 'bg-emerald-500 justify-end' : 'bg-slate-200 justify-start'
+                            )}
+                          >
+                            <span className="w-3.5 h-3.5 rounded-full bg-white shadow-xs" />
+                          </button>
+                          <span
+                            className={cn(
+                              'text-[10px] font-semibold whitespace-nowrap',
+                              item.connected ? 'text-slate-800' : 'text-slate-500'
+                            )}
+                          >
+                            {item.connected ? 'Connected' : 'Not Configured'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+
+                {/* Bottom Row: REST API & Webhooks */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                  <div className="p-3 border border-slate-200/90 rounded-2xl bg-slate-50/40 flex items-center justify-between shadow-2xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-purple-50 text-[#6366f1] font-mono text-xs font-bold">
+                        &lt;/&gt;
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-900">REST API</h4>
+                        <p className="text-[10px] text-slate-500">Programmatic access to Pegatto data</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-4.5 flex items-center rounded-full p-0.5 bg-emerald-500 justify-end cursor-pointer">
+                        <span className="w-3.5 h-3.5 rounded-full bg-white shadow-xs" />
+                      </div>
+                      <span className="text-[11px] font-semibold text-slate-800">Enabled</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 border border-slate-200/90 rounded-2xl bg-slate-50/40 flex items-center justify-between shadow-2xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-purple-50 text-[#6366f1]">
+                        <GitFork className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-900">Webhooks</h4>
+                        <p className="text-[10px] text-slate-500">Real-time event notifications to external apps</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-4.5 flex items-center rounded-full p-0.5 bg-emerald-500 justify-end cursor-pointer">
+                        <span className="w-3.5 h-3.5 rounded-full bg-white shadow-xs" />
+                      </div>
+                      <span className="text-[11px] font-semibold text-slate-800">Enabled</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Grid of 12 Integration Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                {integrationsList
-                  .filter((item) => integrationCategory === 'All' || item.category === integrationCategory)
-                  .map((item) => (
-                    <div
-                      key={item.id}
-                      className="p-3 border border-slate-200/80 rounded-xl bg-white hover:border-slate-300 transition-all flex items-start justify-between gap-3"
-                    >
-                      <div className="space-y-1">
-                        <h4 className="text-xs font-bold text-slate-900">{item.name}</h4>
-                        <p className="text-[11px] text-slate-500 leading-tight">{item.desc}</p>
-                      </div>
+              {/* Card 2: Integration Flow (Example) */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-3">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
+                  <div className="p-2 bg-purple-50 text-[#6366f1] rounded-xl">
+                    <GitFork className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">Integration Flow (Example)</h3>
+                    <p className="text-xs text-slate-500">How data and events flow between Pegatto and external systems</p>
+                  </div>
+                </div>
 
-                      <div className="flex flex-col items-end gap-1.5 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIntegrationsList((prev) =>
-                              prev.map((i) => (i.id === item.id ? { ...i, connected: !i.connected } : i))
-                            );
-                            toast.success(`${item.name} status updated`);
-                          }}
-                          className={cn(
-                            'w-8 h-4.5 flex items-center rounded-full p-0.5 transition-colors cursor-pointer',
-                            item.connected ? 'bg-emerald-500 justify-end' : 'bg-slate-200 justify-start'
-                          )}
-                        >
-                          <span className="w-3.5 h-3.5 rounded-full bg-white shadow-xs" />
-                        </button>
-                        <span className={cn('text-[10px] font-semibold', item.connected ? 'text-emerald-700' : 'text-slate-400')}>
-                          {item.connected ? 'Connected' : 'Not Configured'}
-                        </span>
-                      </div>
+                {/* Visual Flow diagram matching screenshot */}
+                <div className="py-4 px-2 flex flex-col md:flex-row items-center justify-center gap-4 lg:gap-6">
+                  {/* Step 1: Lead Capture */}
+                  <div className="p-3.5 bg-purple-50/60 border border-purple-200 rounded-2xl flex items-center gap-3 shadow-2xs min-w-[200px]">
+                    <div className="p-2 rounded-xl bg-purple-100 text-[#6366f1]">
+                      <ClipboardList className="h-5 w-5" />
                     </div>
-                  ))}
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">Lead Capture</div>
+                      <div className="text-[10px] text-slate-500">(Website / FB / LinkedIn)</div>
+                    </div>
+                  </div>
+
+                  {/* Arrow 1 */}
+                  <div className="text-[#6366f1] font-bold text-lg hidden md:block">
+                    <ArrowRight className="h-5 w-5" />
+                  </div>
+
+                  {/* Center Node: Pegatto */}
+                  <div className="px-6 py-4 bg-[#6366f1] text-white rounded-2xl shadow-md flex items-center gap-2.5 shrink-0">
+                    <img
+                      src="/pegatto_logo.png"
+                      alt="Pegatto"
+                      className="h-6 w-auto brightness-0 invert object-contain"
+                    />
+                    <span className="font-extrabold text-base tracking-tight">Pegatto®</span>
+                  </div>
+
+                  {/* Arrow 2 */}
+                  <div className="text-[#6366f1] font-bold text-lg hidden md:block">
+                    <ArrowRight className="h-5 w-5" />
+                  </div>
+
+                  {/* Step 3: Branching outputs */}
+                  <div className="space-y-2 w-full md:w-auto">
+                    <div className="px-3.5 py-2 bg-white border border-slate-200/90 rounded-xl flex items-center gap-2.5 shadow-2xs">
+                      <div className="w-5 h-5 rounded-full bg-[#25D366] text-white flex items-center justify-center shrink-0">
+                        <MessageSquare className="h-3 w-3 fill-current" />
+                      </div>
+                      <span className="text-xs font-semibold text-slate-800">
+                        Follow-up (WhatsApp / Email / SMS)
+                      </span>
+                    </div>
+
+                    <div className="px-3.5 py-2 bg-white border border-slate-200/90 rounded-xl flex items-center gap-2.5 shadow-2xs">
+                      <div className="w-5 h-5 rounded-md bg-[#0284c7] text-white flex items-center justify-center shrink-0">
+                        <CreditCard className="h-3 w-3" />
+                      </div>
+                      <span className="text-xs font-semibold text-slate-800">
+                        Fee Payment (Payment Gateway)
+                      </span>
+                    </div>
+
+                    <div className="px-3.5 py-2 bg-white border border-slate-200/90 rounded-xl flex items-center gap-2.5 shadow-2xs">
+                      <div className="w-5 h-5 rounded-full bg-[#6366f1] text-white flex items-center justify-center shrink-0">
+                        <Fingerprint className="h-3 w-3" />
+                      </div>
+                      <span className="text-xs font-semibold text-slate-800">
+                        Attendance Sync (ZKTeco)
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Right 4 cols: Configured Integrations & API/Webhooks */}
             <div className="lg:col-span-4 space-y-4">
               {/* Configured Integrations Table */}
-              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 space-y-3">
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-3">
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                  <div className="p-1.5 bg-blue-50 text-[#1574fe] rounded-lg">
+                  <div className="p-1.5 bg-purple-50 text-[#6366f1] rounded-lg">
                     <Link2 className="h-4 w-4" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-slate-900">Configured Integrations (6)</h4>
+                    <h4 className="text-sm font-bold text-slate-900">Configured Integrations (6)</h4>
                   </div>
                 </div>
 
-                <div className="divide-y divide-slate-100 text-xs">
-                  {[
-                    { name: 'WhatsApp Business', status: 'Active', time: '18 Nov 2026, 10:24 AM' },
-                    { name: 'Payment Gateway', status: 'Active', time: '18 Nov 2026, 09:50 AM' },
-                    { name: 'ZKTeco Attendance', status: 'Active', time: '18 Nov 2026, 08:15 AM' },
-                    { name: 'Microsoft Entra ID', status: 'Active', time: '17 Nov 2026, 06:40 PM' },
-                    { name: 'LinkedIn Leads', status: 'Active', time: '17 Nov 2026, 02:10 PM' },
-                    { name: 'REST API', status: 'Active', time: '17 Nov 2026, 11:05 AM' },
-                  ].map((row, idx) => (
-                    <div key={idx} className="py-2 flex items-center justify-between">
-                      <span className="font-medium text-slate-800">{row.name}</span>
-                      <div className="text-right">
-                        <span className="inline-flex px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">
-                          {row.status}
-                        </span>
-                        <p className="text-[9px] text-slate-400 mt-0.5">{row.time}</p>
-                      </div>
-                    </div>
-                  ))}
+                <div className="overflow-hidden border border-slate-100 rounded-xl">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="bg-slate-50/80 text-slate-700 font-semibold border-b border-slate-200 text-[11px]">
+                        <th className="py-2.5 px-3 w-6 text-center font-bold">#</th>
+                        <th className="py-2.5 px-3 font-bold">Integration</th>
+                        <th className="py-2.5 px-3 text-center font-bold">Status</th>
+                        <th className="py-2.5 px-3 font-bold">Last Sync</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium">
+                      {[
+                        {
+                          id: 1,
+                          name: 'WhatsApp Business',
+                          status: 'Active',
+                          time: '18 Nov 2026, 10:24 AM',
+                          icon: (
+                            <div className="w-4 h-4 rounded-full bg-[#25D366] text-white flex items-center justify-center shrink-0">
+                              <MessageSquare className="h-2.5 w-2.5 fill-current" />
+                            </div>
+                          ),
+                        },
+                        {
+                          id: 2,
+                          name: 'Payment Gateway',
+                          status: 'Active',
+                          time: '18 Nov 2026, 09:50 AM',
+                          icon: (
+                            <div className="w-4 h-4 rounded bg-[#0284c7] text-white flex items-center justify-center shrink-0">
+                              <CreditCard className="h-2.5 w-2.5" />
+                            </div>
+                          ),
+                        },
+                        {
+                          id: 3,
+                          name: 'ZKTeco Attendance',
+                          status: 'Active',
+                          time: '18 Nov 2026, 08:15 AM',
+                          icon: (
+                            <div className="w-4 h-4 rounded-full bg-[#6366f1] text-white flex items-center justify-center shrink-0">
+                              <Fingerprint className="h-2.5 w-2.5" />
+                            </div>
+                          ),
+                        },
+                        {
+                          id: 4,
+                          name: 'Microsoft Entra ID',
+                          status: 'Active',
+                          time: '17 Nov 2026, 06:40 PM',
+                          icon: (
+                            <div className="w-4 h-4 rounded bg-[#00a4ef] flex items-center justify-center shrink-0 p-0.5">
+                              <div className="grid grid-cols-2 gap-0.5 w-2.5 h-2.5">
+                                <div className="bg-white rounded-[0.5px]" />
+                                <div className="bg-white rounded-[0.5px]" />
+                                <div className="bg-white rounded-[0.5px]" />
+                                <div className="bg-white rounded-[0.5px]" />
+                              </div>
+                            </div>
+                          ),
+                        },
+                        {
+                          id: 5,
+                          name: 'LinkedIn Leads',
+                          status: 'Active',
+                          time: '17 Nov 2026, 02:10 PM',
+                          icon: (
+                            <div className="w-4 h-4 rounded bg-[#0a66c2] text-white flex items-center justify-center shrink-0 text-[8px] font-bold">
+                              in
+                            </div>
+                          ),
+                        },
+                        {
+                          id: 6,
+                          name: 'REST API',
+                          status: 'Active',
+                          time: '17 Nov 2026, 11:05 AM',
+                          icon: (
+                            <div className="w-4 h-4 rounded bg-slate-800 text-white flex items-center justify-center shrink-0 text-[8px] font-mono font-bold">
+                              &lt;/&gt;
+                            </div>
+                          ),
+                        },
+                      ].map((row) => (
+                        <tr key={row.id} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-2.5 px-3 text-center text-slate-500 font-semibold text-[11px]">
+                            {row.id}
+                          </td>
+                          <td className="py-2.5 px-3 font-bold text-slate-900 flex items-center gap-2">
+                            {row.icon}
+                            <span>{row.name}</span>
+                          </td>
+                          <td className="py-2.5 px-3 text-center">
+                            <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#dcfce7] text-[#15803d]">
+                              {row.status}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3 text-[11px] text-slate-600 font-mono whitespace-nowrap">
+                            {row.time}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
               {/* API & Webhooks Card */}
-              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 space-y-3">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                  <Code className="h-4 w-4 text-[#1574fe]" />
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-3">
+                <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
+                  <div className="p-1.5 bg-purple-50 text-[#6366f1] rounded-lg">
+                    <Code className="h-4 w-4" />
+                  </div>
                   <div>
-                    <h4 className="text-xs font-bold text-slate-900">API & Webhooks</h4>
-                    <p className="text-[11px] text-slate-500">Manage API keys, webhooks and developer access</p>
+                    <h4 className="text-sm font-bold text-slate-900">API &amp; Webhooks</h4>
+                    <p className="text-xs text-slate-500">Manage API keys, webhooks and developer access</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="grid grid-cols-2 gap-2.5 pt-1">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => toast.info('API Keys modal')}
-                    className="h-8 text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 gap-1"
+                    onClick={() => toast.info('API Keys management')}
+                    className="h-9 text-xs bg-white border-purple-200 text-[#6366f1] hover:bg-purple-50 font-semibold gap-1.5 rounded-xl cursor-pointer"
                   >
-                    <Key className="h-3.5 w-3.5 text-[#1574fe]" />
+                    <Key className="h-3.5 w-3.5" />
                     <span>API Keys</span>
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => toast.info('Webhook Events modal')}
-                    className="h-8 text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 gap-1"
+                    onClick={() => toast.info('Webhook events management')}
+                    className="h-9 text-xs bg-white border-purple-200 text-[#6366f1] hover:bg-purple-50 font-semibold gap-1.5 rounded-xl cursor-pointer"
                   >
-                    <Webhook className="h-3.5 w-3.5 text-[#1574fe]" />
+                    <Webhook className="h-3.5 w-3.5" />
                     <span>Webhook Events</span>
                   </Button>
                 </div>

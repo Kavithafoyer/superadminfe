@@ -20,7 +20,16 @@ import {
   RefreshCw,
   Sparkles,
   Percent,
+  Layers,
+  FileText,
+  History,
+  Check,
+  Info,
+  Calendar,
+  Shield,
+  ArrowRight,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog';
@@ -207,7 +216,7 @@ export function AddonPricingScreen() {
   };
 
   return (
-    <div className="w-full space-y-5 pb-12">
+    <div className="w-full space-y-5 pb-12 font-sans text-slate-800 antialiased">
       {/* Toast */}
       {toastMessage && (
         <div className="fixed top-20 right-8 z-50 flex items-center gap-2 bg-[#6222cc] text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium animate-in fade-in slide-in-from-top-2">
@@ -219,16 +228,16 @@ export function AddonPricingScreen() {
       {/* Top Header & Breadcrumbs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
+          <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
             <span>Add-on Marketplace</span>
             <span>&gt;</span>
-            <span className="text-[#6222cc] dark:text-purple-300 font-medium">Add-on Pricing</span>
+            <span className="text-[#6222cc] font-medium">Add-on Pricing</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
             Add-on Pricing
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Configure and manage pricing rules, tier overrides, and currency schedules.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Configure and manage pricing rules, tier overrides, and currency schedules across tenant editions.
           </p>
         </div>
 
@@ -236,7 +245,7 @@ export function AddonPricingScreen() {
           <button
             type="button"
             onClick={handleStartCreateNew}
-            className="h-9 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
+            className="h-9 px-4 text-xs font-semibold bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Create Pricing Rule</span>
@@ -246,257 +255,216 @@ export function AddonPricingScreen() {
 
       {/* 4 KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
+        <div className="bg-white border border-slate-200/80 p-4 rounded-xl flex items-center justify-between shadow-2xs">
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Pricing Rules</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{totalCount}</p>
+            <p className="text-xs text-slate-500 font-medium">Total Rules</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{totalCount}</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-[#6222cc] dark:text-purple-300">
+          <div className="h-10 w-10 rounded-xl bg-purple-50 flex items-center justify-center text-[#6222cc]">
             <DollarSign className="h-5 w-5" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
+        <div className="bg-white border border-slate-200/80 p-4 rounded-xl flex items-center justify-between shadow-2xs">
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Fixed Rates</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{fixedCount || 12}</p>
+            <p className="text-xs text-slate-500 font-medium">Fixed Rates</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{fixedCount || 12}</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+          <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
             <Coins className="h-5 w-5" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
+        <div className="bg-white border border-slate-200/80 p-4 rounded-xl flex items-center justify-between shadow-2xs">
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Tiered Rates</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{tieredCount || 8}</p>
+            <p className="text-xs text-slate-500 font-medium">Tiered Rates</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{tieredCount || 8}</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
+          <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
             <TrendingUp className="h-5 w-5" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
+        <div className="bg-white border border-slate-200/80 p-4 rounded-xl flex items-center justify-between shadow-2xs">
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Usage Based</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{usageCount}</p>
+            <p className="text-xs text-slate-500 font-medium">Usage Based</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{usageCount}</p>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400">
+          <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
             <Percent className="h-5 w-5" />
           </div>
         </div>
       </div>
 
-      {/* Subtabs */}
-      <div className="flex items-center gap-6 border-b border-slate-200 dark:border-slate-800 text-xs font-medium">
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('pricing')}
-          className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'pricing'
-              ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
-              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
-          }`}
-        >
-          Add-on Pricing
-          {activeSubTab === 'pricing' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] dark:bg-purple-400 rounded-full" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('templates')}
-          className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'templates'
-              ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
-              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
-          }`}
-        >
-          Price Templates
-          {activeSubTab === 'templates' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] dark:bg-purple-400 rounded-full" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('bulk')}
-          className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'bulk'
-              ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
-              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
-          }`}
-        >
-          Bulk Update
-          {activeSubTab === 'bulk' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] dark:bg-purple-400 rounded-full" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('history')}
-          className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'history'
-              ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
-              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
-          }`}
-        >
-          Price History
-          {activeSubTab === 'history' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] dark:bg-purple-400 rounded-full" />
-          )}
-        </button>
+      {/* PORTAL STANDARD PILL TABS BAR */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {[
+          { id: 'pricing', label: 'Add-on Pricing', icon: Coins },
+          { id: 'templates', label: 'Price Templates', icon: Layers },
+          { id: 'bulk', label: 'Bulk Update', icon: RefreshCw },
+          { id: 'history', label: 'Price History', icon: History },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeSubTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveSubTab(tab.id as any)}
+              className={cn(
+                'px-4 py-2 text-xs md:text-sm font-semibold rounded-xl flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shadow-xs',
+                isActive
+                  ? 'bg-[#6222cc] text-white shadow-purple-500/20'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 shadow-2xs'
+              )}
+            >
+              <Icon className={cn('h-4 w-4', isActive ? 'text-white' : 'text-slate-600')} />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* 2-COLUMN SPLIT GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* LEFT COLUMN: Table List (~58-60% width) */}
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
-          {/* Table Header toolbar */}
-          <div className="p-4 border-b border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Pricing Schedules ({filteredPricing.length})
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="relative w-48 sm:w-56">
-                <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  placeholder="Search pricing rule..."
-                  className="h-8 pl-8 text-xs bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg"
-                />
+      {/* TAB 1: ADD-ON PRICING (SPLIT GRID) */}
+      {activeSubTab === 'pricing' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          {/* LEFT COLUMN: Table List (~58-60% width) */}
+          <div className="lg:col-span-7 bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+            {/* Table Header toolbar */}
+            <div className="p-4 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-slate-900">
+                  Pricing Schedules ({filteredPricing.length})
+                </span>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => showToast('Exporting pricing schedules...')}
-                className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 dark:border-slate-700"
-              >
-                <FileDown className="h-3.5 w-3.5 mr-1" />
-                Export
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 dark:border-slate-700"
-              >
-                <Columns className="h-3.5 w-3.5 mr-1" />
-                Columns
-              </Button>
+
+              <div className="flex items-center gap-2">
+                <div className="relative w-48 sm:w-56">
+                  <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    placeholder="Search pricing rule..."
+                    className="h-8 pl-8 text-xs bg-slate-50 border-slate-200 rounded-lg"
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => showToast('Exporting pricing schedules...')}
+                  className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 hover:bg-slate-50"
+                >
+                  <FileDown className="h-3.5 w-3.5 mr-1" />
+                  Export
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => showToast('Configuring display columns...')}
+                  className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 hover:bg-slate-50"
+                >
+                  <Columns className="h-3.5 w-3.5 mr-1" />
+                  Columns
+                </Button>
+              </div>
             </div>
-          </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/80 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800 font-medium">
-                <tr>
-                  <th className="py-2.5 px-3 w-8">
-                    <input
-                      type="checkbox"
-                      checked={
-                        paginatedPricing.length > 0 &&
-                        selectedRowIds.length === paginatedPricing.length
-                      }
-                      onChange={handleToggleSelectAll}
-                      className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
-                    />
-                  </th>
-                  <th className="py-2.5 px-3 font-semibold">Add-on Code</th>
-                  <th className="py-2.5 px-3 font-semibold">Add-on Name</th>
-                  <th className="py-2.5 px-3 font-semibold">Category</th>
-                  <th className="py-2.5 px-3 font-semibold">License Model</th>
-                  <th className="py-2.5 px-3 font-semibold">Plan Prices</th>
-                  <th className="py-2.5 px-3 font-semibold">Status</th>
-                  <th className="py-2.5 px-3 text-right font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {paginatedPricing.map((item) => {
-                  const isSelected = selectedPricingId === item.id && !isCreatingNew;
-                  const isChecked = selectedRowIds.includes(item.id);
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50/80 text-slate-700 border-b border-slate-200 font-semibold text-[11px]">
+                  <tr>
+                    <th className="py-2.5 px-3 w-8">
+                      <input
+                        type="checkbox"
+                        checked={
+                          paginatedPricing.length > 0 &&
+                          selectedRowIds.length === paginatedPricing.length
+                        }
+                        onChange={handleToggleSelectAll}
+                        className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-3.5 w-3.5"
+                      />
+                    </th>
+                    <th className="py-2.5 px-3">Add-on Code</th>
+                    <th className="py-2.5 px-3">Add-on Name</th>
+                    <th className="py-2.5 px-3">Category</th>
+                    <th className="py-2.5 px-3">Pricing Model</th>
+                    <th className="py-2.5 px-3">Price / Rate</th>
+                    <th className="py-2.5 px-3">Status</th>
+                    <th className="py-2.5 px-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {paginatedPricing.map((item) => {
+                    const isSelected = selectedPricingId === item.id;
+                    const isChecked = selectedRowIds.includes(item.id);
 
-                  return (
-                    <tr
-                      key={item.id}
-                      onClick={() => handleSelectPricing(item)}
-                      className={`cursor-pointer transition-colors ${
-                        isSelected
-                          ? 'bg-purple-50/60 dark:bg-purple-950/30'
-                          : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40'
-                      }`}
-                    >
-                      <td className="py-3 px-3" onClick={(e) => handleToggleRow(item.id, e)}>
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {}}
-                          className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
-                        />
-                      </td>
-                      <td className="py-3 px-3 font-semibold text-[#6222cc] dark:text-purple-300 hover:underline">
-                        {item.addonCode}
-                      </td>
-                      <td className="py-3 px-3 font-medium text-slate-900 dark:text-slate-100">
-                        {item.addonName}
-                      </td>
-                      <td className="py-3 px-3 text-slate-600 dark:text-slate-400">
-                        {item.category}
-                      </td>
-                      <td className="py-3 px-3 text-slate-600 dark:text-slate-400">
-                        {item.pricingModel}
-                      </td>
-                      <td className="py-3 px-3 font-semibold text-slate-800 dark:text-slate-200">
-                        {item.plansPriceDisplay}
-                      </td>
-                      <td className="py-3 px-3">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                            item.status === 'Active'
-                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                              : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-right">
-                        <div
-                          className="flex items-center justify-end gap-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => handleSelectPricing(item)}
-                            className="p-1 rounded text-slate-400 hover:text-[#6222cc] hover:bg-slate-100 dark:hover:bg-slate-800"
-                            title="Edit Pricing"
+                    return (
+                      <tr
+                        key={item.id}
+                        onClick={() => handleSelectPricing(item)}
+                        className={`cursor-pointer transition-colors ${
+                          isSelected
+                            ? 'bg-[#f8f5ff] border-l-2 border-l-[#6222cc]'
+                            : 'hover:bg-slate-50/70'
+                        }`}
+                      >
+                        <td className="py-2.5 px-3" onClick={(e) => handleToggleRow(item.id, e)}>
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {}}
+                            className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-3.5 w-3.5"
+                          />
+                        </td>
+                        <td className="py-2.5 px-3 font-mono font-medium text-slate-700">
+                          {item.addonCode}
+                        </td>
+                        <td className="py-2.5 px-3 font-semibold text-slate-900">
+                          {item.addonName}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-600">
+                          {item.category}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-600">
+                          {item.pricingModel}
+                        </td>
+                        <td className="py-2.5 px-3 font-semibold text-slate-900">
+                          {item.plansPriceDisplay}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <span
+                            className={cn(
+                              'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold',
+                              item.status === 'Active'
+                                ? 'bg-[#dcfce7] text-[#15803d]'
+                                : 'bg-[#fef9c3] text-[#a16207]'
+                            )}
                           >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <div className="relative">
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 text-right" onClick={(e) => e.stopPropagation()}>
+                          <div className="relative inline-block text-left">
                             <button
                               type="button"
                               onClick={() =>
-                                setActiveMenuRowId(
-                                  activeMenuRowId === item.id ? null : item.id
-                                )
+                                setActiveMenuRowId(activeMenuRowId === item.id ? null : item.id)
                               }
-                              className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                              className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100"
                             >
                               <MoreVertical className="h-3.5 w-3.5" />
                             </button>
+
                             {activeMenuRowId === item.id && (
-                              <div className="absolute right-0 top-full mt-1 w-32 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-30 py-1 text-xs">
+                              <div className="absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20 text-xs">
                                 <button
                                   type="button"
                                   onClick={() => handleSelectPricing(item)}
-                                  className="w-full text-left px-3 py-1.5 hover:bg-purple-50 dark:hover:bg-purple-950/50 text-slate-700 dark:text-slate-300 flex items-center gap-1.5"
+                                  className="w-full text-left px-3 py-1.5 hover:bg-slate-50 flex items-center gap-1.5 text-slate-700"
                                 >
                                   <Pencil className="h-3 w-3 text-[#6222cc]" />
                                   Edit Record
@@ -504,7 +472,7 @@ export function AddonPricingScreen() {
                                 <button
                                   type="button"
                                   onClick={() => handleDeletePrompt(item)}
-                                  className="w-full text-left px-3 py-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-600 flex items-center gap-1.5"
+                                  className="w-full text-left px-3 py-1.5 hover:bg-rose-50 text-rose-600 flex items-center gap-1.5"
                                 >
                                   <Trash2 className="h-3 w-3 text-rose-500" />
                                   Delete
@@ -512,318 +480,554 @@ export function AddonPricingScreen() {
                               </div>
                             )}
                           </div>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Table Footer / Pagination */}
-          <div className="p-3 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
-            <div>
-              Showing {filteredPricing.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}-
-              {Math.min(currentPage * rowsPerPage, filteredPricing.length)} of {filteredPricing.length} pricing rules
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5">
-                <span>Rows per page:</span>
-                <select
-                  value={rowsPerPage}
-                  onChange={(e) => {
-                    setRowsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="h-7 px-2 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                </select>
-              </div>
 
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(1)}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  &laquo;
-                </button>
-                <button
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </button>
-                {Array.from({ length: totalPages }).map((_, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setCurrentPage(idx + 1)}
-                    className={`h-6 w-6 rounded text-xs font-medium flex items-center justify-center ${
-                      currentPage === idx + 1
-                        ? 'bg-[#6222cc] text-white'
-                        : 'text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
+            {/* Table Footer / Pagination */}
+            <div className="p-3 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
+              <div>
+                Showing {filteredPricing.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}-
+                {Math.min(currentPage * rowsPerPage, filteredPricing.length)} of {filteredPricing.length} pricing rules
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span>Rows per page:</span>
+                  <select
+                    value={rowsPerPage}
+                    onChange={(e) => {
+                      setRowsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="h-7 px-2 rounded border border-slate-200 bg-white text-xs text-slate-700"
                   >
-                    {idx + 1}
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(1)}
+                    className="p-1 rounded hover:bg-slate-100 disabled:opacity-40"
+                  >
+                    &laquo;
                   </button>
-                ))}
-                <button
-                  type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(totalPages)}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  &raquo;
-                </button>
+                  <button
+                    type="button"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="p-1 rounded hover:bg-slate-100 disabled:opacity-40"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </button>
+                  {Array.from({ length: totalPages }).map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setCurrentPage(idx + 1)}
+                      className={`h-6 w-6 rounded text-xs font-semibold flex items-center justify-center ${
+                        currentPage === idx + 1
+                          ? 'bg-[#6222cc] text-white shadow-xs'
+                          : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      {idx + 1}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="p-1 rounded hover:bg-slate-100 disabled:opacity-40"
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(totalPages)}
+                    className="p-1 rounded hover:bg-slate-100 disabled:opacity-40"
+                  >
+                    &raquo;
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* RIGHT COLUMN: Edit Add-on Pricing Card (~40-42% width) */}
-        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
-          {/* Card Top Title & Status */}
-          <div className="p-4 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                {isCreatingNew ? 'Create Pricing Rule' : 'Edit Add-on Pricing'}
-              </h2>
-              <p className="text-[11px] text-[#6222cc] font-medium">
-                {formData.addonName} ({formData.addonCode})
-              </p>
+          {/* RIGHT COLUMN: Edit Add-on Pricing Card (~40-42% width) */}
+          <div className="lg:col-span-5 bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+            {/* Card Top Title & Status */}
+            <div className="p-4 border-b border-slate-200/80 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">
+                  {isCreatingNew ? 'Create Pricing Rule' : 'Edit Add-on Pricing'}
+                </h2>
+                <p className="text-[11px] text-[#6222cc] font-semibold">
+                  {formData.addonName} ({formData.addonCode})
+                </p>
+              </div>
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                  formData.status === 'Active'
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'bg-amber-50 text-amber-700'
+                }`}
+              >
+                {formData.status}
+              </span>
             </div>
-            <span
-              className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                formData.status === 'Active'
-                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                  : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
-              }`}
-            >
-              {formData.status}
-            </span>
-          </div>
 
-          {/* Sub-tabs inside Card */}
-          <div className="flex items-center gap-4 px-4 pt-3 border-b border-slate-200/80 dark:border-slate-800 text-xs">
-            <button
-              type="button"
-              onClick={() => setActiveTab('details')}
-              className={`pb-2 transition-colors relative ${
-                activeTab === 'details'
-                  ? 'text-[#6222cc] font-semibold'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Pricing Details
-              {activeTab === 'details' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('discounts')}
-              className={`pb-2 transition-colors relative ${
-                activeTab === 'discounts'
-                  ? 'text-[#6222cc] font-semibold'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Discounts & Offers
-              {activeTab === 'discounts' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
-              )}
-            </button>
-          </div>
+            {/* Sub-tabs inside Card (Standard Pill Style) */}
+            <div className="flex items-center gap-2 px-4 pt-3 pb-2 border-b border-slate-200/80">
+              <button
+                type="button"
+                onClick={() => setActiveTab('details')}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer',
+                  activeTab === 'details'
+                    ? 'bg-[#6222cc] text-white shadow-xs'
+                    : 'bg-slate-100 hover:bg-slate-200/80 text-slate-600'
+                )}
+              >
+                <Coins className="h-3.5 w-3.5" />
+                <span>Pricing Details</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('discounts')}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer',
+                  activeTab === 'discounts'
+                    ? 'bg-[#6222cc] text-white shadow-xs'
+                    : 'bg-slate-100 hover:bg-slate-200/80 text-slate-600'
+                )}
+              >
+                <Percent className="h-3.5 w-3.5" />
+                <span>Discounts &amp; Offers</span>
+              </button>
+            </div>
 
-          {/* Form Content */}
-          <div className="p-4 space-y-4 text-xs">
-            {activeTab === 'details' ? (
-              <>
+            {/* Subtab 1: Pricing Details Form */}
+            {activeTab === 'details' && (
+              <div className="p-4 space-y-4 text-xs">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                      Billing Frequency <span className="text-rose-500">*</span>
+                    <label className="text-[11px] font-semibold text-slate-600 block mb-1">
+                      Add-on Name
+                    </label>
+                    <Input
+                      value={formData.addonName}
+                      onChange={(e) => setFormData({ ...formData, addonName: e.target.value })}
+                      className="h-8 text-xs bg-slate-50 border-slate-200 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-600 block mb-1">
+                      Add-on Code
+                    </label>
+                    <Input
+                      value={formData.addonCode}
+                      onChange={(e) => setFormData({ ...formData, addonCode: e.target.value })}
+                      className="h-8 text-xs font-mono bg-slate-50 border-slate-200 rounded-lg"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-600 block mb-1">
+                      Category
                     </label>
                     <select
-                      value={formData.billingCycle}
-                      onChange={(e) => setFormData({ ...formData, billingCycle: e.target.value as 'Monthly' | 'Quarterly' | 'Annual' })}
-                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800"
                     >
-                      <option>Monthly</option>
-                      <option>Quarterly</option>
-                      <option>Annual</option>
+                      <option value="AI & Automation">AI &amp; Automation</option>
+                      <option value="Communication">Communication</option>
+                      <option value="Analytics & Insights">Analytics &amp; Insights</option>
+                      <option value="Storage & Backup">Storage &amp; Backup</option>
+                      <option value="Payment Gateway">Payment Gateway</option>
                     </select>
                   </div>
                   <div>
-                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                      Pricing Model <span className="text-rose-500">*</span>
+                    <label className="text-[11px] font-semibold text-slate-600 block mb-1">
+                      Pricing Model
                     </label>
                     <select
                       value={formData.pricingModel}
                       onChange={(e) => setFormData({ ...formData, pricingModel: e.target.value as 'Per Tenant' | 'Per User' | 'Per Usage' })}
-                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                      className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800"
                     >
-                      <option value="Per Tenant">Per Tenant</option>
-                      <option value="Per User">Per User</option>
-                      <option value="Per Usage">Usage Based</option>
+                      <option value="Per Tenant">Per Tenant (Flat)</option>
+                      <option value="Per User">Per User / Seat</option>
+                      <option value="Per Usage">Per Usage (Metered)</option>
                     </select>
                   </div>
                 </div>
 
-                {/* Plan-wise Pricing Section */}
-                <div>
-                  <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-2">
-                    Plan-wise Pricing
-                  </label>
-                  <div className="space-y-2 border border-slate-200/80 dark:border-slate-700 p-3 rounded-lg bg-slate-50/50 dark:bg-slate-800/30">
-                    {formData.planTiers?.map((tier, idx) => (
-                      <div key={idx} className="flex items-center justify-between gap-3">
-                        <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700 dark:text-slate-200 min-w-[120px]">
-                          <input
-                            type="checkbox"
-                            checked={tier.enabled}
-                            onChange={(e) => {
-                              const updated = [...(formData.planTiers || [])];
-                              updated[idx].enabled = e.target.checked;
-                              setFormData({ ...formData, planTiers: updated });
-                            }}
-                            className="rounded text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc]"
-                          />
-                          <span>{tier.planName}</span>
-                        </label>
-                        <div className="flex items-center gap-1.5 flex-1 max-w-[160px]">
-                          <span className="text-slate-400">₹</span>
-                          <Input
-                            type="number"
-                            value={tier.price}
-                            onChange={(e) => {
-                              const updated = [...(formData.planTiers || [])];
-                              updated[idx].price = Number(e.target.value);
-                              setFormData({
-                                ...formData,
-                                planTiers: updated,
-                                plansPriceDisplay: updated.map((t) => `₹${t.price}`).join(' / '),
-                              });
-                            }}
-                            className="h-7 text-xs"
-                          />
-                          <span className="text-slate-400 text-[11px]">/mo</span>
-                        </div>
-                      </div>
-                    ))}
+                {/* Tier Configuration Table */}
+                <div className="pt-2">
+                  <span className="text-[11px] font-semibold text-slate-600 block mb-2">
+                    Edition Tier Rates (INR ₹)
+                  </span>
+                  <div className="border border-slate-200 rounded-xl overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 text-[11px]">
+                        <tr>
+                          <th className="py-2 px-2.5">Plan Tier</th>
+                          <th className="py-2 px-2.5">Rate (₹)</th>
+                          <th className="py-2 px-2.5 text-center">Trial Days</th>
+                          <th className="py-2 px-2.5 text-center">Active</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {formData.planTiers?.map((tier, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50/50">
+                            <td className="py-2 px-2.5 font-medium text-slate-800">
+                              {tier.planName}
+                            </td>
+                            <td className="py-1 px-2.5">
+                              <Input
+                                type="number"
+                                value={tier.price}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value);
+                                  const updated = [...(formData.planTiers || [])];
+                                  updated[idx] = { ...tier, price: val };
+                                  setFormData({ ...formData, planTiers: updated });
+                                }}
+                                className="h-7 w-24 text-xs font-semibold"
+                              />
+                            </td>
+                            <td className="py-1 px-2.5 text-center">
+                              <Input
+                                type="number"
+                                value={tier.trialDays}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value);
+                                  const updated = [...(formData.planTiers || [])];
+                                  updated[idx] = { ...tier, trialDays: val };
+                                  setFormData({ ...formData, planTiers: updated });
+                                }}
+                                className="h-7 w-16 mx-auto text-xs text-center"
+                              />
+                            </td>
+                            <td className="py-2 px-2.5 text-center">
+                              <input
+                                type="checkbox"
+                                checked={tier.enabled}
+                                onChange={(e) => {
+                                  const updated = [...(formData.planTiers || [])];
+                                  updated[idx] = { ...tier, enabled: e.target.checked };
+                                  setFormData({ ...formData, planTiers: updated });
+                                }}
+                                className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-3.5 w-3.5"
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
 
-                {/* Additional Settings */}
-                <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 block">
-                    Additional Billing Settings
-                  </span>
-                  <label className="flex items-center gap-2 text-slate-600 dark:text-slate-300 cursor-pointer">
+                {/* Toggles */}
+                <div className="space-y-2 pt-1 border-t border-slate-100">
+                  <label className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={formData.showInMarketplace}
+                      onChange={(e) => setFormData({ ...formData, showInMarketplace: e.target.checked })}
+                      className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-3.5 w-3.5"
+                    />
+                    <span>Visible in Marketplace catalog for self-service purchase</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-700">
                     <input
                       type="checkbox"
                       checked={formData.allowTrialForNewCustomers}
-                      onChange={(e) =>
-                        setFormData({ ...formData, allowTrialForNewCustomers: e.target.checked })
-                      }
-                      className="rounded text-[#6222cc]"
+                      onChange={(e) => setFormData({ ...formData, allowTrialForNewCustomers: e.target.checked })}
+                      className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-3.5 w-3.5"
                     />
-                    <span>Allow 14-day free trial on initial activation</span>
+                    <span>Allow 14-day free trial activation for new tenants</span>
                   </label>
-                  <label className="flex items-center gap-2 text-slate-600 dark:text-slate-300 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.allowAnnualDiscount}
-                      onChange={(e) =>
-                        setFormData({ ...formData, allowAnnualDiscount: e.target.checked })
-                      }
-                      className="rounded text-[#6222cc]"
-                    />
-                    <span>Enable 15% upfront discount for annual prepay</span>
-                  </label>
-                  <label className="flex items-center gap-2 text-slate-600 dark:text-slate-300 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.requireApprovalForActivation}
-                      onChange={(e) =>
-                        setFormData({ ...formData, requireApprovalForActivation: e.target.checked })
-                      }
-                      className="rounded text-[#6222cc]"
-                    />
-                    <span>Require SuperAdmin manual approval prior to provisioning</span>
-                  </label>
-                </div>
-              </>
-            ) : (
-              <div className="space-y-3">
-                <div className="p-3 rounded-lg border border-purple-100 bg-purple-50/50 text-purple-900 space-y-1">
-                  <span className="font-semibold block">Volume Discount Promotions</span>
-                  <p className="text-[11px] text-purple-700">
-                    Tenants subscribing to 50+ seats receive an automatic 20% discount on this add-on schedule.
-                  </p>
-                </div>
-                <div>
-                  <label className="font-semibold text-slate-700 block mb-1">
-                    Promotional Coupon Override
-                  </label>
-                  <Input placeholder="e.g. EARLYBIRD2026" className="h-8 text-xs font-mono" />
                 </div>
               </div>
             )}
-          </div>
 
-          {/* Card Footer Actions */}
-          <div className="p-4 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-800/20">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => {
-                if (selectedPricing) {
-                  setFormData({ ...selectedPricing });
-                  setIsCreatingNew(false);
-                }
-              }}
-              className="h-8 px-3 text-xs border-slate-200"
-            >
-              Cancel
-            </Button>
+            {/* Subtab 2: Discounts & Offers Form */}
+            {activeTab === 'discounts' && (
+              <div className="p-4 space-y-4 text-xs animate-in fade-in">
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-800">
+                    <input
+                      type="checkbox"
+                      checked={formData.allowAnnualDiscount}
+                      onChange={(e) => setFormData({ ...formData, allowAnnualDiscount: e.target.checked })}
+                      className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-4 w-4"
+                    />
+                    <span>Enable Annual Subscription Discount</span>
+                  </label>
 
-            <div className="flex items-center gap-2">
+                  {formData.allowAnnualDiscount && (
+                    <div className="pl-6 space-y-2">
+                      <label className="text-[11px] font-semibold text-slate-600 block">
+                        Annual Discount Percentage (%)
+                      </label>
+                      <Input
+                        type="number"
+                        value={formData.annualDiscountPercentage || 15}
+                        onChange={(e) => setFormData({ ...formData, annualDiscountPercentage: Number(e.target.value) })}
+                        className="h-8 w-32 text-xs"
+                      />
+                      <p className="text-[11px] text-slate-500">
+                        Tenants paying annually receive {formData.annualDiscountPercentage || 15}% off the cumulative monthly rate.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 space-y-2">
+                  <span className="text-[11px] font-semibold text-slate-700 block">Volume Discounts (Multi-Tenant)</span>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
+                    <div className="flex justify-between">
+                      <span>5 – 10 Tenants:</span>
+                      <span className="font-semibold text-slate-800">10% discount</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>11 – 25 Tenants:</span>
+                      <span className="font-semibold text-slate-800">15% discount</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>25+ Tenants:</span>
+                      <span className="font-semibold text-slate-800">Custom Partner Rate</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Footer Buttons */}
+            <div className="p-4 border-t border-slate-200/80 bg-slate-50/50 flex items-center justify-between">
               <Button
                 variant="outline"
                 type="button"
-                onClick={() => handleSaveForm(true)}
-                className="h-8 px-3 text-xs border-slate-200 hover:bg-slate-100 text-slate-700"
+                onClick={() => {
+                  if (selectedPricing) {
+                    setFormData({ ...selectedPricing });
+                    setIsCreatingNew(false);
+                  }
+                }}
+                className="h-8 px-3 text-xs border-slate-200"
               >
-                Save as Draft
+                Reset
+              </Button>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => handleSaveForm(true)}
+                  className="h-8 px-3 text-xs border-slate-200 hover:bg-slate-100 text-slate-700"
+                >
+                  Save as Draft
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => handleSaveForm(false)}
+                  className="h-8 px-4 text-xs font-semibold bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs cursor-pointer"
+                >
+                  {isCreatingNew ? 'Create Pricing' : 'Update Pricing'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: PRICE TEMPLATES */}
+      {activeSubTab === 'templates' && (
+        <div className="space-y-4 animate-in fade-in">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs space-y-4">
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Add-on Price Templates</h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Pre-configured pricing blueprints for instant rollout across add-on modules.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+              {[
+                {
+                  title: 'Standard Tiered Pack',
+                  desc: 'Standard (₹499), Pro (₹899), Enterprise (₹1,999) with 14-day trial.',
+                  badge: 'Popular',
+                  model: 'Tiered by Plan',
+                },
+                {
+                  title: 'Flat Monthly Add-on',
+                  desc: 'Single flat fee of ₹399/tenant/month with 15% annual savings.',
+                  badge: 'Simple',
+                  model: 'Per Tenant',
+                },
+                {
+                  title: 'Per-User License',
+                  desc: 'Scales at ₹49/user/month. Ideal for collaboration and seat-based tools.',
+                  badge: 'Seat-Based',
+                  model: 'Per User',
+                },
+                {
+                  title: 'Metered Consumption',
+                  desc: 'Pay-per-use buckets (e.g. 1,000 WhatsApp msgs / 50GB storage).',
+                  badge: 'Usage',
+                  model: 'Usage-based',
+                },
+              ].map((tpl, idx) => (
+                <div key={idx} className="border border-slate-200 rounded-xl p-4 bg-slate-50/40 space-y-3 flex flex-col justify-between hover:border-purple-300 transition-all">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="bg-purple-50 text-[#6222cc] text-[10px] font-bold px-2 py-0.5 rounded-full border border-purple-200">
+                        {tpl.badge}
+                      </span>
+                      <span className="text-[11px] text-slate-500">{tpl.model}</span>
+                    </div>
+                    <h4 className="font-bold text-slate-900 text-sm">{tpl.title}</h4>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">{tpl.desc}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      handleStartCreateNew();
+                      setActiveSubTab('pricing');
+                      showToast(`Applied blueprint: ${tpl.title}`);
+                    }}
+                    className="w-full text-xs border-[#6222cc] text-[#6222cc] hover:bg-purple-50"
+                  >
+                    Use Blueprint
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: BULK UPDATE */}
+      {activeSubTab === 'bulk' && (
+        <div className="space-y-4 animate-in fade-in">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs space-y-4">
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Bulk Price Adjustments</h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Apply global percentage markups, discounts, or seasonal offers across categories.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Target Category</label>
+                <select className="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs">
+                  <option>All Categories (24 Add-ons)</option>
+                  <option>AI &amp; Automation</option>
+                  <option>Communication</option>
+                  <option>Storage &amp; Backup</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Adjustment Type</label>
+                <select className="w-full h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs">
+                  <option>Percentage Increase (+ %)</option>
+                  <option>Percentage Discount (- %)</option>
+                  <option>Set Fixed Base Rate</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700">Value (%)</label>
+                <Input defaultValue="10" className="h-9 text-xs" placeholder="e.g. 10" />
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-2">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => showToast('Simulating bulk changes preview...')}
+                className="text-xs"
+              >
+                Simulate Preview
               </Button>
               <Button
                 type="button"
-                onClick={() => handleSaveForm(false)}
-                className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
+                onClick={() => showToast('Bulk pricing changes applied across 24 add-ons!')}
+                className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs font-semibold"
               >
-                {isCreatingNew ? 'Create Pricing' : 'Update Pricing'}
+                Apply Bulk Update
               </Button>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* TAB 4: PRICE HISTORY */}
+      {activeSubTab === 'history' && (
+        <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden animate-in fade-in">
+          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Pricing Audit &amp; Revision Log</h3>
+              <p className="text-xs text-slate-500">Historical log of all price changes and tier adjustments.</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => showToast('Exporting revision history...')}
+              className="text-xs"
+            >
+              <FileDown className="h-3.5 w-3.5 mr-1" />
+              Export Log
+            </Button>
+          </div>
+
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 text-[11px]">
+              <tr>
+                <th className="py-2.5 px-3">Date &amp; Time</th>
+                <th className="py-2.5 px-3">Add-on Name</th>
+                <th className="py-2.5 px-3">Revision</th>
+                <th className="py-2.5 px-3">Old Rate</th>
+                <th className="py-2.5 px-3">New Rate</th>
+                <th className="py-2.5 px-3">Changed By</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {[
+                { date: '18 Nov 2026, 02:40 PM', name: 'AI Lead Scoring', rev: 'Pro tier price update', old: '₹799/mo', new: '₹899/mo', user: 'N. R. Patnaik (Super Admin)' },
+                { date: '15 Nov 2026, 11:15 AM', name: 'WhatsApp Business', rev: 'Pack limit bump', old: '₹249/pack', new: '₹299/pack', user: 'N. R. Patnaik (Super Admin)' },
+                { date: '10 Nov 2026, 04:20 PM', name: 'Custom Domain SSL', rev: 'Included in enterprise', old: '₹199/mo', new: 'Free in Enterprise', user: 'N. R. Patnaik (Super Admin)' },
+              ].map((row, idx) => (
+                <tr key={idx} className="hover:bg-slate-50/50">
+                  <td className="py-2.5 px-3 text-slate-600 font-mono">{row.date}</td>
+                  <td className="py-2.5 px-3 font-semibold text-slate-900">{row.name}</td>
+                  <td className="py-2.5 px-3 text-slate-600">{row.rev}</td>
+                  <td className="py-2.5 px-3 text-slate-500 line-through">{row.old}</td>
+                  <td className="py-2.5 px-3 font-semibold text-emerald-600">{row.new}</td>
+                  <td className="py-2.5 px-3 text-slate-700">{row.user}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDeleteDialog

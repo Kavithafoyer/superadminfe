@@ -325,27 +325,6 @@ export default function ProductWisePerformancePage() {
             </p>
           </div>
         </div>
-
-        {/* View Switcher Pills */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => router.push('/dashboard')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer bg-[#1574fe] text-white hover:bg-[#0d62e0] shadow-blue-500/20"
-          >
-            <TrendingUp className="h-4 w-4" />
-            Executive Dashboard
-          </button>
-
-          <button
-            type="button"
-            onClick={() => router.push('/dashboard#system-health-section')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
-          >
-            <Server className="h-4 w-4" />
-            System Health
-          </button>
-        </div>
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════

@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { CustomerMasterListScreen } from '@/components/customer/CustomerMasterListScreen';
+import { CustomerMasterScreen } from '@/components/customer/CustomerMasterScreen';
 
 export default function CustomerRootPage() {
   return (
     <div className="w-full">
-      <CustomerMasterListScreen />
+      <CustomerMasterScreen />
     </div>
   );
 }

@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { ProductMasterListScreen } from '@/components/products/ProductMasterListScreen';
+import { ProductMasterScreen } from '@/components/products/ProductMasterScreen';
 
 export default function ProductMasterMainPage() {
   return (
     <div className="w-full">
-      <ProductMasterListScreen />
+      <ProductMasterScreen />
     </div>
   );
 }

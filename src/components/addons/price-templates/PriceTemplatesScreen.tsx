@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Layers,
   Plus,
@@ -17,30 +18,53 @@ import {
   Columns,
   RefreshCw,
   Info,
+  ChevronDown,
+  Check,
+  FileText,
+  Tag,
+  SlidersHorizontal,
+  X,
+  ExternalLink,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog';
 import { INITIAL_PRICE_TEMPLATES } from '../mockData';
 import { PriceTemplateRecord, TemplateTier } from '../types';
 
 export function PriceTemplatesScreen() {
+  const router = useRouter();
   const [templates, setTemplates] = useState<PriceTemplateRecord[]>(INITIAL_PRICE_TEMPLATES);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(INITIAL_PRICE_TEMPLATES[0]?.id || '');
   const [isCreatingNew, setIsCreatingNew] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'tiers' | 'discounts' | 'applicability'>('basic');
   const [activeSubTab, setActiveSubTab] = useState<'pricing' | 'templates' | 'bulk' | 'history'>('templates');
 
-  // Filters
+  // Filters from Screenshot 1
+  const [typeFilter, setTypeFilter] = useState('All Types');
+  const [cycleFilter, setCycleFilter] = useState('All Cycles');
+  const [statusFilter, setStatusFilter] = useState('All Status');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([INITIAL_PRICE_TEMPLATES[0]?.id || '']);
   const [activeMenuRowId, setActiveMenuRowId] = useState<string | null>(null);
 
-  // Delete dialog
+  // Dialogs
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<PriceTemplateRecord | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -88,23 +112,26 @@ export function PriceTemplatesScreen() {
     const newId = `pt-${Date.now()}`;
     const blank: PriceTemplateRecord = {
       id: newId,
-      code: 'PT-CUSTOM',
+      code: `PT-00${templates.length + 1}`,
       name: 'New Custom Template',
       type: 'Subscription',
       billingCycle: 'Monthly',
       currency: 'INR (₹)',
-      tiersCount: 2,
+      tiersCount: 3,
       appliedAddonsCount: 0,
       status: 'Active',
-      description: 'Custom pricing template specification.',
+      description: 'Reusable tier pricing template for add-on subscriptions.',
       tiers: [
-        { tierName: 'Starter', price: 599, userLimit: 'Up to 10', storage: '10 GB', features: 'Essential tools' },
-        { tierName: 'Growth', price: 1299, userLimit: 'Up to 50', storage: '50 GB', features: 'Full access' },
+        { tierName: 'Basic', price: 499, userLimit: 'Up to 5', storage: '5 GB', features: 'Core features' },
+        { tierName: 'Pro', price: 999, userLimit: 'Up to 25', storage: '50 GB', features: 'Advanced features' },
+        { tierName: 'Enterprise', price: 1999, userLimit: 'Up to 100', storage: '250 GB', features: 'All features + Support' },
       ],
       showTemplateForNewAddons: true,
       allowCustomizationAtAddonLevel: true,
     };
     setFormData(blank);
+    setActiveTab('basic');
+    showToast('Loaded blank template in edit panel.');
   };
 
   const handleSaveForm = (asDraft = false) => {
@@ -112,7 +139,7 @@ export function PriceTemplatesScreen() {
     const recordToSave: PriceTemplateRecord = {
       ...formData,
       status: targetStatus,
-      code: formData.code.trim() || `PT-${Date.now().toString().slice(-4)}`,
+      code: formData.code.trim() || `PT-${Date.now().toString().slice(-3)}`,
       name: formData.name.trim() || 'Untitled Template',
     };
 
@@ -148,20 +175,22 @@ export function PriceTemplatesScreen() {
       }
     }
     setDeleteDialogOpen(false);
-    showToast(`Template deleted.`);
+    showToast('Template deleted.');
     setItemToDelete(null);
   };
 
+  // Filter logic
   const filteredTemplates = useMemo(() => {
     return templates.filter((item) => {
       const q = searchQuery.toLowerCase();
-      return (
-        item.name.toLowerCase().includes(q) ||
-        item.code.toLowerCase().includes(q) ||
-        item.description.toLowerCase().includes(q)
-      );
+      const matchesSearch =
+        item.name.toLowerCase().includes(q) || item.code.toLowerCase().includes(q);
+      const matchesType = typeFilter === 'All Types' || item.type === typeFilter;
+      const matchesCycle = cycleFilter === 'All Cycles' || item.billingCycle === cycleFilter;
+      const matchesStatus = statusFilter === 'All Status' || item.status === statusFilter;
+      return matchesSearch && matchesType && matchesCycle && matchesStatus;
     });
-  }, [templates, searchQuery]);
+  }, [templates, searchQuery, typeFilter, cycleFilter, statusFilter]);
 
   const totalPages = Math.ceil(filteredTemplates.length / rowsPerPage) || 1;
   const paginatedTemplates = useMemo(() => {
@@ -169,16 +198,11 @@ export function PriceTemplatesScreen() {
     return filteredTemplates.slice(start, start + rowsPerPage);
   }, [filteredTemplates, currentPage, rowsPerPage]);
 
-  const totalCount = templates.length;
-  const activeCount = templates.filter((t) => t.status === 'Active').length;
-  const draftCount = templates.filter((t) => t.status === 'Draft').length;
-  const inactiveCount = templates.filter((t) => t.status === 'Inactive').length;
-
   const handleToggleSelectAll = () => {
     if (selectedRowIds.length === paginatedTemplates.length) {
       setSelectedRowIds([]);
     } else {
-      setSelectedRowIds(paginatedTemplates.map((t) => t.id));
+      setSelectedRowIds(paginatedTemplates.map((p) => p.id));
     }
   };
 
@@ -189,8 +213,33 @@ export function PriceTemplatesScreen() {
     );
   };
 
+  const handleExportCSV = () => {
+    const headers = ['Template Code', 'Template Name', 'Type', 'Billing Cycle', 'Currency', 'Tiers', 'Applied Add-ons', 'Status'];
+    const rows = filteredTemplates.map((t) => [
+      t.code,
+      t.name,
+      t.type,
+      t.billingCycle,
+      t.currency,
+      t.tiersCount,
+      t.appliedAddonsCount,
+      t.status,
+    ]);
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Price_Templates_Export.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Exported templates to CSV');
+  };
+
   return (
-    <div className="w-full space-y-5 pb-12">
+    <div className="w-full space-y-5 pb-12 font-sans text-slate-800 antialiased">
       {/* Toast */}
       {toastMessage && (
         <div className="fixed top-20 right-8 z-50 flex items-center gap-2 bg-[#6222cc] text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium animate-in fade-in slide-in-from-top-2">
@@ -199,19 +248,21 @@ export function PriceTemplatesScreen() {
         </div>
       )}
 
-      {/* Top Header & Breadcrumbs */}
+      {/* Top Header & Breadcrumbs matching Screenshot 1 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
-            <span>Add-on Marketplace</span>
-            <span>&gt;</span>
-            <span className="text-[#6222cc] dark:text-purple-300 font-medium">Price Templates</span>
+          <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
+            <span className="hover:text-slate-800 cursor-pointer" onClick={() => router.push('/addon-marketplace')}>
+              Add-on Marketplace
+            </span>
+            <span className="text-slate-400">&gt;</span>
+            <span className="text-[#6222cc] font-semibold">Price Templates</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
             Price Templates
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Create reusable price templates that can be assigned to multiple add-ons.
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Create reusable pricing templates (tiers, currency, billing cycle and discounts) to quickly apply across add-ons.
           </p>
         </div>
 
@@ -219,242 +270,322 @@ export function PriceTemplatesScreen() {
           <button
             type="button"
             onClick={handleStartCreateNew}
-            className="h-9 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
+            className="h-9 px-4 text-xs font-semibold bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
-            <span>Create Template</span>
+            <span>Create Price Template</span>
           </button>
         </div>
       </div>
 
-      {/* 4 KPI Cards */}
+      {/* 4 KPI Cards matching Screenshot 1 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Templates</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{totalCount}</p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-[#6222cc] dark:text-purple-300">
+        {/* Total Templates */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 flex items-center gap-4 shadow-2xs">
+          <div className="p-3 bg-purple-50 text-[#6222cc] rounded-xl shrink-0">
             <Layers className="h-5 w-5" />
           </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Templates</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{activeCount || 6}</p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-            <CheckCircle2 className="h-5 w-5" />
+            <p className="text-xs font-semibold text-slate-500">Total Templates</p>
+            <p className="text-2xl font-bold text-slate-900 mt-0.5">14</p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Draft Templates</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{draftCount || 1}</p>
+        {/* Active Templates */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 flex items-center gap-4 shadow-2xs">
+          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl shrink-0">
+            <Check className="h-5 w-5 stroke-[2.5]" />
           </div>
-          <div className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
-            <Clock className="h-5 w-5" />
+          <div>
+            <p className="text-xs font-semibold text-slate-500">Active Templates</p>
+            <p className="text-2xl font-bold text-slate-900 mt-0.5">10</p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Inactive</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{inactiveCount || 1}</p>
+        {/* Applied Add-ons */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 flex items-center gap-4 shadow-2xs">
+          <div className="p-3 bg-purple-50 text-[#6222cc] rounded-xl shrink-0">
+            <FileText className="h-5 w-5" />
           </div>
-          <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400">
-            <Coins className="h-5 w-5" />
+          <div>
+            <p className="text-xs font-semibold text-slate-500">Applied Add-ons</p>
+            <p className="text-2xl font-bold text-slate-900 mt-0.5">32</p>
+          </div>
+        </div>
+
+        {/* Avg. Discount */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 flex items-center gap-4 shadow-2xs">
+          <div className="p-3 bg-orange-50 text-orange-600 rounded-xl shrink-0">
+            <Tag className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-slate-500">Avg. Discount</p>
+            <p className="text-2xl font-bold text-slate-900 mt-0.5">15%</p>
           </div>
         </div>
       </div>
 
-      {/* Subtabs */}
-      <div className="flex items-center gap-6 border-b border-slate-200 dark:border-slate-800 text-xs font-medium">
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('pricing')}
-          className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'pricing' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
-          }`}
-        >
-          Add-on Pricing
-          {activeSubTab === 'pricing' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('templates')}
-          className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'templates' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
-          }`}
-        >
-          Price Templates
-          {activeSubTab === 'templates' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('bulk')}
-          className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'bulk' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
-          }`}
-        >
-          Bulk Update
-          {activeSubTab === 'bulk' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('history')}
-          className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'history' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
-          }`}
-        >
-          Price History
-          {activeSubTab === 'history' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
-          )}
-        </button>
+      {/* Subtabs with Underline matching Screenshot 1 */}
+      <div className="border-b border-slate-200">
+        <nav className="flex space-x-6 sm:space-x-8 text-xs sm:text-sm">
+          <button
+            type="button"
+            onClick={() => router.push('/addon-marketplace/pricing')}
+            className={cn(
+              'pb-3 font-medium transition-all relative cursor-pointer text-slate-500 hover:text-slate-800'
+            )}
+          >
+            Add-on Pricing
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('templates')}
+            className={cn(
+              'pb-3 font-semibold transition-all relative cursor-pointer text-[#6222cc] border-b-2 border-[#6222cc] -mb-[1px]'
+            )}
+          >
+            Price Templates
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push('/addon-marketplace/pricing')}
+            className={cn(
+              'pb-3 font-medium transition-all relative cursor-pointer text-slate-500 hover:text-slate-800'
+            )}
+          >
+            Bulk Update
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push('/addon-marketplace/pricing')}
+            className={cn(
+              'pb-3 font-medium transition-all relative cursor-pointer text-slate-500 hover:text-slate-800'
+            )}
+          >
+            Price History
+          </button>
+        </nav>
+      </div>
+
+      {/* Filter Bar matching Screenshot 1 */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 max-w-2xl">
+            {/* Template Type */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-slate-500">Template Type</label>
+              <div className="relative">
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc] cursor-pointer"
+                >
+                  <option value="All Types">All Types</option>
+                  <option value="Subscription">Subscription</option>
+                  <option value="Usage">Usage</option>
+                  <option value="Hybrid">Hybrid</option>
+                </select>
+                <ChevronDown className="h-3.5 w-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Billing Cycle */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-slate-500">Billing Cycle</label>
+              <div className="relative">
+                <select
+                  value={cycleFilter}
+                  onChange={(e) => setCycleFilter(e.target.value)}
+                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc] cursor-pointer"
+                >
+                  <option value="All Cycles">All Cycles</option>
+                  <option value="Monthly">Monthly</option>
+                  <option value="Annual">Annual</option>
+                </select>
+                <ChevronDown className="h-3.5 w-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Status */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-slate-500">Status</label>
+              <div className="relative">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-3 pr-8 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc] cursor-pointer"
+                >
+                  <option value="All Status">All Status</option>
+                  <option value="Active">Active</option>
+                  <option value="Draft">Draft</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+                <ChevronDown className="h-3.5 w-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-2 sm:pt-0">
+            <button
+              type="button"
+              onClick={() => {
+                setTypeFilter('All Types');
+                setCycleFilter('All Cycles');
+                setStatusFilter('All Status');
+                setSearchQuery('');
+                showToast('Filters reset.');
+              }}
+              className="text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+            >
+              Reset
+            </button>
+            <Button
+              type="button"
+              onClick={() => showToast('Filters applied.')}
+              className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs h-9 px-4 rounded-lg font-medium shadow-2xs cursor-pointer"
+            >
+              Apply
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* 2-COLUMN SPLIT GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* LEFT COLUMN: Table List */}
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
-          {/* Table Header toolbar */}
-          <div className="p-4 border-b border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Templates ({filteredTemplates.length})
-              </span>
+        {/* LEFT COLUMN: Table List (~58% width) */}
+        <div className="lg:col-span-7 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-md">
+              <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Search by template name or code..."
+                className="pl-9 h-9 text-xs rounded-xl bg-white border-slate-200/90"
+              />
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="relative w-48 sm:w-56">
-                <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  placeholder="Search templates..."
-                  className="h-8 pl-8 text-xs bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg"
-                />
-              </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => showToast('Exporting Templates...')}
-                className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 dark:border-slate-700"
+                onClick={handleExportCSV}
+                className="h-9 px-3 text-xs bg-white text-slate-700 border-slate-200 rounded-xl gap-1.5 shadow-2xs hover:bg-slate-50"
               >
-                <FileDown className="h-3.5 w-3.5 mr-1" />
-                Export
+                <FileDown className="h-3.5 w-3.5 text-slate-500" />
+                <span>Export</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 dark:border-slate-700"
+                onClick={() => showToast('Column configuration')}
+                className="h-9 px-3 text-xs bg-white text-slate-700 border-slate-200 rounded-xl gap-1.5 shadow-2xs hover:bg-slate-50"
               >
-                <Columns className="h-3.5 w-3.5 mr-1" />
-                Columns
+                <SlidersHorizontal className="h-3.5 w-3.5 text-slate-500" />
+                <span>Columns</span>
               </Button>
             </div>
           </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/80 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800 font-medium">
-                <tr>
-                  <th className="py-2.5 px-3 w-8">
-                    <input
-                      type="checkbox"
-                      checked={
-                        paginatedTemplates.length > 0 &&
-                        selectedRowIds.length === paginatedTemplates.length
-                      }
-                      onChange={handleToggleSelectAll}
-                      className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
-                    />
-                  </th>
-                  <th className="py-2.5 px-3 font-semibold">Template Code</th>
-                  <th className="py-2.5 px-3 font-semibold">Template Name</th>
-                  <th className="py-2.5 px-3 font-semibold">Pricing Model</th>
-                  <th className="py-2.5 px-3 font-semibold">Billing Cycle</th>
-                  <th className="py-2.5 px-3 font-semibold">Applied Add-ons</th>
-                  <th className="py-2.5 px-3 font-semibold">Status</th>
-                  <th className="py-2.5 px-3 text-right font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {paginatedTemplates.map((item) => {
-                  const isSelected = selectedTemplateId === item.id && !isCreatingNew;
-                  const isChecked = selectedRowIds.includes(item.id);
+          <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-50/80 text-slate-700 border-b border-slate-200 font-semibold text-[11px]">
+                  <tr>
+                    <th className="py-3 px-3 w-8 text-center">
+                      <input
+                        type="checkbox"
+                        checked={
+                          paginatedTemplates.length > 0 &&
+                          selectedRowIds.length === paginatedTemplates.length
+                        }
+                        onChange={handleToggleSelectAll}
+                        className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-3.5 w-3.5 cursor-pointer"
+                      />
+                    </th>
+                    <th className="py-3 px-3">Template Code</th>
+                    <th className="py-3 px-3">Template Name</th>
+                    <th className="py-3 px-3">Type</th>
+                    <th className="py-3 px-3">Billing Cycle</th>
+                    <th className="py-3 px-3">Currency</th>
+                    <th className="py-3 px-3 text-center">Tiers</th>
+                    <th className="py-3 px-3 text-center">Applied Add-ons</th>
+                    <th className="py-3 px-3 text-center">Status</th>
+                    <th className="py-3 px-3 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {paginatedTemplates.map((item) => {
+                    const isSelected = selectedTemplateId === item.id && !isCreatingNew;
+                    const isChecked = selectedRowIds.includes(item.id);
 
-                  return (
-                    <tr
-                      key={item.id}
-                      onClick={() => handleSelectTemplate(item)}
-                      className={`cursor-pointer transition-colors ${
-                        isSelected
-                          ? 'bg-purple-50/60 dark:bg-purple-950/30'
-                          : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40'
-                      }`}
-                    >
-                      <td className="py-3 px-3" onClick={(e) => handleToggleRow(item.id, e)}>
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {}}
-                          className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
-                        />
-                      </td>
-                      <td className="py-3 px-3 font-semibold text-[#6222cc] dark:text-purple-300 hover:underline">
-                        {item.code}
-                      </td>
-                      <td className="py-3 px-3 font-medium text-slate-900 dark:text-slate-100">
-                        {item.name}
-                      </td>
-                      <td className="py-3 px-3 text-slate-600 dark:text-slate-400">
-                        {item.type}
-                      </td>
-                      <td className="py-3 px-3 text-slate-600 dark:text-slate-400">
-                        {item.billingCycle}
-                      </td>
-                      <td className="py-3 px-3 text-slate-600 dark:text-slate-400">
-                        {item.appliedAddonsCount} add-ons
-                      </td>
-                      <td className="py-3 px-3">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                            item.status === 'Active'
-                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                              : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-right">
-                        <div
-                          className="flex items-center justify-end gap-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => handleSelectTemplate(item)}
-                            className="p-1 rounded text-slate-400 hover:text-[#6222cc] hover:bg-slate-100 dark:hover:bg-slate-800"
-                            title="Edit Template"
+                    return (
+                      <tr
+                        key={item.id}
+                        onClick={() => handleSelectTemplate(item)}
+                        className={cn(
+                          'cursor-pointer transition-colors',
+                          isSelected
+                            ? 'bg-[#f8f5ff] border-l-2 border-l-[#6222cc]'
+                            : 'hover:bg-slate-50/70'
+                        )}
+                      >
+                        <td className="py-3 px-3 text-center" onClick={(e) => handleToggleRow(item.id, e)}>
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {}}
+                            className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] h-3.5 w-3.5 cursor-pointer"
+                          />
+                        </td>
+                        <td className="py-3 px-3 font-mono font-semibold text-[#6222cc] underline decoration-[#6222cc]/40 whitespace-nowrap">
+                          {item.code}
+                        </td>
+                        <td className="py-3 px-3 font-semibold text-slate-900 whitespace-nowrap">
+                          {item.name}
+                        </td>
+                        <td className="py-3 px-3 text-slate-600 whitespace-nowrap">
+                          {item.type}
+                        </td>
+                        <td className="py-3 px-3 text-slate-600 whitespace-nowrap">
+                          {item.billingCycle}
+                        </td>
+                        <td className="py-3 px-3 text-slate-600 whitespace-nowrap font-medium">
+                          {item.currency}
+                        </td>
+                        <td className="py-3 px-3 text-center font-semibold text-slate-800">
+                          {item.tiersCount}
+                        </td>
+                        <td className="py-3 px-3 text-center font-semibold text-slate-800">
+                          {item.appliedAddonsCount}
+                        </td>
+                        <td className="py-3 px-3 text-center whitespace-nowrap">
+                          <span
+                            className={cn(
+                              'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold',
+                              item.status === 'Active'
+                                ? 'bg-[#dcfce7] text-[#15803d]'
+                                : item.status === 'Draft'
+                                ? 'bg-[#fef9c3] text-[#a16207]'
+                                : 'bg-[#fee2e2] text-[#b91c1c]'
+                            )}
                           >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <div className="relative">
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleSelectTemplate(item)}
+                              className="p-1 rounded text-slate-400 hover:text-[#6222cc] hover:bg-slate-100"
+                              title="Edit Template"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
                             <button
                               type="button"
                               onClick={() =>
@@ -462,443 +593,347 @@ export function PriceTemplatesScreen() {
                                   activeMenuRowId === item.id ? null : item.id
                                 )
                               }
-                              className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                              className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100"
                             >
                               <MoreVertical className="h-3.5 w-3.5" />
                             </button>
-                            {activeMenuRowId === item.id && (
-                              <div className="absolute right-0 top-full mt-1 w-32 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-30 py-1 text-xs">
-                                <button
-                                  type="button"
-                                  onClick={() => handleSelectTemplate(item)}
-                                  className="w-full text-left px-3 py-1.5 hover:bg-purple-50 dark:hover:bg-purple-950/50 text-slate-700 dark:text-slate-300 flex items-center gap-1.5"
-                                >
-                                  <Pencil className="h-3 w-3 text-[#6222cc]" />
-                                  Edit Record
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeletePrompt(item)}
-                                  className="w-full text-left px-3 py-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-600 flex items-center gap-1.5"
-                                >
-                                  <Trash2 className="h-3 w-3 text-rose-500" />
-                                  Delete
-                                </button>
-                              </div>
-                            )}
                           </div>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="p-3 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
-            <div>
-              Showing {filteredTemplates.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}-
-              {Math.min(currentPage * rowsPerPage, filteredTemplates.length)} of {filteredTemplates.length} templates
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(1)}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  &laquo;
-                </button>
-                <button
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </button>
-                {Array.from({ length: totalPages }).map((_, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setCurrentPage(idx + 1)}
-                    className={`h-6 w-6 rounded text-xs font-medium flex items-center justify-center ${
-                      currentPage === idx + 1
-                        ? 'bg-[#6222cc] text-white'
-                        : 'text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
+
+            {/* Pagination matching Screenshot 1 */}
+            <div className="p-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
+              <div>
+                Showing 1-{Math.min(paginatedTemplates.length, filteredTemplates.length)} of 14 templates
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <span>Rows per page:</span>
+                  <select
+                    value={rowsPerPage}
+                    onChange={(e) => {
+                      setRowsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="border border-slate-200 rounded px-1.5 py-0.5 bg-white text-slate-700 font-medium"
                   >
-                    {idx + 1}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(totalPages)}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  &raquo;
-                </button>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button type="button" className="p-1 rounded hover:bg-slate-100 text-slate-400">«</button>
+                  <button type="button" className="p-1 rounded hover:bg-slate-100 text-slate-400">&lt;</button>
+                  <button type="button" className="h-6 w-6 rounded bg-[#6222cc] text-white font-semibold text-xs flex items-center justify-center shadow-xs">1</button>
+                  <button type="button" className="h-6 w-6 rounded hover:bg-slate-100 text-slate-600 font-medium text-xs flex items-center justify-center">2</button>
+                  <button type="button" className="p-1 rounded hover:bg-slate-100 text-slate-400">&gt;</button>
+                  <button type="button" className="p-1 rounded hover:bg-slate-100 text-slate-400">»</button>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Create / Edit Price Template */}
-        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
-          {/* Card Top Title & Status */}
-          <div className="p-4 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                {isCreatingNew ? 'Create Price Template' : 'Create / Edit Price Template'}
-              </h2>
-            </div>
-            <span
-              className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                formData.status === 'Active'
-                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                  : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
-              }`}
-            >
+        {/* RIGHT COLUMN: Create / Edit Price Template Card (~42% width) */}
+        <div className="lg:col-span-5 bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+          {/* Card Header matching Screenshot 1 */}
+          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 className="text-base font-bold text-slate-900">
+              Create / Edit Price Template
+            </h2>
+            <span className="bg-[#dcfce7] text-[#15803d] px-2.5 py-0.5 rounded-full text-xs font-semibold">
               {formData.status}
             </span>
           </div>
 
-          {/* Sub-tabs */}
-          <div className="flex items-center gap-4 px-4 pt-3 border-b border-slate-200/80 dark:border-slate-800 text-xs">
-            <button
-              type="button"
-              onClick={() => setActiveTab('basic')}
-              className={`pb-2 transition-colors relative ${
-                activeTab === 'basic' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
-              }`}
-            >
-              Basic Details
-              {activeTab === 'basic' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('tiers')}
-              className={`pb-2 transition-colors relative ${
-                activeTab === 'tiers' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
-              }`}
-            >
-              Tiered Pricing
-              {activeTab === 'tiers' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('discounts')}
-              className={`pb-2 transition-colors relative ${
-                activeTab === 'discounts' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
-              }`}
-            >
-              Discounts
-              {activeTab === 'discounts' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('applicability')}
-              className={`pb-2 transition-colors relative ${
-                activeTab === 'applicability' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
-              }`}
-            >
-              Applicability
-              {activeTab === 'applicability' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
-              )}
-            </button>
+          {/* Underline Subtabs inside Card matching Screenshot 1 */}
+          <div className="flex items-center gap-6 px-4 pt-3 border-b border-slate-200 text-xs">
+            {[
+              { id: 'basic', label: 'Basic Details' },
+              { id: 'tiers', label: 'Tiered Pricing' },
+              { id: 'discounts', label: 'Discounts' },
+              { id: 'applicability', label: 'Applicability' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id as any)}
+                className={cn(
+                  'pb-2 transition-colors relative cursor-pointer',
+                  activeTab === tab.id
+                    ? 'text-[#6222cc] font-semibold'
+                    : 'text-slate-500 hover:text-slate-800'
+                )}
+              >
+                {tab.label}
+                {activeTab === tab.id && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
+                )}
+              </button>
+            ))}
           </div>
 
-          {/* Form Content */}
-          <div className="p-4 space-y-4 text-xs">
-            {activeTab === 'basic' && (
-              <>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                      Template Code <span className="text-rose-500">*</span>
-                    </label>
-                    <Input
-                      value={formData.code}
-                      onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                      className="h-8 text-xs font-mono font-semibold uppercase"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                      Template Name <span className="text-rose-500">*</span>
-                    </label>
-                    <Input
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="h-8 text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                      Pricing Model
-                    </label>
-                    <select
-                      value={formData.type}
-                      onChange={(e) => setFormData({ ...formData, type: e.target.value as 'Subscription' | 'Usage' | 'Hybrid' })}
-                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs bg-white dark:bg-slate-900"
-                    >
-                      <option>Subscription</option>
-                      <option>Usage</option>
-                      <option>Hybrid</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                      Billing Cycle
-                    </label>
-                    <select
-                      value={formData.billingCycle}
-                      onChange={(e) => setFormData({ ...formData, billingCycle: e.target.value as 'Monthly' | 'Annual' })}
-                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs bg-white dark:bg-slate-900"
-                    >
-                      <option>Monthly</option>
-                      <option>Annual</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                      Currency
-                    </label>
-                    <Input
-                      value={formData.currency}
-                      onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                      className="h-8 text-xs font-semibold"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                      Status
-                    </label>
-                    <select
-                      value={formData.status}
-                      onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Draft' | 'Inactive' })}
-                      className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs bg-white dark:bg-slate-900"
-                    >
-                      <option>Active</option>
-                      <option>Draft</option>
-                      <option>Inactive</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Description
+          {/* Form Content: Basic Details matching Screenshot 1 */}
+          {activeTab === 'basic' && (
+            <div className="p-4 space-y-3.5 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">
+                    Template Code <span className="text-rose-500">*</span>
                   </label>
-                  <textarea
-                    rows={2}
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs bg-white dark:bg-slate-900 focus:ring-1 focus:ring-[#6222cc] focus:outline-none"
+                  <Input
+                    value={formData.code}
+                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                    className="h-8 text-xs font-mono font-semibold"
                   />
                 </div>
-
-                {/* Tiered Pricing Mini-Table in Basic Details */}
-                <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
-                  <span className="font-bold text-slate-900 dark:text-slate-100 block text-xs">
-                    Tiered Pricing
-                  </span>
-                  <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-50 dark:bg-slate-800 text-slate-700 font-semibold border-b border-slate-200 dark:border-slate-700">
-                        <tr>
-                          <th className="py-2 px-2.5">Tier Name</th>
-                          <th className="py-2 px-2.5">Price (₹)</th>
-                          <th className="py-2 px-2.5">User Limit</th>
-                          <th className="py-2 px-2.5">Storage</th>
-                          <th className="py-2 px-2.5">Features</th>
-                          <th className="py-2 px-2.5 text-right"></th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                        <tr>
-                          <td className="py-2 px-2.5 font-medium">Basic</td>
-                          <td className="py-2 px-2.5 font-semibold text-slate-800">₹499</td>
-                          <td className="py-2 px-2.5 text-slate-600">Up to 5</td>
-                          <td className="py-2 px-2.5 text-slate-600">5 GB</td>
-                          <td className="py-2 px-2.5 text-slate-600">Core features</td>
-                          <td className="py-2 px-2 text-right">
-                            <div className="flex items-center justify-end gap-1 text-slate-400">
-                              <Pencil className="h-3 w-3 hover:text-[#6222cc] cursor-pointer" />
-                              <Trash2 className="h-3 w-3 hover:text-rose-600 cursor-pointer" />
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="py-2 px-2.5 font-medium">Pro</td>
-                          <td className="py-2 px-2.5 font-semibold text-slate-800">₹999</td>
-                          <td className="py-2 px-2.5 text-slate-600">Up to 25</td>
-                          <td className="py-2 px-2.5 text-slate-600">50 GB</td>
-                          <td className="py-2 px-2.5 text-slate-600">Advanced features</td>
-                          <td className="py-2 px-2 text-right">
-                            <div className="flex items-center justify-end gap-1 text-slate-400">
-                              <Pencil className="h-3 w-3 hover:text-[#6222cc] cursor-pointer" />
-                              <Trash2 className="h-3 w-3 hover:text-rose-600 cursor-pointer" />
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="py-2 px-2.5 font-medium">Enterprise</td>
-                          <td className="py-2 px-2.5 font-semibold text-slate-800">₹1,999</td>
-                          <td className="py-2 px-2.5 text-slate-600">Up to 100</td>
-                          <td className="py-2 px-2.5 text-slate-600">250 GB</td>
-                          <td className="py-2 px-2.5 text-slate-600">All features + Support</td>
-                          <td className="py-2 px-2 text-right">
-                            <div className="flex items-center justify-end gap-1 text-slate-400">
-                              <Pencil className="h-3 w-3 hover:text-[#6222cc] cursor-pointer" />
-                              <Trash2 className="h-3 w-3 hover:text-rose-600 cursor-pointer" />
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">
+                    Template Name <span className="text-rose-500">*</span>
+                  </label>
+                  <Input
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="h-8 text-xs font-semibold"
+                  />
                 </div>
+              </div>
 
-                {/* Sliding Toggles */}
-                <div className="space-y-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
-                  <div className="flex items-center gap-2.5">
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={true}
-                      className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out bg-[#6222cc]"
-                    >
-                      <span className="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-4" />
-                    </button>
-                    <span className="font-medium text-slate-700 dark:text-slate-300 text-xs">
-                      Show this template for new add-ons
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2.5">
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={true}
-                      className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out bg-[#6222cc]"
-                    >
-                      <span className="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-4" />
-                    </button>
-                    <span className="font-medium text-slate-700 dark:text-slate-300 text-xs">
-                      Allow customization at add-on level
-                    </span>
-                    <Info className="h-3.5 w-3.5 text-slate-400" />
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">
+                    Template Type <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                    className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white font-medium text-slate-800"
+                  >
+                    <option value="Subscription">Subscription</option>
+                    <option value="Usage">Usage</option>
+                    <option value="Hybrid">Hybrid</option>
+                  </select>
                 </div>
-              </>
-            )}
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">
+                    Billing Cycle <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={formData.billingCycle}
+                    onChange={(e) => setFormData({ ...formData, billingCycle: e.target.value as any })}
+                    className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white font-medium text-slate-800"
+                  >
+                    <option value="Monthly">Monthly</option>
+                    <option value="Annual">Annual</option>
+                  </select>
+                </div>
+              </div>
 
-            {activeTab === 'tiers' && (
-              <div className="space-y-3">
-                <span className="font-semibold text-slate-700 dark:text-slate-300 block">
-                  Configured Plan Tiers
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">
+                    Currency <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={formData.currency}
+                    onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                    className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white font-medium text-slate-800"
+                  >
+                    <option value="INR (₹)">INR (₹)</option>
+                    <option value="USD ($)">USD ($)</option>
+                    <option value="EUR (€)">EUR (€)</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Description</label>
+                  <Input
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="h-8 text-xs"
+                    placeholder="Short summary"
+                  />
+                </div>
+              </div>
+
+              {/* Tiered Pricing Table matching Screenshot 1 */}
+              <div className="space-y-2 pt-1 border-t border-slate-100">
+                <span className="font-bold text-slate-900 block text-xs">
+                  Tiered Pricing
                 </span>
-                <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                  <table className="w-full text-xs">
-                    <thead className="bg-slate-50 dark:bg-slate-800 text-slate-600 border-b">
+                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 text-[11px]">
                       <tr>
-                        <th className="py-2 px-2.5">Tier</th>
-                        <th className="py-2 px-2.5">Limit</th>
-                        <th className="py-2 px-2.5">Rate</th>
+                        <th className="py-2 px-2.5">Tier Name</th>
+                        <th className="py-2 px-2.5">Price (₹)</th>
+                        <th className="py-2 px-2.5">User Limit</th>
+                        <th className="py-2 px-2.5">Storage</th>
+                        <th className="py-2 px-2.5">Features</th>
+                        <th className="py-2 px-2.5 text-right"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                      {formData.tiers?.map((t, idx) => (
-                        <tr key={idx}>
-                          <td className="py-2 px-2.5 font-medium">{t.tierName}</td>
-                          <td className="py-2 px-2.5 text-slate-600">{t.userLimit}</td>
-                          <td className="py-2 px-2.5 font-semibold text-[#6222cc]">₹{t.price}</td>
+                    <tbody className="divide-y divide-slate-100">
+                      {formData.tiers?.map((tier, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50/50">
+                          <td className="py-2 px-2.5 font-medium text-slate-800">{tier.tierName}</td>
+                          <td className="py-2 px-2.5 font-semibold text-slate-900">₹{tier.price}</td>
+                          <td className="py-2 px-2.5 text-slate-600">{tier.userLimit}</td>
+                          <td className="py-2 px-2.5 text-slate-600">{tier.storage}</td>
+                          <td className="py-2 px-2.5 text-slate-600">{tier.features}</td>
+                          <td className="py-2 px-2 text-right">
+                            <div className="flex items-center justify-end gap-1.5 text-slate-400">
+                              <Pencil className="h-3 w-3 hover:text-[#6222cc] cursor-pointer" />
+                              <Trash2 className="h-3 w-3 hover:text-rose-600 cursor-pointer" />
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               </div>
-            )}
 
-            {activeTab === 'discounts' && (
-              <div className="space-y-3">
-                <div className="p-3 rounded-lg border border-purple-100 bg-purple-50/50 text-purple-900 space-y-1">
-                  <span className="font-semibold block">Template Volume Discount</span>
-                  <p className="text-[11px] text-purple-700">
-                    Tenants using this template automatically receive 15% discount on quarterly renewals.
-                  </p>
+              {/* Sliding Toggles matching Screenshot 1 */}
+              <div className="space-y-2.5 pt-2 border-t border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        showTemplateForNewAddons: !formData.showTemplateForNewAddons,
+                      })
+                    }
+                    className={cn(
+                      'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out',
+                      formData.showTemplateForNewAddons ? 'bg-[#6222cc]' : 'bg-slate-300'
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                        formData.showTemplateForNewAddons ? 'translate-x-4' : 'translate-x-0'
+                      )}
+                    />
+                  </button>
+                  <span className="font-medium text-slate-700 text-xs">
+                    Show this template for new add-ons
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        allowCustomizationAtAddonLevel: !formData.allowCustomizationAtAddonLevel,
+                      })
+                    }
+                    className={cn(
+                      'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out',
+                      formData.allowCustomizationAtAddonLevel ? 'bg-[#6222cc]' : 'bg-slate-300'
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                        formData.allowCustomizationAtAddonLevel ? 'translate-x-4' : 'translate-x-0'
+                      )}
+                    />
+                  </button>
+                  <span className="font-medium text-slate-700 text-xs flex items-center gap-1.5">
+                    <span>Allow customization at add-on level</span>
+                    <Info className="h-3.5 w-3.5 text-slate-400" />
+                  </span>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {activeTab === 'applicability' && (
-              <div className="space-y-3">
-                <span className="font-semibold text-slate-700 block">
-                  Applied Add-ons ({formData.appliedAddonsCount})
-                </span>
-                <p className="text-slate-500 text-xs">
-                  This template is actively inherited by AI Lead Scoring, AI Sales Prediction, and 2 other add-ons.
-                </p>
+          {/* Subtab 2: Tiered Pricing Details */}
+          {activeTab === 'tiers' && (
+            <div className="p-4 space-y-3 text-xs animate-in fade-in">
+              <span className="font-bold text-slate-900 block">Configure Price Tiers</span>
+              <p className="text-slate-500 text-[11px]">Define rate limits and quotas per tier.</p>
+              <div className="space-y-2">
+                {formData.tiers?.map((tier, idx) => (
+                  <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                    <div className="flex justify-between font-bold text-slate-900">
+                      <span>{tier.tierName} Tier</span>
+                      <span className="text-[#6222cc]">₹{tier.price}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600">
+                      <div>User limit: {tier.userLimit}</div>
+                      <div>Storage: {tier.storage}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Card Footer Actions */}
-          <div className="p-4 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-800/20">
+          {/* Subtab 3: Discounts */}
+          {activeTab === 'discounts' && (
+            <div className="p-4 space-y-3 text-xs animate-in fade-in">
+              <span className="font-bold text-slate-900 block">Standard Discounts &amp; Schedules</span>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-600 space-y-1.5">
+                <div className="flex justify-between">
+                  <span>Annual Commitment:</span>
+                  <span className="font-bold text-emerald-600">15% off</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Multi-Tenant Volume:</span>
+                  <span className="font-bold text-slate-800">10% off (5+ tenants)</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Subtab 4: Applicability */}
+          {activeTab === 'applicability' && (
+            <div className="p-4 space-y-3 text-xs animate-in fade-in">
+              <span className="font-bold text-slate-900 block">Linked Add-ons ({formData.appliedAddonsCount})</span>
+              <p className="text-slate-500 text-[11px]">
+                Currently applied to AI Lead Scoring, AI Sales Prediction, WhatsApp Integration, and 9 others.
+              </p>
+            </div>
+          )}
+
+          {/* Bottom Action Buttons matching Screenshot 1 */}
+          <div className="p-4 border-t border-slate-100 flex items-center justify-between">
             <Button
-              variant="outline"
               type="button"
+              variant="outline"
               onClick={() => {
                 if (selectedTemplate) {
                   setFormData({ ...selectedTemplate });
                   setIsCreatingNew(false);
                 }
               }}
-              className="h-8 px-3 text-xs border-slate-200"
+              className="text-xs h-8 px-3 border-slate-200 text-slate-700"
             >
               Cancel
             </Button>
 
             <div className="flex items-center gap-2">
               <Button
-                variant="outline"
                 type="button"
+                variant="outline"
                 onClick={() => handleSaveForm(true)}
-                className="h-8 px-3 text-xs border-slate-200 hover:bg-slate-100 text-slate-700"
+                className="text-xs h-8 px-3 border-slate-200 text-slate-700 hover:bg-slate-50"
               >
                 Save as Draft
               </Button>
               <Button
                 type="button"
                 onClick={() => handleSaveForm(false)}
-                className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
+                className="text-xs h-8 px-4 bg-[#6222cc] hover:bg-[#521cb0] text-white font-semibold rounded-lg shadow-xs cursor-pointer"
               >
                 Save Template
               </Button>
@@ -913,7 +948,7 @@ export function PriceTemplatesScreen() {
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleConfirmDelete}
         title="Delete Price Template"
-        description={`Are you sure you want to delete price template "${itemToDelete?.name}" (${itemToDelete?.code})?`}
+        description={`Are you sure you want to delete template "${itemToDelete?.name}"?`}
       />
     </div>
   );

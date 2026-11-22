@@ -2,15 +2,15 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import { TenantOverviewScreen } from '@/components/tenants/TenantOverviewScreen';
+import { TenantMasterListScreen } from '@/components/tenants/TenantMasterListScreen';
 
 export default function TenantViewPage() {
   const params = useParams();
-  const id = typeof params?.id === 'string' ? params.id : 'TEN-00481';
+  const id = typeof params?.id === 'string' ? params.id : undefined;
 
   return (
     <div className="w-full">
-      <TenantOverviewScreen tenantId={id} />
+      <TenantMasterListScreen initialMode="overview" initialTenantId={id} />
     </div>
   );
 }

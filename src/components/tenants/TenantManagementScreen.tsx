@@ -39,6 +39,7 @@ import {
   ExternalLink,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Mail,
   Phone,
   User,
@@ -60,9 +61,10 @@ import { TenantRetentionPolicyScreen } from './TenantRetentionPolicyScreen';
 
 export interface TenantManagementScreenProps {
   initialTab?: 'registration' | 'onboarding' | 'lifecycle' | 'export-deletion' | 'settings';
+  initialSubTab?: string;
 }
 
-export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantManagementScreenProps) {
+export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTab }: TenantManagementScreenProps) {
   const router = useRouter();
 
   // Active Main Tab
@@ -94,7 +96,15 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
   const [searchLifecycle, setSearchLifecycle] = useState('');
 
   // Export & Deletion Sub-Tab (Image 3 vs 4)
-  const [exportSubTab, setExportSubTab] = useState<'export' | 'deletion' | 'history' | 'data-retention' | 'policy'>('history');
+  const [exportSubTab, setExportSubTab] = useState<'export' | 'deletion' | 'history' | 'data-retention' | 'policy'>(
+    (initialSubTab as any) || 'deletion'
+  );
+
+  React.useEffect(() => {
+    if (initialSubTab) {
+      setExportSubTab(initialSubTab as any);
+    }
+  }, [initialSubTab]);
 
   // Export form state (Image 4)
   const [exportTenant, setExportTenant] = useState('Bright Future School');
@@ -106,6 +116,14 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
   const [deletionType, setDeletionType] = useState<'soft' | 'permanent'>('soft');
   const [deleteReason, setDeleteReason] = useState('Client requested permanent deletion after contract closure.');
   const [confirmDelete, setConfirmDelete] = useState(true);
+  const [deleteScopeAll, setDeleteScopeAll] = useState(true);
+  const [deleteScopeItems, setDeleteScopeItems] = useState({
+    users: false,
+    business: false,
+    docs: false,
+    config: false,
+    audit: false,
+  });
 
   // Selected Pending Tenant object
   const selectedPendingTenant =
@@ -550,12 +568,12 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
           {/* Header Bar matching Image 2 */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-0.5">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
-                <Users className="h-7 w-7 text-[#1574fe]" />
+              <div className="p-2.5 bg-purple-50 border border-purple-100 rounded-xl shadow-xs">
+                <Users className="h-7 w-7 text-[#6366f1]" />
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-                  Tenant Registration & Approval
+                  Tenant Registration &amp; Approval
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                   Register new tenants, review details, approve and activate
@@ -564,8 +582,9 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
             </div>
 
             <Button
+              type="button"
               onClick={() => toast.success('Add Tenant Manually modal')}
-              className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="bg-[#6366f1] hover:bg-[#5046e5] text-white font-semibold text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               <span>Add Tenant Manually</span>
@@ -575,14 +594,14 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
           {/* 4 Metric Cards matching Image 2 */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
-              <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl shrink-0">
+              <div className="p-2.5 bg-purple-50 text-[#6366f1] rounded-xl shrink-0">
                 <FileText className="h-5 w-5" />
               </div>
               <div>
                 <p className="text-xs font-semibold text-slate-500">New Registrations</p>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-2xl font-bold text-slate-900">12</span>
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700">
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#ede9fe] text-[#6d28d9]">
                     Pending Approval
                   </span>
                 </div>
@@ -630,7 +649,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
             {/* Left 8 cols: Registration Flow */}
             <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Layers className="h-4.5 w-4.5 text-[#1574fe]" />
+                <Layers className="h-4.5 w-4.5 text-[#6366f1]" />
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Registration Flow</h3>
                   <p className="text-xs text-slate-500">How a tenant gets onboarded</p>
@@ -640,22 +659,29 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
               <div className="p-3 bg-slate-50/50 rounded-xl border border-slate-200/60 overflow-x-auto">
                 <div className="flex items-center justify-between min-w-[650px] gap-2">
                   {[
-                    { step: '1. Register', sub: '(Online Form)', icon: FileText, color: 'purple' },
-                    { step: '2. Verify', sub: 'Email / Mobile', icon: Mail, color: 'blue' },
-                    { step: '3. Admin', sub: 'Review', icon: Search, color: 'purple' },
-                    { step: '4. Approve', sub: 'or Reject', icon: CheckCircle2, color: 'emerald' },
-                    { step: '5. Tenant', sub: 'Activated (Access & Setup)', icon: Building2, color: 'blue' },
+                    { step: '1. Register', sub: '(Online Form)', icon: FileText, color: 'text-[#6366f1]' },
+                    { step: '2. Verify', sub: 'Email / Mobile', icon: Mail, color: 'text-blue-500' },
+                    { step: '3. Admin', sub: 'Review', icon: Search, color: 'text-[#6366f1]' },
+                    { step: '4. Approve', sub: 'or Reject', icon: CheckCircle2, color: 'text-emerald-700', isHighlighted: true },
+                    { step: '5. Tenant', sub: 'Activated (Access & Setup)', icon: Building2, color: 'text-blue-600' },
                   ].map((s, idx, arr) => {
                     const SIcon = s.icon;
                     return (
                       <React.Fragment key={s.step}>
-                        <div className="flex-1 p-2.5 rounded-xl border border-slate-200 bg-white text-center shadow-2xs space-y-1">
-                          <SIcon className="h-4 w-4 text-[#1574fe] mx-auto" />
+                        <div
+                          className={cn(
+                            'flex-1 p-2.5 rounded-xl border text-center shadow-2xs space-y-1',
+                            s.isHighlighted
+                              ? 'bg-emerald-50/80 border-emerald-300 text-emerald-800'
+                              : 'bg-white border-slate-200'
+                          )}
+                        >
+                          <SIcon className={cn('h-4 w-4 mx-auto', s.color)} />
                           <p className="text-xs font-bold text-slate-900">{s.step}</p>
                           <p className="text-[10px] text-slate-500">{s.sub}</p>
                         </div>
                         {idx < arr.length - 1 && (
-                          <ArrowRight className="h-4 w-4 text-slate-400 shrink-0" />
+                          <ArrowRight className="h-4 w-4 text-[#6366f1]/60 shrink-0" />
                         )}
                       </React.Fragment>
                     );
@@ -667,13 +693,13 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
             {/* Right 4 cols: Registration Sources */}
             <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Zap className="h-4.5 w-4.5 text-[#1574fe]" />
+                <Zap className="h-4.5 w-4.5 text-[#6366f1]" />
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Registration Sources</h3>
                 </div>
               </div>
 
-              <div className="space-y-2 pt-1 text-xs">
+              <div className="space-y-2.5 pt-1 text-xs">
                 {[
                   { label: 'pegatto.in (Customer Sign-up)', checked: true },
                   { label: 'Partner Portal (Partner Onboarding)', checked: true },
@@ -684,7 +710,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                     <input
                       type="checkbox"
                       defaultChecked={src.checked}
-                      className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
+                      className="rounded border-slate-300 text-[#6366f1] focus:ring-[#6366f1] h-4 w-4 accent-[#6366f1]"
                     />
                     <span>{src.label}</span>
                   </label>
@@ -699,7 +725,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
             <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3.5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4.5 w-4.5 text-[#1574fe]" />
+                  <Clock className="h-4.5 w-4.5 text-[#6366f1]" />
                   <h3 className="text-sm font-bold text-slate-900">Pending Tenant Approvals (12)</h3>
                 </div>
 
@@ -710,16 +736,16 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                       value={searchPending}
                       onChange={(e) => setSearchPending(e.target.value)}
                       placeholder="Search tenant..."
-                      className="pl-8 pr-3 py-1 text-xs h-8 bg-white border-slate-200 rounded-lg placeholder:text-slate-400"
+                      className="pl-8 pr-3 py-1 text-xs h-8 bg-white border-slate-200 rounded-lg placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#6366f1]"
                     />
                   </div>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-8 px-2.5 text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 gap-1 rounded-lg"
+                    className="h-8 px-2.5 text-xs bg-white border-slate-200 hover:bg-purple-50 text-[#6366f1] hover:border-purple-200 gap-1 rounded-lg font-semibold"
                   >
-                    <Filter className="h-3 w-3 text-[#1574fe]" />
+                    <Filter className="h-3 w-3 text-[#6366f1]" />
                     <span>Filters</span>
                   </Button>
                 </div>
@@ -730,7 +756,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                   <thead>
                     <tr className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 text-[11px]">
                       <th className="py-2.5 px-3 w-8 text-center">
-                        <input type="checkbox" className="rounded border-slate-300" />
+                        <input type="checkbox" className="rounded border-slate-300 accent-[#6366f1]" />
                       </th>
                       <th className="py-2.5 px-2 w-8 text-center">#</th>
                       <th className="py-2.5 px-3">Organization / Tenant Name</th>
@@ -747,25 +773,25 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                         onClick={() => setSelectedPendingTenantId(pt.id)}
                         className={cn(
                           'hover:bg-slate-50/80 transition-colors cursor-pointer',
-                          selectedPendingTenantId === pt.id ? 'bg-blue-50/50' : ''
+                          selectedPendingTenantId === pt.id ? 'bg-purple-50/40' : ''
                         )}
                       >
                         <td className="py-2.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
-                          <input type="checkbox" className="rounded border-slate-300" />
+                          <input type="checkbox" className="rounded border-slate-300 accent-[#6366f1]" />
                         </td>
                         <td className="py-2.5 px-2 text-center text-slate-500 font-semibold text-[11px]">
                           {idx + 1}
                         </td>
                         <td className="py-2.5 px-3 font-semibold text-slate-900">{pt.name}</td>
                         <td className="py-2.5 px-3 text-slate-700">
-                          <div className="flex items-center gap-1.5">
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-[#ede9fe] text-[#6d28d9]">
                             {renderProductIcon(pt.productIcon)}
                             <span>{pt.product}</span>
-                          </div>
+                          </span>
                         </td>
                         <td className="py-2.5 px-3 text-slate-600 text-[11px]">{pt.requestedOn}</td>
                         <td className="py-2.5 px-3 text-center">
-                          <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                          <span className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#fef3c7] text-[#b45309]">
                             {pt.status}
                           </span>
                         </td>
@@ -774,7 +800,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                             <button
                               type="button"
                               onClick={() => setSelectedPendingTenantId(pt.id)}
-                              className="p-1 text-slate-500 hover:text-[#1574fe]"
+                              className="p-1 text-[#6366f1] hover:bg-purple-50 rounded"
                               title="View"
                             >
                               <Eye className="h-3.5 w-3.5" />
@@ -790,7 +816,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                             <button
                               type="button"
                               onClick={() => handleRejectTenant(pt.id, pt.name)}
-                              className="p-1 text-red-500 hover:bg-red-50 rounded"
+                              className="p-1 text-rose-500 hover:bg-rose-50 rounded"
                               title="Reject"
                             >
                               <X className="h-3.5 w-3.5" />
@@ -807,7 +833,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
             {/* Right 5 cols: Tenant Details (Selected) */}
             <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Building2 className="h-4.5 w-4.5 text-[#1574fe]" />
+                <Building2 className="h-4.5 w-4.5 text-[#6366f1]" />
                 <h3 className="text-sm font-bold text-slate-900">Tenant Details (Selected)</h3>
               </div>
 
@@ -824,7 +850,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
 
                 <div className="grid grid-cols-3 gap-2">
                   <span className="text-slate-500 font-medium">Email</span>
-                  <span className="col-span-2 text-[#1574fe] font-medium">{selectedPendingTenant.email}</span>
+                  <span className="col-span-2 text-[#6366f1] font-medium">{selectedPendingTenant.email}</span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
@@ -855,7 +881,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                   type="button"
                   variant="outline"
                   onClick={() => handleApproveTenant(selectedPendingTenant.id, selectedPendingTenant.name)}
-                  className="flex-1 h-8.5 text-xs font-semibold text-emerald-700 border-emerald-500 hover:bg-emerald-50 gap-1 rounded-lg"
+                  className="flex-1 h-8.5 text-xs font-semibold text-emerald-700 bg-emerald-50/60 border-emerald-300 hover:bg-emerald-100 gap-1 rounded-lg"
                 >
                   <Check className="h-3.5 w-3.5" />
                   <span>Approve</span>
@@ -865,7 +891,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                   type="button"
                   variant="outline"
                   onClick={() => handleRejectTenant(selectedPendingTenant.id, selectedPendingTenant.name)}
-                  className="flex-1 h-8.5 text-xs font-semibold text-rose-700 border-rose-300 hover:bg-rose-50 gap-1 rounded-lg"
+                  className="flex-1 h-8.5 text-xs font-semibold text-rose-700 bg-rose-50/60 border-rose-300 hover:bg-rose-100 gap-1 rounded-lg"
                 >
                   <X className="h-3.5 w-3.5" />
                   <span>Reject</span>
@@ -875,10 +901,10 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                   type="button"
                   variant="outline"
                   onClick={() => toast.info('Full details view')}
-                  className="flex-1 h-8.5 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-slate-50 gap-1 rounded-lg"
+                  className="flex-1 h-8.5 text-xs font-semibold text-[#6366f1] bg-purple-50/60 border-purple-200 hover:bg-purple-100 gap-1 rounded-lg"
                 >
-                  <FileText className="h-3.5 w-3.5 text-[#1574fe]" />
-                  <span>View & Edit</span>
+                  <Eye className="h-3.5 w-3.5 text-[#6366f1]" />
+                  <span>View &amp; Edit</span>
                 </Button>
               </div>
             </div>
@@ -1264,12 +1290,12 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
           {/* Header Bar matching Images 3 & 4 */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-0.5">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
-                <Database className="h-7 w-7 text-[#1574fe]" />
+              <div className="p-2.5 bg-purple-50 border border-purple-100 rounded-xl shadow-xs">
+                <Database className="h-7 w-7 text-[#6366f1]" />
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-                  Tenant Data Export & Deletion
+                  Tenant Data Export &amp; Deletion
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                   Export tenant data for backup, migration or compliance, and securely delete tenant data when required
@@ -1280,55 +1306,54 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
 
           {/* 4 Metric Cards matching Images 3 & 4 */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-            <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
-              <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl shrink-0">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
+              <div className="p-2.5 bg-purple-50 text-[#6366f1] rounded-xl shrink-0">
                 <Building2 className="h-5 w-5" />
               </div>
               <div>
                 <p className="text-xs font-semibold text-slate-500">Total Tenants</p>
-                <p className="text-2xl font-bold text-slate-900 mt-0.5">286</p>
+                <p className="text-2xl font-extrabold text-slate-900 mt-0.5">286</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
               <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl shrink-0">
                 <Upload className="h-5 w-5" />
               </div>
               <div>
                 <p className="text-xs font-semibold text-slate-500">Total Exports</p>
-                <p className="text-2xl font-bold text-slate-900 mt-0.5">68</p>
+                <p className="text-2xl font-extrabold text-slate-900 mt-0.5">68</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
               <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl shrink-0">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>
                 <p className="text-xs font-semibold text-slate-500">Total Deletions</p>
-                <p className="text-2xl font-bold text-slate-900 mt-0.5">12</p>
+                <p className="text-2xl font-extrabold text-slate-900 mt-0.5">12</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
+            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
               <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl shrink-0">
                 <Shield className="h-5 w-5" />
               </div>
               <div>
                 <p className="text-xs font-semibold text-slate-500">Retention Policy</p>
-                <p className="text-2xl font-bold text-slate-900 mt-0.5">5 Years</p>
+                <p className="text-2xl font-extrabold text-slate-900 mt-0.5">5 Years</p>
               </div>
             </div>
           </div>
 
           {/* Sub Navigation Tabs Bar matching Image 1 */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-200/80">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             {[
               { key: 'export', label: 'Data Export', icon: Download },
               { key: 'deletion', label: 'Data Deletion', icon: Trash2 },
               { key: 'history', label: 'Export & Deletion History', icon: Clock },
-              { key: 'data-retention', label: 'Data Retention Policy', icon: Database },
-              { key: 'policy', label: 'Retention & Policy', icon: Settings },
+              { key: 'policy', label: 'Retention & Policy', icon: Shield },
             ].map((st) => {
               const SIcon = st.icon;
               const isSelected = exportSubTab === st.key;
@@ -1336,29 +1361,32 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                 <button
                   key={st.key}
                   type="button"
-                  onClick={() => setExportSubTab(st.key as any)}
+                  onClick={() => {
+                    setExportSubTab(st.key as any);
+                    router.push(`/tenant-management/export-deletion?tab=${st.key}`);
+                  }}
                   className={cn(
-                    'px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer',
+                    'px-4 py-2 text-xs md:text-sm font-semibold rounded-xl flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer',
                     isSelected
-                      ? 'bg-[#1574fe] text-white shadow-xs font-bold'
-                      : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
+                      ? 'bg-[#6366f1] text-white shadow-xs font-bold'
+                      : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 shadow-2xs'
                   )}
                 >
-                  <SIcon className="h-4 w-4" />
+                  <SIcon className={cn('h-4 w-4', isSelected ? 'text-white' : 'text-slate-700')} />
                   <span>{st.label}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* VIEW A: Export & Deletion Forms (Image 4) */}
-          {(exportSubTab === 'export' || exportSubTab === 'deletion') && (
+          {/* VIEW A1: Data Export Form */}
+          {exportSubTab === 'export' && (
             <div className="space-y-5">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
                 {/* Top-Left 8 cols: Export Tenant Data Form */}
-                <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
+                <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-4">
                   <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                    <Download className="h-4.5 w-4.5 text-[#1574fe]" />
+                    <Download className="h-4.5 w-4.5 text-[#6366f1]" />
                     <h3 className="text-sm font-bold text-slate-900">Export Tenant Data</h3>
                   </div>
 
@@ -1417,8 +1445,8 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                     </div>
                   </div>
 
-                  <div className="p-2.5 bg-blue-50/70 border border-blue-200 rounded-lg text-xs text-blue-900 flex items-center gap-2">
-                    <Database className="h-4 w-4 text-blue-600 shrink-0" />
+                  <div className="p-2.5 bg-purple-50/70 border border-purple-200 rounded-lg text-xs text-purple-900 flex items-center gap-2">
+                    <Database className="h-4 w-4 text-[#6366f1] shrink-0" />
                     <span>The export will include master data, transactions, documents and configuration settings.</span>
                   </div>
 
@@ -1434,7 +1462,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                     <Button
                       type="button"
                       onClick={() => toast.success(`Export job queued for ${exportTenant}!`)}
-                      className="h-8.5 px-4 text-xs font-semibold bg-[#1574fe] hover:bg-[#0d62e0] text-white gap-1.5 rounded-lg"
+                      className="h-8.5 px-4 text-xs font-semibold bg-[#6366f1] hover:bg-[#5046e5] text-white gap-1.5 rounded-lg"
                     >
                       <Download className="h-3.5 w-3.5" />
                       <span>Export Data</span>
@@ -1443,9 +1471,9 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                 </div>
 
                 {/* Top-Right 4 cols: Export Progress (72%) */}
-                <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3.5">
+                <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-3.5">
                   <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                    <RefreshCw className="h-4.5 w-4.5 text-[#1574fe] animate-spin" />
+                    <RefreshCw className="h-4.5 w-4.5 text-[#6366f1] animate-spin" />
                     <div>
                       <h3 className="text-sm font-bold text-slate-900">Export Progress</h3>
                       <p className="text-xs text-slate-500">Exporting: {exportTenant}</p>
@@ -1455,10 +1483,10 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                   <div className="space-y-2 pt-1">
                     <div className="flex items-center justify-between text-xs font-bold">
                       <span className="text-slate-700">Progress</span>
-                      <span className="text-[#1574fe]">72%</span>
+                      <span className="text-[#6366f1]">72%</span>
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                      <div className="bg-[#1574fe] h-full rounded-full transition-all duration-500" style={{ width: '72%' }} />
+                      <div className="bg-[#6366f1] h-full rounded-full transition-all duration-500" style={{ width: '72%' }} />
                     </div>
                   </div>
 
@@ -1473,161 +1501,372 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                   </div>
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* Bottom Row: Delete Tenant Data Form + Recent Activities */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                {/* Left 8 cols: Delete Tenant Data */}
-                <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
-                  <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                    <Trash2 className="h-4.5 w-4.5 text-rose-600" />
-                    <h3 className="text-sm font-bold text-slate-900">Delete Tenant Data</h3>
-                  </div>
+          {/* VIEW A2: Data Deletion Form (Exact Match with Image media_1795282323413_111e096f.jpg) */}
+          {exportSubTab === 'deletion' && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start font-sans">
+              {/* Left Column: Delete Tenant Data Form (6 cols) */}
+              <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                  <Trash2 className="h-5 w-5 text-[#6366f1]" />
+                  <h3 className="text-sm font-bold text-slate-900">Delete Tenant Data</h3>
+                </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                    <div>
-                      <label className="text-slate-700 font-semibold block mb-1">
-                        Select Tenant <span className="text-red-500">*</span>
-                      </label>
+                <div className="space-y-3.5 text-xs">
+                  {/* Select Tenant */}
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-700">
+                      Select Tenant <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Building2 className="h-4 w-4 text-[#6366f1] absolute left-3 top-2.5" />
                       <select
                         value={deleteTenant}
                         onChange={(e) => setDeleteTenant(e.target.value)}
-                        className="w-full h-8.5 px-2.5 border border-slate-200 rounded-lg bg-white text-slate-800 outline-hidden font-medium"
+                        className="w-full h-9 pl-9 pr-8 text-xs font-semibold bg-white border border-slate-200 rounded-lg text-slate-900 outline-none cursor-pointer appearance-none"
                       >
                         <option value="NextGen IT Solutions">NextGen IT Solutions</option>
+                        <option value="Bright Future School">Bright Future School</option>
+                        <option value="City Retail Mart">City Retail Mart</option>
                         <option value="Shree Properties">Shree Properties</option>
+                        <option value="PeopleFirst Services">PeopleFirst Services</option>
                       </select>
-                    </div>
-
-                    <div>
-                      <label className="text-slate-700 font-semibold block mb-1">
-                        Deletion Type <span className="text-red-500">*</span>
-                      </label>
-                      <div className="space-y-1.5 pt-0.5">
-                        <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-800">
-                          <input
-                            type="radio"
-                            name="deletionType"
-                            checked={deletionType === 'soft'}
-                            onChange={() => setDeletionType('soft')}
-                            className="text-[#1574fe]"
-                          />
-                          <span>Soft Delete (Recommended)</span>
-                        </label>
-                        <p className="text-[10px] text-slate-500 pl-5">
-                          Disable tenant access and retain data for the retention period.
-                        </p>
-
-                        <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-800 pt-1">
-                          <input
-                            type="radio"
-                            name="deletionType"
-                            checked={deletionType === 'permanent'}
-                            onChange={() => setDeletionType('permanent')}
-                            className="text-rose-600"
-                          />
-                          <span>Permanent Delete</span>
-                        </label>
-                        <p className="text-[10px] text-slate-500 pl-5">
-                          Permanently purge all tenant data (not recoverable).
-                        </p>
-                      </div>
+                      <ChevronDown className="h-4 w-4 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
                     </div>
                   </div>
 
-                  {/* Important Warning Banner */}
-                  <div className="p-3 bg-rose-50/70 border border-rose-200 rounded-xl space-y-1 text-xs text-rose-900">
-                    <div className="flex items-center gap-1.5 font-bold text-rose-700">
-                      <AlertTriangle className="h-4 w-4" />
-                      <span>Important</span>
+                  {/* Deletion Type */}
+                  <div className="space-y-1.5 pt-0.5">
+                    <label className="text-xs font-semibold text-slate-700">
+                      Deletion Type <span className="text-red-500">*</span>
+                    </label>
+                    <div className="space-y-2">
+                      <label
+                        onClick={() => setDeletionType('soft')}
+                        className="flex items-start gap-2.5 cursor-pointer"
+                      >
+                        <div className="pt-0.5">
+                          <div
+                            className={cn(
+                              'w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all',
+                              deletionType === 'soft'
+                                ? 'border-[#6366f1]'
+                                : 'border-slate-300'
+                            )}
+                          >
+                            {deletionType === 'soft' && (
+                              <div className="w-2 h-2 rounded-full bg-[#6366f1]" />
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-xs font-bold text-slate-900">
+                            Soft Delete (Recommended)
+                          </span>
+                          <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                            Disables tenant access and retains data for the retention period (e.g., 5 years).
+                          </p>
+                        </div>
+                      </label>
+
+                      <label
+                        onClick={() => setDeletionType('permanent')}
+                        className="flex items-start gap-2.5 cursor-pointer pt-1"
+                      >
+                        <div className="pt-0.5">
+                          <div
+                            className={cn(
+                              'w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all',
+                              deletionType === 'permanent'
+                                ? 'border-[#6366f1]'
+                                : 'border-slate-300'
+                            )}
+                          >
+                            {deletionType === 'permanent' && (
+                              <div className="w-2 h-2 rounded-full bg-[#6366f1]" />
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-xs font-bold text-slate-900">
+                            Permanent Delete
+                          </span>
+                          <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                            Permanently and irreversibly removes all tenant data (not recoverable).
+                          </p>
+                        </div>
+                      </label>
                     </div>
-                    <ul className="list-disc list-inside text-[11px] space-y-0.5 pl-1 text-rose-800">
-                      <li>Permanent deletion will remove all data including users, transactions, documents and configurations.</li>
-                      <li>This action is <strong>irreversible</strong>.</li>
-                      <li>Ensure you have exported the data before deletion (if required).</li>
-                    </ul>
+                  </div>
+
+                  {/* Data Scope */}
+                  <div className="space-y-1.5 pt-0.5">
+                    <label className="text-xs font-semibold text-slate-700">
+                      Data Scope <span className="text-red-500">*</span>
+                    </label>
+                    <div className="space-y-1.5 pl-0.5 text-xs">
+                      <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-900">
+                        <input
+                          type="checkbox"
+                          checked={deleteScopeAll}
+                          onChange={(e) => {
+                            setDeleteScopeAll(e.target.checked);
+                            if (e.target.checked) {
+                              setDeleteScopeItems({
+                                users: false,
+                                business: false,
+                                docs: false,
+                                config: false,
+                                audit: false,
+                              });
+                            }
+                          }}
+                          className="rounded border-slate-300 text-[#6366f1] focus:ring-[#6366f1] h-4 w-4"
+                        />
+                        <span>All Tenant Data</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-medium pl-2">
+                        <input
+                          type="checkbox"
+                          checked={deleteScopeItems.users || deleteScopeAll}
+                          disabled={deleteScopeAll}
+                          onChange={(e) =>
+                            setDeleteScopeItems({ ...deleteScopeItems, users: e.target.checked })
+                          }
+                          className="rounded border-slate-300 text-[#6366f1] focus:ring-[#6366f1] h-3.5 w-3.5"
+                        />
+                        <span>Users &amp; Roles (42)</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-medium pl-2">
+                        <input
+                          type="checkbox"
+                          checked={deleteScopeItems.business || deleteScopeAll}
+                          disabled={deleteScopeAll}
+                          onChange={(e) =>
+                            setDeleteScopeItems({ ...deleteScopeItems, business: e.target.checked })
+                          }
+                          className="rounded border-slate-300 text-[#6366f1] focus:ring-[#6366f1] h-3.5 w-3.5"
+                        />
+                        <span>Business Data (Leads, Deals, Projects etc.) (1,248,360)</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-medium pl-2">
+                        <input
+                          type="checkbox"
+                          checked={deleteScopeItems.docs || deleteScopeAll}
+                          disabled={deleteScopeAll}
+                          onChange={(e) =>
+                            setDeleteScopeItems({ ...deleteScopeItems, docs: e.target.checked })
+                          }
+                          className="rounded border-slate-300 text-[#6366f1] focus:ring-[#6366f1] h-3.5 w-3.5"
+                        />
+                        <span>Documents &amp; Attachments (2.4 GB)</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-medium pl-2">
+                        <input
+                          type="checkbox"
+                          checked={deleteScopeItems.config || deleteScopeAll}
+                          disabled={deleteScopeAll}
+                          onChange={(e) =>
+                            setDeleteScopeItems({ ...deleteScopeItems, config: e.target.checked })
+                          }
+                          className="rounded border-slate-300 text-[#6366f1] focus:ring-[#6366f1] h-3.5 w-3.5"
+                        />
+                        <span>Configurations &amp; Settings</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer text-slate-700 font-medium pl-2">
+                        <input
+                          type="checkbox"
+                          checked={deleteScopeItems.audit || deleteScopeAll}
+                          disabled={deleteScopeAll}
+                          onChange={(e) =>
+                            setDeleteScopeItems({ ...deleteScopeItems, audit: e.target.checked })
+                          }
+                          className="rounded border-slate-300 text-[#6366f1] focus:ring-[#6366f1] h-3.5 w-3.5"
+                        />
+                        <span>Audit Logs</span>
+                      </label>
+                    </div>
                   </div>
 
                   {/* Reason for Deletion */}
-                  <div className="space-y-1 text-xs">
-                    <label className="text-slate-700 font-semibold block">
+                  <div className="space-y-1 pt-0.5">
+                    <label className="text-xs font-semibold text-slate-700">
                       Reason for Deletion <span className="text-red-500">*</span>
                     </label>
-                    <Input
+                    <textarea
+                      rows={2}
                       value={deleteReason}
                       onChange={(e) => setDeleteReason(e.target.value)}
-                      className="h-8.5 text-xs bg-white border-slate-200 rounded-lg"
+                      className="w-full p-2.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-900 outline-none focus:border-[#6366f1] resize-none"
                     />
                   </div>
 
-                  {/* Confirmation Checkbox */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-                    <label className="flex items-center gap-2 text-xs text-slate-800 font-medium cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={confirmDelete}
-                        onChange={(e) => setConfirmDelete(e.target.checked)}
-                        className="rounded border-slate-300 text-rose-600 focus:ring-rose-500 h-4 w-4"
-                      />
-                      <span>I confirm that I want to permanently delete all data for the selected tenant.</span>
-                    </label>
-
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-end gap-2.5 pt-2">
                     <Button
                       type="button"
-                      disabled={!confirmDelete}
-                      onClick={() => toast.error(`Tenant data purged for ${deleteTenant}!`)}
-                      className="h-8.5 px-4 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white gap-1.5 rounded-lg shrink-0 shadow-xs"
+                      variant="outline"
+                      onClick={() => toast.info('Deletion action cancelled')}
+                      className="h-9 px-5 text-xs font-semibold text-[#6366f1] border-purple-200 hover:bg-purple-50 rounded-lg cursor-pointer"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        toast.error(`Initiated tenant deletion for ${deleteTenant}`);
+                      }}
+                      className="h-9 px-4 text-xs font-semibold bg-[#dc2626] hover:bg-[#b91c1c] text-white gap-1.5 rounded-lg shadow-xs cursor-pointer"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       <span>Delete Tenant Data</span>
                     </Button>
                   </div>
                 </div>
+              </div>
 
-                {/* Right 4 cols: Recent Activities */}
-                <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3">
+              {/* Right Column: Deletion Preview & Policy/Lifecycle (6 cols) */}
+              <div className="lg:col-span-6 space-y-4">
+                {/* Top Card: Deletion Preview */}
+                <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-3">
                   <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                    <FileText className="h-4.5 w-4.5 text-[#1574fe]" />
-                    <h3 className="text-sm font-bold text-slate-900">Recent Activities</h3>
+                    <Search className="h-4.5 w-4.5 text-[#6366f1]" />
+                    <h3 className="text-sm font-bold text-slate-900">Deletion Preview</h3>
                   </div>
 
-                  <div className="divide-y divide-slate-100 text-xs">
-                    {[
-                      { tenant: 'Bright Future School', action: 'Export', status: 'Completed', time: '15 Nov 2026, 11:24 AM' },
-                      { tenant: 'City Retail Mart', action: 'Delete', status: 'Completed', time: '10 Nov 2026, 04:37 PM' },
-                      { tenant: 'Shree Properties', action: 'Export', status: 'Completed', time: '08 Nov 2026, 10:12 AM' },
-                      { tenant: 'PeopleFirst Services', action: 'Delete', status: 'Failed', time: '05 Nov 2026, 02:18 PM' },
-                    ].map((row, idx) => (
-                      <div key={idx} className="py-2.5 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-slate-900">{row.tenant}</span>
-                          <span
-                            className={cn(
-                              'px-2 py-0.5 rounded-full text-[10px] font-bold',
-                              row.status === 'Completed'
-                                ? 'bg-emerald-100 text-emerald-700'
-                                : 'bg-rose-100 text-rose-700'
-                            )}
-                          >
-                            {row.status}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-[11px] text-slate-500">
-                          <span>Action: <strong>{row.action}</strong></span>
-                          <span>{row.time}</span>
-                        </div>
+                  <div className="overflow-hidden border border-slate-100 rounded-xl">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="bg-slate-50/80 text-slate-700 font-semibold border-b border-slate-200 text-[11px]">
+                          <th className="py-2.5 px-3 font-bold">Data Category</th>
+                          <th className="py-2.5 px-3 font-bold text-right">Records</th>
+                          <th className="py-2.5 px-3 font-bold text-right">Size</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-medium">
+                        <tr className="hover:bg-slate-50/70">
+                          <td className="py-2.5 px-3 flex items-center gap-2 text-slate-800">
+                            <Users className="h-4 w-4 text-[#6366f1]" />
+                            <span>Users &amp; Roles</span>
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-700">42</td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-700">0.3 MB</td>
+                        </tr>
+                        <tr className="hover:bg-slate-50/70">
+                          <td className="py-2.5 px-3 flex items-center gap-2 text-slate-800">
+                            <Database className="h-4 w-4 text-[#6366f1]" />
+                            <span>Business Data (Leads, Deals, Projects etc.)</span>
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-700">1,248,360</td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-700">1.9 GB</td>
+                        </tr>
+                        <tr className="hover:bg-slate-50/70">
+                          <td className="py-2.5 px-3 flex items-center gap-2 text-slate-800">
+                            <FileText className="h-4 w-4 text-[#6366f1]" />
+                            <span>Documents &amp; Attachments</span>
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-700">5,460</td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-700">2.4 GB</td>
+                        </tr>
+                        <tr className="hover:bg-slate-50/70">
+                          <td className="py-2.5 px-3 flex items-center gap-2 text-slate-800">
+                            <Settings className="h-4 w-4 text-[#6366f1]" />
+                            <span>Configurations &amp; Settings</span>
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-700">120</td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-700">0.5 MB</td>
+                        </tr>
+                        <tr className="hover:bg-slate-50/70">
+                          <td className="py-2.5 px-3 flex items-center gap-2 text-slate-800">
+                            <Clock className="h-4 w-4 text-[#6366f1]" />
+                            <span>Audit Logs</span>
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-700">18,230</td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-700">120 MB</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr className="bg-[#f5f3ff] text-slate-900 font-bold border-t border-purple-200">
+                          <td className="py-2.5 px-3">Total (All Data)</td>
+                          <td className="py-2.5 px-3 text-right font-mono">1,271,752</td>
+                          <td className="py-2.5 px-3 text-right font-mono text-purple-900">~2.4 GB</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Bottom Row: Deletion Policy & Deletion Lifecycle (2 cards side by side) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Card 1: Deletion Policy */}
+                  <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4.5 space-y-3">
+                    <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
+                      <Shield className="h-4 w-4 text-[#6366f1]" />
+                      <h4 className="text-xs font-bold text-slate-900">Deletion Policy</h4>
+                    </div>
+                    <div className="space-y-2 text-xs">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span className="text-slate-700 leading-tight">Data is retained for 5 years (after soft delete).</span>
                       </div>
-                    ))}
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span className="text-slate-700 leading-tight">Permanent deletion is irreversible and cannot be undone.</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span className="text-slate-700 leading-tight">A full deletion log is maintained for compliance (GDPR/DPDP).</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setExportSubTab('history')}
-                    className="w-full h-8 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-800 gap-1 rounded-lg mt-2"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5 text-[#1574fe]" />
-                    <span>View Full History</span>
-                  </Button>
+                  {/* Card 2: Deletion Lifecycle */}
+                  <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4.5 space-y-3">
+                    <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
+                      <Clock className="h-4 w-4 text-[#6366f1]" />
+                      <h4 className="text-xs font-bold text-slate-900">Deletion Lifecycle</h4>
+                    </div>
+                    <div className="space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                          <span className="font-semibold text-slate-800">Request Submitted</span>
+                        </div>
+                        <span className="text-[11px] font-mono text-slate-600">15 Nov 2026, 10:24 AM</span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                          <span className="font-semibold text-slate-800">Approval (Super Admin)</span>
+                        </div>
+                        <span className="text-[11px] font-mono text-slate-600">15 Nov 2026, 11:02 AM</span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 rounded-full border-2 border-[#6366f1] border-t-transparent animate-spin shrink-0" />
+                          <span className="font-bold text-[#6366f1]">Deletion in Progress</span>
+                        </div>
+                        <span className="text-[11px] font-semibold text-[#6366f1]">In progress...</span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-slate-400">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 rounded-full border border-slate-300 shrink-0" />
+                          <span>Completed</span>
+                        </div>
+                        <span className="text-[11px] font-mono">—</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1686,14 +1925,14 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                 <div className="flex items-center gap-2 ml-auto">
                   <Button
                     size="sm"
-                    className="h-8 px-4 text-xs font-semibold bg-[#1574fe] hover:bg-[#0d62e0] text-white rounded-lg"
+                    className="h-8 px-4 text-xs font-semibold bg-[#6366f1] hover:bg-[#5046e5] text-white rounded-lg shadow-xs cursor-pointer"
                   >
                     Apply
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 px-3 text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg"
+                    className="h-8 px-3 text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg cursor-pointer"
                   >
                     Reset
                   </Button>
@@ -1701,54 +1940,54 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
               </div>
 
               {/* History Records Table */}
-              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+              <div className="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-2xs">
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 text-[11px]">
-                      <th className="py-2.5 px-3 w-8 text-center">#</th>
-                      <th className="py-2.5 px-3">Date & Time ⇅</th>
-                      <th className="py-2.5 px-3">Tenant ⇅</th>
-                      <th className="py-2.5 px-3">Action ⇅</th>
-                      <th className="py-2.5 px-3">Data Scope</th>
-                      <th className="py-2.5 px-3">Initiated By</th>
-                      <th className="py-2.5 px-3">Status</th>
-                      <th className="py-2.5 px-3 text-center">Details</th>
+                      <th className="py-2.5 px-3 w-8 text-center font-bold text-slate-900">#</th>
+                      <th className="py-2.5 px-3 font-bold text-slate-900">Date &amp; Time ⇅</th>
+                      <th className="py-2.5 px-3 font-bold text-slate-900">Tenant ⇅</th>
+                      <th className="py-2.5 px-3 font-bold text-slate-900">Action ⇅</th>
+                      <th className="py-2.5 px-3 font-bold text-slate-900">Data Scope</th>
+                      <th className="py-2.5 px-3 font-bold text-slate-900">Initiated By</th>
+                      <th className="py-2.5 px-3 font-bold text-slate-900">Status</th>
+                      <th className="py-2.5 px-3 text-center font-bold text-slate-900">Details</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100 font-medium">
                     {exportHistory.map((row, idx) => (
                       <tr key={row.id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-2.5 px-3 text-center text-slate-500 font-semibold text-[11px]">
                           {idx + 1}
                         </td>
                         <td className="py-2.5 px-3 text-slate-700 font-mono text-[11px]">{row.dateTime}</td>
-                        <td className="py-2.5 px-3 font-semibold text-slate-900">{row.tenant}</td>
+                        <td className="py-2.5 px-3 font-bold text-slate-900">{row.tenant}</td>
                         <td className="py-2.5 px-3">
                           <span
                             className={cn(
-                              'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold',
+                              'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold',
                               row.action === 'Export'
-                                ? 'bg-purple-100 text-purple-700'
-                                : 'bg-rose-100 text-rose-700'
+                                ? 'bg-[#ede9fe] text-[#6d28d9]'
+                                : 'bg-[#fee2e2] text-[#b91c1c]'
                             )}
                           >
                             {row.action === 'Export' ? (
-                              <Download className="h-3 w-3" />
+                              <Upload className="h-3 w-3" />
                             ) : (
                               <Trash2 className="h-3 w-3" />
                             )}
                             <span>{row.action}</span>
                           </span>
                         </td>
-                        <td className="py-2.5 px-3 text-slate-700 font-medium">{row.dataScope}</td>
+                        <td className="py-2.5 px-3 text-slate-700">{row.dataScope}</td>
                         <td className="py-2.5 px-3 text-slate-600">{row.initiatedBy}</td>
                         <td className="py-2.5 px-3">
                           <span
                             className={cn(
-                              'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold',
+                              'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold',
                               row.status === 'Completed'
-                                ? 'bg-emerald-100 text-emerald-700'
-                                : 'bg-rose-100 text-rose-700'
+                                ? 'bg-[#dcfce7] text-[#15803d]'
+                                : 'bg-[#fee2e2] text-[#b91c1c]'
                             )}
                           >
                             {row.status === 'Completed' ? (
@@ -1766,9 +2005,9 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                                 size="sm"
                                 variant="outline"
                                 onClick={() => toast.success(`Downloading backup for ${row.tenant}`)}
-                                className="h-6.5 text-[11px] px-2 bg-white border-slate-200 text-slate-700 gap-1 rounded"
+                                className="h-6.5 text-[11px] px-2 bg-white border-purple-200 text-[#6366f1] hover:bg-purple-50 gap-1 rounded font-semibold cursor-pointer"
                               >
-                                <Download className="h-3 w-3 text-[#1574fe]" />
+                                <Download className="h-3 w-3 text-[#6366f1]" />
                                 <span>Download</span>
                               </Button>
                             )}
@@ -1776,7 +2015,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                               size="sm"
                               variant="outline"
                               onClick={() => toast.info(`Viewing execution log for ${row.id}`)}
-                              className="h-6.5 text-[11px] px-2 bg-white border-slate-200 text-slate-700 gap-1 rounded"
+                              className="h-6.5 text-[11px] px-2 bg-white border-slate-200 text-slate-700 hover:bg-slate-50 gap-1 rounded font-medium cursor-pointer"
                             >
                               <FileText className="h-3 w-3 text-slate-500" />
                               <span>Log</span>
@@ -1786,9 +2025,9 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                                 size="sm"
                                 variant="outline"
                                 onClick={() => toast.info(`Retrying export for ${row.tenant}`)}
-                                className="h-6.5 text-[11px] px-2 bg-white border-slate-200 text-slate-700 gap-1 rounded"
+                                className="h-6.5 text-[11px] px-2 bg-white border-purple-200 text-[#6366f1] hover:bg-purple-50 gap-1 rounded font-semibold cursor-pointer"
                               >
-                                <RefreshCw className="h-3 w-3 text-[#1574fe]" />
+                                <RefreshCw className="h-3 w-3 text-[#6366f1]" />
                                 <span>Retry</span>
                               </Button>
                             )}
@@ -1800,27 +2039,27 @@ export function TenantManagementScreen({ initialTab = 'onboarding' }: TenantMana
                 </table>
               </div>
 
-              {/* Pagination matching Image 3 */}
+              {/* Pagination matching Image 3 & 4 */}
               <div className="flex items-center justify-between pt-2 text-xs text-slate-600">
                 <span>Showing 1 – 5 of 68 records</span>
                 <div className="flex items-center gap-1">
-                  <button type="button" className="p-1 border rounded hover:bg-slate-50">
+                  <button type="button" className="p-1 border border-slate-200 rounded hover:bg-slate-50">
                     <ChevronLeft className="h-3.5 w-3.5" />
                   </button>
-                  <button type="button" className="w-6 h-6 rounded bg-[#1574fe] text-white font-bold text-xs">
+                  <button type="button" className="w-6 h-6 rounded bg-[#6366f1] text-white font-bold text-xs">
                     1
                   </button>
-                  <button type="button" className="w-6 h-6 rounded border hover:bg-slate-50 text-xs">
+                  <button type="button" className="w-6 h-6 rounded border border-slate-200 hover:bg-slate-50 text-xs">
                     2
                   </button>
-                  <button type="button" className="w-6 h-6 rounded border hover:bg-slate-50 text-xs">
+                  <button type="button" className="w-6 h-6 rounded border border-slate-200 hover:bg-slate-50 text-xs">
                     3
                   </button>
-                  <span className="px-1">...</span>
-                  <button type="button" className="w-6 h-6 rounded border hover:bg-slate-50 text-xs">
+                  <span className="px-1 text-slate-400">...</span>
+                  <button type="button" className="w-6 h-6 rounded border border-slate-200 hover:bg-slate-50 text-xs">
                     14
                   </button>
-                  <button type="button" className="p-1 border rounded hover:bg-slate-50">
+                  <button type="button" className="p-1 border border-slate-200 rounded hover:bg-slate-50">
                     <ChevronRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
