@@ -39,6 +39,33 @@ export function IsometricBoxIcon({ className = 'h-8 w-8 text-[#6222cc]' }: { cla
   );
 }
 
+export function IsometricLayersIcon({
+  className = 'h-5 w-5',
+  color = '#6222cc',
+}: {
+  className?: string;
+  color?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color || 'currentColor'}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {/* Top layer */}
+      <polygon points="12 2 2 7 12 12 22 7 12 2" />
+      {/* Middle layer */}
+      <path d="M2 12l10 5 10-5" />
+      {/* Bottom layer */}
+      <path d="M2 17l10 5 10-5" />
+    </svg>
+  );
+}
+
 export function ProductBadgeIcon({
   type,
   size = 'md',
