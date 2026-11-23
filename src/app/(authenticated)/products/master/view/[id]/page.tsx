@@ -2,15 +2,15 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import { ProductMasterOverviewScreen } from '@/components/products/ProductMasterOverviewScreen';
+import { ProductMasterScreen } from '@/components/products/ProductMasterScreen';
 
 export default function ProductMasterViewPage() {
   const params = useParams();
-  const id = typeof params?.id === 'string' ? params.id : 'prd-crm';
+  const id = typeof params?.id === 'string' ? params.id : 'prd-edu';
 
   return (
     <div className="w-full">
-      <ProductMasterOverviewScreen productId={id} />
+      <ProductMasterScreen initialMode="edit_product" initialProductId={id} />
     </div>
   );
 }

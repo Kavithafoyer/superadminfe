@@ -2,15 +2,15 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import { TenantCreateScreen } from '@/components/tenants/TenantCreateScreen';
+import { TenantMasterListScreen } from '@/components/tenants/TenantMasterListScreen';
 
 export default function TenantEditPage() {
   const params = useParams();
-  const id = typeof params?.id === 'string' ? params.id : 'TEN-00481';
+  const id = typeof params?.id === 'string' ? params.id : undefined;
 
   return (
     <div className="w-full">
-      <TenantCreateScreen mode="edit" tenantId={id} />
+      <TenantMasterListScreen initialMode="edit" initialTenantId={id} />
     </div>
   );
 }

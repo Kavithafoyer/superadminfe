@@ -23,11 +23,9 @@ import {
   FileText,
   BarChart2,
   Zap,
-  TrendingUp,
   LayoutGrid,
   User,
-  CreditCard,
-  Check,
+  History,
   ChevronDown,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -40,7 +38,7 @@ export function CustomerMasterScreen() {
   const router = useRouter();
 
   // State
-  const [customers, setCustomers] = useState<CustomerRecord[]>(INITIAL_CUSTOMERS);
+  const [customers] = useState<CustomerRecord[]>(INITIAL_CUSTOMERS);
   const [selectedProductFilter, setSelectedProductFilter] = useState('All Products');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
@@ -78,30 +76,32 @@ export function CustomerMasterScreen() {
     );
   };
 
-  // Industry Icon Renderer
+  // Industry Icon Renderer matching Image 4
   const renderIndustryIcon = (type: string) => {
     switch (type) {
       case 'education':
-        return <GraduationCap className="h-4 w-4 text-purple-600" />;
+        return <GraduationCap className="h-4 w-4 text-[#6366f1]" />;
       case 'it':
-        return <Laptop className="h-4 w-4 text-blue-600" />;
+        return <Laptop className="h-4 w-4 text-[#6366f1]" />;
       case 'retail':
-        return <ShoppingCart className="h-4 w-4 text-rose-600" />;
+        return <ShoppingCart className="h-4 w-4 text-[#6366f1]" />;
       case 'real-estate':
-        return <Building2 className="h-4 w-4 text-[#1574fe]" />;
+        return <Building2 className="h-4 w-4 text-[#6366f1]" />;
       case 'people':
       default:
-        return <Users className="h-4 w-4 text-purple-600" />;
+        return <Users className="h-4 w-4 text-[#6366f1]" />;
     }
   };
 
   return (
-    <div className="space-y-4 max-w-[1600px] mx-auto pb-8">
-      {/* 1. Header Bar matching Image 2 */}
+    <div className="space-y-4 max-w-[1600px] mx-auto pb-10 font-sans text-slate-800 antialiased">
+      {/* ══════════════════════════════════════════════════════════════════════
+          1. HEADER BAR MATCHING IMAGE 4
+      ══════════════════════════════════════════════════════════════════════ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-0.5">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
-            <Users className="h-7 w-7 text-[#1574fe]" />
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-50 text-[#6366f1] border border-purple-100 shadow-xs">
+            <Users className="h-6 w-6 stroke-[2.2]" />
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -115,14 +115,14 @@ export function CustomerMasterScreen() {
 
         {/* Top Right Controls */}
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-xs">
-            <span className="text-slate-400 font-medium">Product</span>
+          <div className="flex items-center gap-1.5 bg-white border border-slate-200/90 rounded-lg px-2.5 py-1.5 text-xs shadow-xs">
+            <span className="text-slate-500 font-medium">Product</span>
             <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-              <GraduationCap className="h-4 w-4 text-[#1574fe]" />
+              <GraduationCap className="h-4 w-4 text-[#6366f1]" />
               <select
                 value={selectedProductFilter}
                 onChange={(e) => setSelectedProductFilter(e.target.value)}
-                className="bg-transparent border-none outline-hidden font-semibold text-slate-800 cursor-pointer"
+                className="bg-transparent border-none outline-hidden font-semibold text-slate-800 cursor-pointer text-xs"
               >
                 <option value="All Products">All Products</option>
                 <option value="Education">Education</option>
@@ -135,8 +135,9 @@ export function CustomerMasterScreen() {
           </div>
 
           <Button
-            onClick={() => toast.success('Add Customer dialog opened')}
-            className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            type="button"
+            onClick={() => router.push('/customer/master/create')}
+            className="bg-[#6366f1] hover:bg-[#5046e5] text-white font-semibold text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Add Customer</span>
@@ -144,28 +145,30 @@ export function CustomerMasterScreen() {
         </div>
       </div>
 
-      {/* 2. 5 KPI Metric Cards matching Image 2 */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          2. 5 KPI METRIC CARDS MATCHING IMAGE 4
+      ══════════════════════════════════════════════════════════════════════ */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
         {/* Metric 1: Total Customers */}
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
-          <div className="p-2.5 bg-blue-50 text-[#1574fe] rounded-xl shrink-0">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
+          <div className="p-2.5 bg-purple-50 text-[#6366f1] rounded-xl shrink-0">
             <Users className="h-5 w-5" />
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500">Total Customers</p>
-            <p className="text-2xl font-bold text-slate-900 mt-0.5">286</p>
+            <p className="text-2xl font-extrabold text-slate-900 mt-0.5">286</p>
           </div>
         </div>
 
         {/* Metric 2: Active Customers */}
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
           <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl shrink-0">
             <CheckCircle2 className="h-5 w-5" />
           </div>
           <div className="flex-1">
             <p className="text-xs font-semibold text-slate-500">Active Customers</p>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-2xl font-bold text-slate-900">274</span>
+              <span className="text-2xl font-extrabold text-slate-900">274</span>
               <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
                 ↑ +8%
               </span>
@@ -174,49 +177,51 @@ export function CustomerMasterScreen() {
         </div>
 
         {/* Metric 3: Expiring (30 Days) */}
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
-          <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl shrink-0">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
+          <div className="p-2.5 bg-purple-50 text-[#6366f1] rounded-xl shrink-0">
             <Calendar className="h-5 w-5" />
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500">Expiring (30 Days)</p>
-            <p className="text-2xl font-bold text-slate-900 mt-0.5">18</p>
+            <p className="text-2xl font-extrabold text-slate-900 mt-0.5">18</p>
           </div>
         </div>
 
         {/* Metric 4: Overdue */}
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
           <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl shrink-0">
             <AlertTriangle className="h-5 w-5" />
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500">Overdue</p>
-            <p className="text-2xl font-bold text-slate-900 mt-0.5">4</p>
+            <p className="text-2xl font-extrabold text-slate-900 mt-0.5">4</p>
           </div>
         </div>
 
         {/* Metric 5: Total ARR */}
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
-          <div className="p-2.5 bg-blue-50 text-[#1574fe] rounded-xl shrink-0">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3 col-span-2 sm:col-span-1">
+          <div className="p-2.5 bg-purple-50 text-[#6366f1] rounded-xl shrink-0">
             <Layers className="h-5 w-5" />
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500">Total ARR</p>
-            <p className="text-2xl font-bold text-slate-900 mt-0.5">₹3.24 Cr</p>
+            <p className="text-2xl font-extrabold text-slate-900 mt-0.5">₹3.24 Cr</p>
           </div>
         </div>
       </div>
 
-      {/* 3. Sub-Navigation Tabs Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-200/80">
+      {/* ══════════════════════════════════════════════════════════════════════
+          3. SUB-NAVIGATION TABS BAR MATCHING IMAGE 4
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         {[
-          { label: 'Customer List', icon: LayoutGrid },
-          { label: 'Customer Details', icon: User },
-          { label: 'Subscriptions', icon: Layers },
-          { label: 'Usage & Adoption', icon: BarChart2 },
-          { label: 'Renewals & Billing', icon: Calendar },
-          { label: 'Documents', icon: FileText },
-          { label: 'Activity & History', icon: Clock },
+          { label: 'Customer List', icon: LayoutGrid, path: '/customer/master' },
+          { label: 'Customer Details', icon: User, path: '/customer/overview' },
+          { label: 'Subscriptions', icon: Layers, path: '/customer/subscription-management' },
+          { label: 'Usage & Adoption', icon: BarChart2, path: '/customer/usage' },
+          { label: 'Renewals & Billing', icon: Calendar, path: '/customer/renewals-expiry' },
+          { label: 'Documents', icon: FileText, path: '/customer/overview' },
+          { label: 'Activity & History', icon: History, path: '/customer/overview' },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeSubTab === tab.label;
@@ -226,30 +231,32 @@ export function CustomerMasterScreen() {
               type="button"
               onClick={() => {
                 setActiveSubTab(tab.label);
-                if (tab.label === 'Customer Details') {
-                  router.push('/customer/overview');
+                if (tab.label !== 'Customer List') {
+                  router.push(tab.path);
                 }
               }}
               className={cn(
-                'px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer',
+                'px-4 py-2 text-xs md:text-sm font-semibold rounded-xl flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer',
                 isActive
-                  ? 'bg-[#1574fe] text-white shadow-xs'
-                  : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
+                  ? 'bg-[#6366f1] text-white shadow-xs'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 shadow-2xs'
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className={cn('h-4 w-4', isActive ? 'text-white' : 'text-[#6366f1]')} />
               <span>{tab.label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* 4. Customer List Table Container Card */}
-      <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
+      {/* ══════════════════════════════════════════════════════════════════════
+          4. CUSTOMER LIST TABLE CARD MATCHING IMAGE 4
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-4">
         {/* Table Top Controls Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-[#1574fe]" />
+            <Users className="h-5 w-5 text-[#6366f1]" />
             <h3 className="text-base font-bold text-slate-900">
               Customers ({filteredCustomers.length > 5 ? '286' : filteredCustomers.length})
             </h3>
@@ -262,24 +269,24 @@ export function CustomerMasterScreen() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by customer name, domain, or contact..."
-                className="pl-9 pr-3 py-1.5 text-xs h-8.5 bg-white border-slate-200 rounded-lg placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#1574fe]"
+                className="pl-9 pr-3 py-1.5 text-xs h-9 bg-white border-slate-200 rounded-lg placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#6366f1]"
               />
             </div>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => toast.info('Advanced filter dialog')}
-              className="h-8.5 px-3 text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 gap-1.5 rounded-lg shrink-0"
+              onClick={() => toast.info('Filters dialog')}
+              className="h-9 px-3 text-xs bg-white border-slate-200 hover:bg-purple-50 hover:border-purple-200 text-[#6366f1] gap-1.5 rounded-lg shrink-0 font-semibold"
             >
-              <Filter className="h-3.5 w-3.5 text-[#1574fe]" />
+              <Filter className="h-3.5 w-3.5 text-[#6366f1]" />
               <span>Filters</span>
             </Button>
           </div>
         </div>
 
         {/* Customer Records Table */}
-        <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+        <div className="border border-slate-200/90 rounded-xl overflow-hidden bg-white shadow-2xs">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="bg-slate-50/80 text-slate-700 font-semibold border-b border-slate-200 text-[11px]">
@@ -291,22 +298,22 @@ export function CustomerMasterScreen() {
                       selectedCustomerIds.length === filteredCustomers.length
                     }
                     onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-3.5 w-3.5"
+                    className="rounded border-slate-300 text-[#6366f1] focus:ring-[#6366f1] h-3.5 w-3.5 cursor-pointer accent-[#6366f1]"
                   />
                 </th>
-                <th className="py-2.5 px-2.5 w-8 text-center">#</th>
-                <th className="py-2.5 px-3">Customer Name</th>
-                <th className="py-2.5 px-3">Industry</th>
-                <th className="py-2.5 px-3">Product(s)</th>
-                <th className="py-2.5 px-3">Plan</th>
-                <th className="py-2.5 px-3">Start Date</th>
-                <th className="py-2.5 px-3">Next Renewal</th>
-                <th className="py-2.5 px-3 text-center">Status</th>
-                <th className="py-2.5 px-3 text-right">ARR (₹)</th>
-                <th className="py-2.5 px-3 text-center w-24">Actions</th>
+                <th className="py-2.5 px-2.5 w-8 text-center font-bold text-slate-900">#</th>
+                <th className="py-2.5 px-3 font-bold text-slate-900">Customer Name</th>
+                <th className="py-2.5 px-3 font-bold text-slate-900">Industry</th>
+                <th className="py-2.5 px-3 font-bold text-slate-900">Product(s)</th>
+                <th className="py-2.5 px-3 font-bold text-slate-900">Plan</th>
+                <th className="py-2.5 px-3 font-bold text-slate-900">Start Date</th>
+                <th className="py-2.5 px-3 font-bold text-slate-900">Next Renewal</th>
+                <th className="py-2.5 px-3 text-center font-bold text-slate-900">Status</th>
+                <th className="py-2.5 px-3 text-right font-bold text-slate-900">ARR (₹)</th>
+                <th className="py-2.5 px-3 text-center w-24 font-bold text-slate-900">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 font-medium">
               {filteredCustomers.map((cust, idx) => (
                 <tr
                   key={cust.id}
@@ -321,14 +328,14 @@ export function CustomerMasterScreen() {
                       type="checkbox"
                       checked={selectedCustomerIds.includes(cust.id)}
                       onChange={() => handleSelectOne(cust.id)}
-                      className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-3.5 w-3.5"
+                      className="rounded border-slate-300 text-[#6366f1] focus:ring-[#6366f1] h-3.5 w-3.5 cursor-pointer accent-[#6366f1]"
                     />
                   </td>
                   <td className="py-2.5 px-2.5 text-center text-slate-500 font-semibold text-[11px]">
                     {idx + 1}
                   </td>
-                  <td className="py-2.5 px-3 font-semibold text-slate-900">
-                    <span className="hover:text-[#1574fe] transition-colors">
+                  <td className="py-2.5 px-3 font-bold text-slate-900">
+                    <span className="hover:text-[#6366f1] transition-colors">
                       {cust.name}
                     </span>
                   </td>
@@ -339,7 +346,7 @@ export function CustomerMasterScreen() {
                     </div>
                   </td>
                   <td className="py-2.5 px-3">
-                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-100 text-purple-700">
+                    <span className="inline-block px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-[#ede9fe] text-[#6d28d9]">
                       {cust.product}
                     </span>
                   </td>
@@ -355,48 +362,46 @@ export function CustomerMasterScreen() {
                   <td className="py-2.5 px-3 text-center">
                     <span
                       className={cn(
-                        'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold',
-                        cust.status === 'Active'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : cust.status === 'Expiring'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-rose-100 text-rose-700'
+                        'inline-block px-2.5 py-0.5 rounded-md text-[11px] font-semibold',
+                        cust.status === 'Active' && 'bg-[#dcfce7] text-[#15803d]',
+                        cust.status === 'Expiring' && 'bg-[#fef3c7] text-[#b45309]',
+                        cust.status === 'Overdue' && 'bg-[#fee2e2] text-[#b91c1c]'
                       )}
                     >
                       {cust.status}
                     </span>
                   </td>
-                  <td className="py-2.5 px-3 text-right font-semibold text-slate-900">
+                  <td className="py-2.5 px-3 text-right font-bold text-slate-900">
                     {cust.arr}
                   </td>
                   <td
                     className="py-2.5 px-3 text-center"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex items-center justify-center gap-1">
+                    <div className="flex items-center justify-center gap-1.5">
                       <button
                         type="button"
                         onClick={() => router.push(`/customer/overview?id=${cust.id}`)}
-                        className="p-1 rounded-md text-slate-500 hover:text-[#1574fe] hover:bg-slate-100 transition-colors cursor-pointer"
                         title="View Customer Overview"
+                        className="p-1 rounded-md text-[#6366f1] hover:bg-purple-50 transition-colors"
                       >
-                        <Eye className="h-3.5 w-3.5 text-[#1574fe]" />
+                        <Eye className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
-                        onClick={() => toast.info(`Editing ${cust.name}`)}
-                        className="p-1 rounded-md text-slate-500 hover:text-[#1574fe] hover:bg-slate-100 transition-colors cursor-pointer"
+                        onClick={() => router.push(`/customer/master/edit/${cust.id}`)}
                         title="Edit Customer"
+                        className="p-1 rounded-md text-[#6366f1] hover:bg-purple-50 transition-colors"
                       >
                         <Edit2 className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"
                         onClick={() => toast.info(`Options for ${cust.name}`)}
-                        className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                        title="More actions"
+                        title="More Options"
+                        className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
                       >
-                        <MoreVertical className="h-3.5 w-3.5" />
+                        <MoreVertical className="h-4 w-4" />
                       </button>
                     </div>
                   </td>
@@ -407,12 +412,14 @@ export function CustomerMasterScreen() {
         </div>
       </div>
 
-      {/* 5. Bottom 3 Cards matching Image 2 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4.5">
+      {/* ══════════════════════════════════════════════════════════════════════
+          5. BOTTOM 3 CARDS MATCHING IMAGE 4
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
         {/* Card 1: Customer Overview Donut Chart */}
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <BarChart2 className="h-4.5 w-4.5 text-[#1574fe]" />
+            <BarChart2 className="h-4.5 w-4.5 text-[#6366f1]" />
             <h4 className="text-sm font-bold text-slate-900">Customer Overview</h4>
           </div>
 
@@ -484,9 +491,9 @@ export function CustomerMasterScreen() {
         </div>
 
         {/* Card 2: Products Adoption (Active Customers) */}
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3.5">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-3.5">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Layers className="h-4.5 w-4.5 text-[#1574fe]" />
+            <Layers className="h-4.5 w-4.5 text-[#6366f1]" />
             <h4 className="text-sm font-bold text-slate-900">
               Products Adoption (Active Customers)
             </h4>
@@ -504,12 +511,12 @@ export function CustomerMasterScreen() {
               return (
                 <div key={p.label} className="flex items-center gap-2.5">
                   <div className="w-24 flex items-center gap-1.5 shrink-0 text-slate-700 font-medium">
-                    <Icon className="h-3.5 w-3.5 text-[#1574fe] shrink-0" />
+                    <Icon className="h-3.5 w-3.5 text-[#6366f1] shrink-0" />
                     <span className="truncate">{p.label}</span>
                   </div>
                   <div className="flex-1 bg-slate-100 rounded-full h-3 overflow-hidden">
                     <div
-                      className="bg-[#1574fe] h-full rounded-full transition-all duration-500"
+                      className="bg-[#6366f1] h-full rounded-full transition-all duration-500"
                       style={{ width: `${p.pct}%` }}
                     />
                   </div>
@@ -523,9 +530,9 @@ export function CustomerMasterScreen() {
         </div>
 
         {/* Card 3: Quick Actions */}
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3 flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-3 flex flex-col justify-between">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Zap className="h-4.5 w-4.5 text-[#1574fe]" />
+            <Zap className="h-4.5 w-4.5 text-[#6366f1]" />
             <h4 className="text-sm font-bold text-slate-900">Quick Actions</h4>
           </div>
 
@@ -533,20 +540,20 @@ export function CustomerMasterScreen() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => toast.info('Manage Subscriptions modal')}
-              className="w-full h-8.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-800 justify-start gap-2 rounded-lg"
+              onClick={() => router.push('/customer/subscription-management')}
+              className="w-full h-9 text-xs font-semibold border-slate-200/90 hover:border-[#6366f1] hover:bg-purple-50/40 text-slate-800 justify-start gap-2.5 rounded-xl cursor-pointer"
             >
-              <Layers className="h-4 w-4 text-[#1574fe]" />
+              <Users className="h-4 w-4 text-[#6366f1]" />
               <span>Manage Subscription</span>
             </Button>
 
             <Button
               type="button"
               variant="outline"
-              onClick={() => toast.info('Send Renewal Reminder modal')}
-              className="w-full h-8.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-800 justify-start gap-2 rounded-lg"
+              onClick={() => router.push('/customer/renewals-expiry')}
+              className="w-full h-9 text-xs font-semibold border-slate-200/90 hover:border-[#6366f1] hover:bg-purple-50/40 text-slate-800 justify-start gap-2.5 rounded-xl cursor-pointer"
             >
-              <Calendar className="h-4 w-4 text-[#1574fe]" />
+              <Calendar className="h-4 w-4 text-[#6366f1]" />
               <span>Renewal Reminder</span>
             </Button>
 
@@ -554,9 +561,9 @@ export function CustomerMasterScreen() {
               type="button"
               variant="outline"
               onClick={() => router.push('/customer/usage')}
-              className="w-full h-8.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-800 justify-start gap-2 rounded-lg"
+              className="w-full h-9 text-xs font-semibold border-slate-200/90 hover:border-[#6366f1] hover:bg-purple-50/40 text-slate-800 justify-start gap-2.5 rounded-xl cursor-pointer"
             >
-              <BarChart2 className="h-4 w-4 text-[#1574fe]" />
+              <BarChart2 className="h-4 w-4 text-[#6366f1]" />
               <span>View Usage</span>
             </Button>
 
@@ -564,9 +571,9 @@ export function CustomerMasterScreen() {
               type="button"
               variant="outline"
               onClick={() => toast.success('Customer list exported as CSV')}
-              className="w-full h-8.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-800 justify-start gap-2 rounded-lg"
+              className="w-full h-9 text-xs font-semibold border-slate-200/90 hover:border-[#6366f1] hover:bg-purple-50/40 text-slate-800 justify-start gap-2.5 rounded-xl cursor-pointer"
             >
-              <Download className="h-4 w-4 text-[#1574fe]" />
+              <Download className="h-4 w-4 text-[#6366f1]" />
               <span>Download Customer List</span>
             </Button>
           </div>

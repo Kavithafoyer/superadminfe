@@ -357,26 +357,8 @@ export default function FinancialOperationsAnalyticsPage() {
           </div>
         </div>
 
-        {/* View Switcher Pills */}
+        {/* Actions */}
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => router.push('/dashboard')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
-          >
-            <TrendingUp className="h-4 w-4" />
-            Executive Dashboard
-          </button>
-
-          <button
-            type="button"
-            onClick={() => router.push('/dashboard/system-health')}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs md:text-sm font-semibold transition-all shadow-xs cursor-pointer bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
-          >
-            <Activity className="h-4 w-4" />
-            System Health
-          </button>
-
           <Button
             variant="outline"
             size="sm"

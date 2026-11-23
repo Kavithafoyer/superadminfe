@@ -13,7 +13,12 @@ function TenantExportDeletionContent() {
     return <TenantRetentionPolicyScreen />;
   }
 
-  return <TenantManagementScreen initialTab="export-deletion" />;
+  return (
+    <TenantManagementScreen
+      initialTab="export-deletion"
+      initialSubTab={tab || 'deletion'}
+    />
+  );
 }
 
 export default function TenantExportDeletionPage() {

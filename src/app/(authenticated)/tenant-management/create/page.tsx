@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { TenantCreateScreen } from '@/components/tenants/TenantCreateScreen';
+import { TenantMasterListScreen } from '@/components/tenants/TenantMasterListScreen';
 
 export default function TenantCreatePage() {
   return (
     <div className="w-full">
-      <TenantCreateScreen mode="create" />
+      <TenantMasterListScreen initialMode="create" />
     </div>
   );
 }

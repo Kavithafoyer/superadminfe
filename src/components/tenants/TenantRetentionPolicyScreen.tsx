@@ -108,13 +108,13 @@ export function TenantRetentionPolicyScreen() {
               type="button"
               onClick={() => handleTabChange(tab.key as any)}
               className={cn(
-                'px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-xs',
+                'px-4 py-2 text-xs md:text-sm font-semibold rounded-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-xs',
                 isActive
-                  ? 'bg-[#1574fe] text-white'
-                  : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
+                  ? 'bg-[#6366f1] text-white'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 shadow-2xs'
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className={cn('h-4 w-4', isActive ? 'text-white' : 'text-slate-700')} />
               <span>{tab.label}</span>
             </button>
           );
