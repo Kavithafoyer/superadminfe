@@ -107,8 +107,8 @@ export function Header() {
               <SheetHeader className="p-4 border-b border-[#12192d]">
                 <SheetTitle className="flex items-center gap-2.5 cursor-pointer" onClick={() => { router.push('/dashboard'); setIsSheetOpen(false); }}>
                   <img
-                    src="/CRMFARM_LOGO.png"
-                    alt="Logo"
+                    src="/pegatto_logo.png"
+                    alt="Pegatto"
                     className="h-8 w-auto object-contain shrink-0"
                   />
                   <div className="flex flex-col text-left">
