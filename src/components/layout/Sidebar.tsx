@@ -25,12 +25,12 @@ export function Sidebar() {
       )}
     >
       <div className="flex h-full flex-col">
-        {/* Top Pegatto Logo */}
+        {/* Top Logo */}
         <div className="flex items-center gap-3 px-4 h-16 border-b border-[#12192d] shrink-0">
           <Link href="/dashboard" className="flex items-center gap-2.5">
             <img
-              src="/pegatto_logo.png"
-              alt="Pegatto"
+              src="/CRMFARM_LOGO.png"
+              alt="Logo"
               className="h-8 w-auto object-contain shrink-0"
             />
             {isSidebarOpen && (
