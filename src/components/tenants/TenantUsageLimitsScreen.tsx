@@ -180,7 +180,7 @@ export function TenantUsageLimitsScreen() {
       case 'users':
         return <Users className="h-4 w-4 text-[#6366f1]" />;
       case 'students':
-        return <GraduationCap className="h-4 w-4 text-blue-600" />;
+        return <GraduationCap className="h-4 w-4 text-[#6222cc]" />;
       case 'storage':
         return <Database className="h-4 w-4 text-emerald-600" />;
       case 'api':
@@ -456,7 +456,7 @@ export function TenantUsageLimitsScreen() {
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="font-medium text-slate-700 flex items-center gap-1.5">
-                      <GraduationCap className="h-3.5 w-3.5 text-blue-600" /> Students
+                      <GraduationCap className="h-3.5 w-3.5 text-[#6222cc]" /> Students
                     </span>
                     <span className="font-bold text-slate-900">2,436 / 3,000 (81%)</span>
                   </div>
@@ -1373,7 +1373,7 @@ export function TenantUsageLimitsScreen() {
                               ? 'bg-rose-100 text-rose-700'
                               : ah.severity === 'Warning'
                               ? 'bg-amber-100 text-amber-800'
-                              : 'bg-blue-100 text-blue-700'
+                              : 'bg-blue-100 text-[#6222cc]'
                           )}
                         >
                           {ah.severity}
@@ -1387,7 +1387,7 @@ export function TenantUsageLimitsScreen() {
                             ah.status === 'Resolved'
                               ? 'bg-[#dcfce7] text-[#15803d]'
                               : ah.status === 'Acknowledged'
-                              ? 'bg-blue-50 text-blue-700'
+                              ? 'bg-blue-50 text-[#6222cc]'
                               : 'bg-[#fef3c7] text-[#b45309]'
                           )}
                         >

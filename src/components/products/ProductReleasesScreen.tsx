@@ -139,7 +139,7 @@ export function ProductReleasesScreen() {
         <Button
           type="button"
           onClick={() => toast.success('New release deployment workflow initialized.')}
-          className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
+          className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-xs sm:text-sm h-9 px-4 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
           <span>New Release</span>
@@ -163,7 +163,7 @@ export function ProductReleasesScreen() {
           <select
             value={productFilter}
             onChange={(e) => setProductFilter(e.target.value)}
-            className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
+            className="h-8 px-2.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
           >
             <option>All Products</option>
             <option>Pegatto CRM</option>
@@ -184,7 +184,7 @@ export function ProductReleasesScreen() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div className="flex items-center gap-3">
                 <span className="text-base font-bold text-slate-900">{release.version}</span>
-                <span className="text-xs font-semibold text-[#1574fe] bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-100">
+                <span className="text-xs font-semibold text-[#6222cc] bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-100">
                   {release.product}
                 </span>
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">

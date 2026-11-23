@@ -135,11 +135,11 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
       case 'education':
         return <GraduationCap className="h-4 w-4 text-purple-600" />;
       case 'it':
-        return <Laptop className="h-4 w-4 text-blue-600" />;
+        return <Laptop className="h-4 w-4 text-[#6222cc]" />;
       case 'retail':
         return <ShoppingCart className="h-4 w-4 text-rose-600" />;
       case 'real-estate':
-        return <Building2 className="h-4 w-4 text-[#1574fe]" />;
+        return <Building2 className="h-4 w-4 text-[#6222cc]" />;
       case 'people':
       default:
         return <Users className="h-4 w-4 text-purple-600" />;
@@ -168,7 +168,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-0.5">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
-                <Settings className="h-7 w-7 text-[#1574fe]" />
+                <Settings className="h-7 w-7 text-[#6222cc]" />
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -185,7 +185,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
               <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-xs">
                 <span className="text-slate-400 font-medium">Product</span>
                 <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-                  <GraduationCap className="h-4 w-4 text-[#1574fe]" />
+                  <GraduationCap className="h-4 w-4 text-[#6222cc]" />
                   <select
                     value={selectedProductFilter}
                     onChange={(e) => setSelectedProductFilter(e.target.value)}
@@ -213,7 +213,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
 
               <Button
                 onClick={() => toast.success('Onboarding wizard launched')}
-                className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
                 <span>Onboard Tenant</span>
@@ -249,7 +249,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
-              <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl shrink-0">
+              <div className="p-2.5 bg-blue-50 text-[#6222cc] rounded-xl shrink-0">
                 <Users className="h-5 w-5" />
               </div>
               <div>
@@ -282,7 +282,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
           {/* Flow Diagram: Approval & Onboarding Flow */}
           <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <Layers className="h-4.5 w-4.5 text-[#1574fe]" />
+              <Layers className="h-4.5 w-4.5 text-[#6222cc]" />
               <div>
                 <h3 className="text-sm font-bold text-slate-900">Approval & Onboarding Flow</h3>
                 <p className="text-xs text-slate-500">From registration to go-live in a few simple steps</p>
@@ -304,7 +304,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
                     sub: '(Business & Contact Check)',
                     icon: Search,
                     bg: 'bg-blue-50/80 border-blue-200 text-blue-900',
-                    iconColor: 'text-blue-600',
+                    iconColor: 'text-[#6222cc]',
                   },
                   {
                     step: '3. Approval',
@@ -318,7 +318,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
                     sub: '(Create Tenant, Assign Product & Plan)',
                     icon: Settings,
                     bg: 'bg-blue-50/80 border-blue-200 text-blue-900',
-                    iconColor: 'text-blue-600',
+                    iconColor: 'text-[#6222cc]',
                   },
                   {
                     step: '5. Onboarding',
@@ -364,7 +364,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
             <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3.5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <FileText className="h-4.5 w-4.5 text-[#1574fe]" />
+                  <FileText className="h-4.5 w-4.5 text-[#6222cc]" />
                   <h3 className="text-sm font-bold text-slate-900">Pending Approvals (12)</h3>
                 </div>
 
@@ -384,7 +384,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
                     size="sm"
                     className="h-8 px-2.5 text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 gap-1 rounded-lg"
                   >
-                    <Filter className="h-3 w-3 text-[#1574fe]" />
+                    <Filter className="h-3 w-3 text-[#6222cc]" />
                     <span>Filters</span>
                   </Button>
                 </div>
@@ -442,7 +442,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
                             <button
                               type="button"
                               onClick={() => toast.info(`Viewing details of ${pt.name}`)}
-                              className="p-1 text-slate-500 hover:text-[#1574fe]"
+                              className="p-1 text-slate-500 hover:text-[#6222cc]"
                               title="View"
                             >
                               <Eye className="h-3.5 w-3.5" />
@@ -475,7 +475,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
             {/* Right 4 cols: Onboarding Progress */}
             <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Rocket className="h-4.5 w-4.5 text-[#1574fe]" />
+                <Rocket className="h-4.5 w-4.5 text-[#6222cc]" />
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Onboarding Progress</h3>
                   <p className="text-[11px] text-slate-500">Track onboarding status for approved tenants</p>
@@ -486,7 +486,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
               <div className="p-3 border border-slate-200/70 rounded-xl bg-slate-50/50 flex items-center justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
-                    <Building2 className="h-4 w-4 text-[#1574fe]" />
+                    <Building2 className="h-4 w-4 text-[#6222cc]" />
                     <span>Bright Future School</span>
                   </div>
                   <p className="text-[11px] text-slate-500">
@@ -624,7 +624,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
-              <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl shrink-0">
+              <div className="p-2.5 bg-blue-50 text-[#6222cc] rounded-xl shrink-0">
                 <Building2 className="h-5 w-5" />
               </div>
               <div>
@@ -663,7 +663,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
                     { step: '2. Verify', sub: 'Email / Mobile', icon: Mail, color: 'text-blue-500' },
                     { step: '3. Admin', sub: 'Review', icon: Search, color: 'text-[#6366f1]' },
                     { step: '4. Approve', sub: 'or Reject', icon: CheckCircle2, color: 'text-emerald-700', isHighlighted: true },
-                    { step: '5. Tenant', sub: 'Activated (Access & Setup)', icon: Building2, color: 'text-blue-600' },
+                    { step: '5. Tenant', sub: 'Activated (Access & Setup)', icon: Building2, color: 'text-[#6222cc]' },
                   ].map((s, idx, arr) => {
                     const SIcon = s.icon;
                     return (
@@ -921,7 +921,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-0.5">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
-                <Building2 className="h-7 w-7 text-[#1574fe]" />
+                <Building2 className="h-7 w-7 text-[#6222cc]" />
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -955,7 +955,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
 
               <Button
                 onClick={() => toast.success('Register Tenant modal')}
-                className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
                 <span>Register Tenant</span>
@@ -991,7 +991,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-3.5 flex items-center gap-2.5">
-              <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0">
+              <div className="p-2 bg-blue-50 text-[#6222cc] rounded-xl shrink-0">
                 <Hourglass className="h-4 w-4" />
               </div>
               <div>
@@ -1041,7 +1041,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
                   className={cn(
                     'px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer whitespace-nowrap',
                     i === 0
-                      ? 'bg-[#1574fe] text-white shadow-xs font-bold'
+                      ? 'bg-[#6222cc] text-white shadow-xs font-bold'
                       : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
                   )}
                 >
@@ -1054,7 +1054,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
           {/* Tenant Lifecycle (End-to-End) Flow Canvas matching Image 5 */}
           <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <RefreshCw className="h-4.5 w-4.5 text-[#1574fe]" />
+              <RefreshCw className="h-4.5 w-4.5 text-[#6222cc]" />
               <h3 className="text-sm font-bold text-slate-900">Tenant Lifecycle (End-to-End)</h3>
             </div>
 
@@ -1072,7 +1072,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
                   return (
                     <React.Fragment key={s.step}>
                       <div className="flex-1 p-3 rounded-xl border border-slate-200 bg-white text-center shadow-2xs space-y-1">
-                        <SIcon className="h-5 w-5 text-[#1574fe] mx-auto" />
+                        <SIcon className="h-5 w-5 text-[#6222cc] mx-auto" />
                         <p className="text-xs font-bold text-slate-900 leading-tight">{s.step}</p>
                         <p className="text-[10px] text-slate-500 leading-tight">{s.sub}</p>
                       </div>
@@ -1084,7 +1084,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
                 {/* 3 State Branches */}
                 <div className="flex flex-col gap-1.5 shrink-0 pl-1 border-l border-dashed border-slate-300">
                   <div className="px-2.5 py-1 rounded-lg border border-blue-200 bg-blue-50/80 flex items-center gap-1.5 text-[11px] font-semibold text-blue-900">
-                    <Hourglass className="h-3 w-3 text-blue-600 shrink-0" />
+                    <Hourglass className="h-3 w-3 text-[#6222cc] shrink-0" />
                     <span>Trial (Time-bound)</span>
                   </div>
                   <div className="px-2.5 py-1 rounded-lg border border-amber-200 bg-amber-50/80 flex items-center gap-1.5 text-[11px] font-semibold text-amber-900">
@@ -1106,7 +1106,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
             <div className="lg:col-span-9 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3.5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
-                  <Building2 className="h-4.5 w-4.5 text-[#1574fe]" />
+                  <Building2 className="h-4.5 w-4.5 text-[#6222cc]" />
                   <h3 className="text-sm font-bold text-slate-900">Tenants (286)</h3>
                 </div>
 
@@ -1126,7 +1126,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
                     size="sm"
                     className="h-8 px-2.5 text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 gap-1 rounded-lg"
                   >
-                    <Filter className="h-3 w-3 text-[#1574fe]" />
+                    <Filter className="h-3 w-3 text-[#6222cc]" />
                     <span>Filters</span>
                   </Button>
                 </div>
@@ -1176,7 +1176,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
                                 : t.status === 'Onboarding'
                                 ? 'bg-purple-100 text-purple-700'
                                 : t.status === 'Trial'
-                                ? 'bg-blue-100 text-blue-700'
+                                ? 'bg-blue-100 text-[#6222cc]'
                                 : t.status === 'Suspended'
                                 ? 'bg-amber-100 text-amber-800'
                                 : 'bg-rose-100 text-rose-700'
@@ -1216,7 +1216,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
                             <button
                               type="button"
                               onClick={() => router.push('/customer/overview')}
-                              className="p-1 text-slate-500 hover:text-[#1574fe]"
+                              className="p-1 text-slate-500 hover:text-[#6222cc]"
                               title="View"
                             >
                               <Eye className="h-3.5 w-3.5" />
@@ -1224,7 +1224,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
                             <button
                               type="button"
                               onClick={() => toast.info(`Editing ${t.name}`)}
-                              className="p-1 text-slate-500 hover:text-[#1574fe]"
+                              className="p-1 text-slate-500 hover:text-[#6222cc]"
                               title="Edit"
                             >
                               <Edit2 className="h-3.5 w-3.5" />
@@ -1249,7 +1249,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
             {/* Right 3 cols: Lifecycle Actions */}
             <div className="lg:col-span-3 bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-3">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Settings className="h-4.5 w-4.5 text-[#1574fe]" />
+                <Settings className="h-4.5 w-4.5 text-[#6222cc]" />
                 <h3 className="text-sm font-bold text-slate-900">Lifecycle Actions</h3>
               </div>
 
@@ -1271,7 +1271,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
                       onClick={() => toast.info(`${act.label} action triggered`)}
                       className="w-full h-8.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-800 justify-start gap-2 rounded-lg"
                     >
-                      <AIcon className="h-3.5 w-3.5 text-[#1574fe]" />
+                      <AIcon className="h-3.5 w-3.5 text-[#6222cc]" />
                       <span>{act.label}</span>
                     </Button>
                   );
@@ -1317,7 +1317,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-4 flex items-center gap-3">
-              <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl shrink-0">
+              <div className="p-2.5 bg-blue-50 text-[#6222cc] rounded-xl shrink-0">
                 <Upload className="h-5 w-5" />
               </div>
               <div>
@@ -1876,7 +1876,7 @@ export function TenantManagementScreen({ initialTab = 'onboarding', initialSubTa
           {exportSubTab === 'history' && (
             <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-5 space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <Clock className="h-4.5 w-4.5 text-[#1574fe]" />
+                <Clock className="h-4.5 w-4.5 text-[#6222cc]" />
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Export & Deletion History</h3>
                   <p className="text-xs text-slate-500">
