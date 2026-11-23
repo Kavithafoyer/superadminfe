@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { CustomerCreateScreen } from '@/components/customer/CustomerCreateScreen';
+import { CustomerMasterScreen } from '@/components/customer/CustomerMasterScreen';
 
 export default function CustomerMasterCreatePage() {
   return (
     <div className="w-full">
-      <CustomerCreateScreen mode="create" />
+      <CustomerMasterScreen initialMode="add_customer" />
     </div>
   );
 }

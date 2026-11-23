@@ -2,15 +2,15 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import { CustomerCreateScreen } from '@/components/customer/CustomerCreateScreen';
+import { CustomerMasterScreen } from '@/components/customer/CustomerMasterScreen';
 
 export default function CustomerMasterEditPage() {
   const params = useParams();
-  const id = typeof params?.id === 'string' ? params.id : 'CUST-8812';
+  const id = typeof params?.id === 'string' ? params.id : 'cust-1';
 
   return (
     <div className="w-full">
-      <CustomerCreateScreen mode="edit" customerId={id} />
+      <CustomerMasterScreen initialMode="edit_customer" initialCustomerId={id} />
     </div>
   );
 }
