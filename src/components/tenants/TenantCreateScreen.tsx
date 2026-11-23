@@ -50,7 +50,7 @@ export interface TenantFormData {
   maintenanceWindow: string;
 }
 
-const PRESET_COLORS = ['#1574fe', '#2563eb', '#0d9488', '#16a34a', '#d97706', '#9333ea', '#e11d48'];
+const PRESET_COLORS = ['#6222cc', '#2563eb', '#0d9488', '#16a34a', '#d97706', '#9333ea', '#e11d48'];
 
 const INITIAL_TENANT_FORM: TenantFormData = {
   code: 'TEN-00481',
@@ -69,7 +69,7 @@ const INITIAL_TENANT_FORM: TenantFormData = {
   region: 'ap-south-1 (Mumbai)',
   dedicatedDb: true,
   customSsl: true,
-  tenantColor: '#1574fe',
+  tenantColor: '#6222cc',
   tenantTag: 'Enterprise Tenant',
   status: 'Active',
   dataRetentionYears: 7,
@@ -109,7 +109,7 @@ export function TenantCreateScreen({
       region: 'ap-south-1 (Mumbai)',
       dedicatedDb: false,
       customSsl: true,
-      tenantColor: '#1574fe',
+      tenantColor: '#6222cc',
       tenantTag: 'Standard Tenant',
       status: 'Onboarding',
       dataRetentionYears: 5,
@@ -174,7 +174,7 @@ export function TenantCreateScreen({
           <Button
             type="button"
             onClick={handleSave}
-            className="h-9 px-5 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
+            className="h-9 px-5 bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
           >
             <Save className="h-4 w-4" />
             {mode === 'create' ? 'Save Tenant' : 'Save Changes'}
@@ -186,7 +186,7 @@ export function TenantCreateScreen({
         {/* CARD 1: TENANT ORGANIZATION INFORMATION */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#6222cc]">
               <Building2 className="h-4 w-4" />
             </span>
             <span>1. Tenant Organization Information</span>
@@ -224,7 +224,7 @@ export function TenantCreateScreen({
               <select
                 value={formData.industry}
                 onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
               >
                 <option>Textiles &amp; Manufacturing</option>
                 <option>Information Technology</option>
@@ -263,7 +263,7 @@ export function TenantCreateScreen({
         {/* CARD 2: PRIMARY ADMINISTRATOR & CONTACT */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#6222cc]">
               <User className="h-4 w-4" />
             </span>
             <span>2. Primary Administrator &amp; Contact</span>
@@ -321,7 +321,7 @@ export function TenantCreateScreen({
         {/* CARD 3: SUBSCRIPTION & PLAN SELECTION */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#6222cc]">
               <ShieldCheck className="h-4 w-4" />
             </span>
             <span>3. Product Subscription &amp; Plan Selection</span>
@@ -333,7 +333,7 @@ export function TenantCreateScreen({
               <select
                 value={formData.product}
                 onChange={(e) => setFormData({ ...formData, product: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
               >
                 <option>Pegatto CRM</option>
                 <option>Pegatto Education</option>
@@ -348,7 +348,7 @@ export function TenantCreateScreen({
               <select
                 value={formData.plan}
                 onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
               >
                 <option>Standard</option>
                 <option>Professional</option>
@@ -383,7 +383,7 @@ export function TenantCreateScreen({
         {/* CARD 4: CLOUD INFRASTRUCTURE & REGION */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#6222cc]">
               <Server className="h-4 w-4" />
             </span>
             <span>4. Cloud Infrastructure &amp; Security</span>
@@ -395,7 +395,7 @@ export function TenantCreateScreen({
               <select
                 value={formData.cloudProvider}
                 onChange={(e) => setFormData({ ...formData, cloudProvider: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
               >
                 <option>AWS (Amazon Web Services)</option>
                 <option>Microsoft Azure</option>
@@ -421,7 +421,7 @@ export function TenantCreateScreen({
                 type="checkbox"
                 checked={formData.dedicatedDb}
                 onChange={(e) => setFormData({ ...formData, dedicatedDb: e.target.checked })}
-                className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
+                className="rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] h-4 w-4"
               />
             </div>
 
@@ -434,7 +434,7 @@ export function TenantCreateScreen({
                 type="checkbox"
                 checked={formData.customSsl}
                 onChange={(e) => setFormData({ ...formData, customSsl: e.target.checked })}
-                className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
+                className="rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] h-4 w-4"
               />
             </div>
           </div>
@@ -443,7 +443,7 @@ export function TenantCreateScreen({
         {/* CARD 5: TENANT COLOR & TAG */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#6222cc]">
               <Palette className="h-4 w-4" />
             </span>
             <span>5. Tenant Color &amp; Tag</span>
@@ -487,7 +487,7 @@ export function TenantCreateScreen({
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
               >
                 <option value="Active">Active (Provision &amp; Launch)</option>
                 <option value="Onboarding">Onboarding (Pending Setup)</option>
@@ -500,7 +500,7 @@ export function TenantCreateScreen({
         {/* CARD 6: GOVERNANCE & POLICIES */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#6222cc]">
               <Sliders className="h-4 w-4" />
             </span>
             <span>6. Governance &amp; Compliance Policies</span>
@@ -537,7 +537,7 @@ export function TenantCreateScreen({
                 type="checkbox"
                 checked={formData.autoSuspension}
                 onChange={(e) => setFormData({ ...formData, autoSuspension: e.target.checked })}
-                className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
+                className="rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] h-4 w-4"
               />
             </div>
           </div>
@@ -555,7 +555,7 @@ export function TenantCreateScreen({
           </Button>
           <Button
             type="submit"
-            className="h-9 px-5 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
+            className="h-9 px-5 bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
           >
             <Save className="h-4 w-4" />
             {mode === 'create' ? 'Save Tenant' : 'Save Changes'}

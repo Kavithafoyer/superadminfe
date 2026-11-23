@@ -164,7 +164,7 @@ const INITIAL_TRIALS: TenantTrialItem[] = [
     tenantName: 'Apex Real Estate',
     tenantCode: 'TEN-REA-0033',
     product: 'Pegatto Real Estate',
-    productColor: 'bg-blue-100 text-[#0d62e0]',
+    productColor: 'bg-blue-100 text-[#521cb0]',
     edition: 'Standard',
     startDate: '01 Nov 2025',
     endDate: '15 Nov 2025',
@@ -298,7 +298,7 @@ export function SubscriptionTrialsScreen() {
           </Button>
           <Button
             onClick={() => toast.success('New tenant trial provisioned')}
-            className="h-9 gap-1.5 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs"
+            className="h-9 gap-1.5 bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs font-semibold shadow-xs"
           >
             <Plus className="h-3.5 w-3.5" />
             Provision Trial
@@ -310,7 +310,7 @@ export function SubscriptionTrialsScreen() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3.5 shadow-xs">
           <div className="h-11 w-11 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-            <Hourglass className="h-5 w-5 text-[#1574fe]" />
+            <Hourglass className="h-5 w-5 text-[#6222cc]" />
           </div>
           <div>
             <div className="text-xs font-medium text-slate-500">Active Tenant Trials</div>
@@ -343,7 +343,7 @@ export function SubscriptionTrialsScreen() {
 
         <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3.5 shadow-xs">
           <div className="h-11 w-11 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-            <Zap className="h-5 w-5 text-blue-600" />
+            <Zap className="h-5 w-5 text-[#6222cc]" />
           </div>
           <div>
             <div className="text-xs font-medium text-slate-500">Avg Evaluation Duration</div>
@@ -371,13 +371,13 @@ export function SubscriptionTrialsScreen() {
                 className={cn(
                   'pb-3 text-sm font-medium transition-colors relative whitespace-nowrap cursor-pointer',
                   isActive
-                    ? 'text-[#1574fe] font-semibold'
+                    ? 'text-[#6222cc] font-semibold'
                     : 'text-slate-500 hover:text-slate-800'
                 )}
               >
                 {tab.label}
                 {isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1574fe] rounded-full" />
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
                 )}
               </button>
             );
@@ -394,7 +394,7 @@ export function SubscriptionTrialsScreen() {
               <select
                 value={filterProduct}
                 onChange={(e) => setFilterProduct(e.target.value)}
-                className="w-full h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
+                className="w-full h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#6222cc] cursor-pointer"
               >
                 <option>All Products</option>
                 <option>Pegatto CRM</option>
@@ -413,7 +413,7 @@ export function SubscriptionTrialsScreen() {
               <select
                 value={filterEdition}
                 onChange={(e) => setFilterEdition(e.target.value)}
-                className="w-full h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
+                className="w-full h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#6222cc] cursor-pointer"
               >
                 <option>All Editions</option>
                 <option>Standard</option>
@@ -429,7 +429,7 @@ export function SubscriptionTrialsScreen() {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#1574fe] cursor-pointer"
+                className="w-full h-8 pl-2.5 pr-7 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 appearance-none focus:outline-none focus:ring-1 focus:ring-[#6222cc] cursor-pointer"
               >
                 <option>All Status</option>
                 <option>Active</option>
@@ -454,7 +454,7 @@ export function SubscriptionTrialsScreen() {
           <Button
             size="sm"
             onClick={() => toast.success('Filters applied')}
-            className="h-8 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold px-4 rounded-lg shadow-xs"
+            className="h-8 bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs font-semibold px-4 rounded-lg shadow-xs"
           >
             Apply
           </Button>
@@ -499,7 +499,7 @@ export function SubscriptionTrialsScreen() {
                           filteredTrials.length > 0
                         }
                         onChange={(e) => handleSelectAll(e.target.checked)}
-                        className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-3.5 w-3.5 cursor-pointer"
+                        className="rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] h-3.5 w-3.5 cursor-pointer"
                       />
                     </th>
                     <th className="py-2.5 px-3 whitespace-nowrap">Trial ID</th>
@@ -533,10 +533,10 @@ export function SubscriptionTrialsScreen() {
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => {}}
-                            className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-3.5 w-3.5 cursor-pointer"
+                            className="rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] h-3.5 w-3.5 cursor-pointer"
                           />
                         </td>
-                        <td className="py-3 px-3 font-semibold text-[#1574fe] whitespace-nowrap">
+                        <td className="py-3 px-3 font-semibold text-[#6222cc] whitespace-nowrap">
                           {item.trialCode}
                         </td>
                         <td className="py-3 px-3 font-medium text-slate-800 whitespace-nowrap">
@@ -582,7 +582,7 @@ export function SubscriptionTrialsScreen() {
                               <div
                                 className={cn(
                                   'h-full rounded-full',
-                                  item.usersActive / item.userLimit >= 0.8 ? 'bg-[#1574fe]' : 'bg-slate-400'
+                                  item.usersActive / item.userLimit >= 0.8 ? 'bg-[#6222cc]' : 'bg-slate-400'
                                 )}
                                 style={{ width: `${Math.min(100, (item.usersActive / item.userLimit) * 100)}%` }}
                               />
@@ -610,7 +610,7 @@ export function SubscriptionTrialsScreen() {
                               'px-2 py-0.5 rounded-full text-[11px] font-semibold inline-block',
                               item.status === 'Active' && 'bg-emerald-50 text-emerald-700',
                               item.status === 'Expiring Soon' && 'bg-amber-50 text-amber-700',
-                              item.status === 'Converted' && 'bg-blue-50 text-[#1574fe]',
+                              item.status === 'Converted' && 'bg-blue-50 text-[#6222cc]',
                               item.status === 'Expired' && 'bg-slate-100 text-slate-600'
                             )}
                           >
@@ -630,7 +630,7 @@ export function SubscriptionTrialsScreen() {
                 <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400">
                   <ChevronLeft className="h-3.5 w-3.5" />
                 </Button>
-                <span className="px-2 py-0.5 bg-[#1574fe] text-white rounded text-xs font-semibold">
+                <span className="px-2 py-0.5 bg-[#6222cc] text-white rounded text-xs font-semibold">
                   1
                 </span>
                 <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400">
@@ -651,7 +651,7 @@ export function SubscriptionTrialsScreen() {
                   'px-2 py-0.5 rounded-full text-[10px] font-semibold',
                   selectedTrial.status === 'Active' && 'bg-emerald-50 text-emerald-700',
                   selectedTrial.status === 'Expiring Soon' && 'bg-amber-50 text-amber-700',
-                  selectedTrial.status === 'Converted' && 'bg-blue-50 text-[#1574fe]',
+                  selectedTrial.status === 'Converted' && 'bg-blue-50 text-[#6222cc]',
                   selectedTrial.status === 'Expired' && 'bg-slate-100 text-slate-600'
                 )}
               >
@@ -675,7 +675,7 @@ export function SubscriptionTrialsScreen() {
             </div>
             <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
               <div
-                className="bg-[#1574fe] h-full rounded-full transition-all"
+                className="bg-[#6222cc] h-full rounded-full transition-all"
                 style={{
                   width: `${Math.min(
                     100,
@@ -686,7 +686,7 @@ export function SubscriptionTrialsScreen() {
                 }}
               />
             </div>
-            <div className="text-right text-[10px] font-semibold text-[#1574fe]">
+            <div className="text-right text-[10px] font-semibold text-[#6222cc]">
               {selectedTrial.daysRemaining > 0
                 ? `${selectedTrial.daysRemaining} days remaining`
                 : 'Trial Period Concluded'}
@@ -726,7 +726,7 @@ export function SubscriptionTrialsScreen() {
             {selectedTrial.status !== 'Converted' ? (
               <Button
                 onClick={() => handleConvertToPaid(selectedTrial)}
-                className="w-full h-8 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs"
+                className="w-full h-8 bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs font-semibold shadow-xs"
               >
                 <Sparkles className="h-3.5 w-3.5 mr-1.5" />
                 Convert to Paid Subscription

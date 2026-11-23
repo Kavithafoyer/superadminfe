@@ -60,11 +60,11 @@ export function TenantStatusLifecycleScreen() {
       case 'education':
         return <GraduationCap className="h-4 w-4 text-purple-600" />;
       case 'it':
-        return <Laptop className="h-4 w-4 text-blue-600" />;
+        return <Laptop className="h-4 w-4 text-[#6222cc]" />;
       case 'retail':
         return <ShoppingCart className="h-4 w-4 text-rose-600" />;
       case 'real-estate':
-        return <Building2 className="h-4 w-4 text-[#1574fe]" />;
+        return <Building2 className="h-4 w-4 text-[#6222cc]" />;
       default:
         return <Users className="h-4 w-4 text-purple-600" />;
     }
@@ -85,7 +85,7 @@ export function TenantStatusLifecycleScreen() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
-            <Building2 className="h-7 w-7 text-[#1574fe]" />
+            <Building2 className="h-7 w-7 text-[#6222cc]" />
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -103,7 +103,7 @@ export function TenantStatusLifecycleScreen() {
           <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-xs">
             <span className="text-slate-400 font-medium">Product</span>
             <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-              <GraduationCap className="h-4 w-4 text-[#1574fe]" />
+              <GraduationCap className="h-4 w-4 text-[#6222cc]" />
               <select
                 value={productFilter}
                 onChange={(e) => setProductFilter(e.target.value)}
@@ -135,7 +135,7 @@ export function TenantStatusLifecycleScreen() {
           <Button
             type="button"
             onClick={() => router.push('/tenant-management/registration')}
-            className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold h-8 px-3 flex items-center gap-1.5 shadow-xs"
+            className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs font-semibold h-8 px-3 flex items-center gap-1.5 shadow-xs"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>Register Tenant</span>
@@ -174,7 +174,7 @@ export function TenantStatusLifecycleScreen() {
 
         {/* Trial */}
         <div className="bg-white border border-slate-200/90 rounded-xl p-3 flex items-center gap-3 shadow-xs">
-          <div className="h-10 w-10 rounded-full bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-full bg-blue-50 border border-blue-200 text-[#6222cc] flex items-center justify-center shrink-0">
             <Hourglass className="h-5 w-5" />
           </div>
           <div>
@@ -185,7 +185,7 @@ export function TenantStatusLifecycleScreen() {
 
         {/* Onboarding */}
         <div className="bg-white border border-slate-200/90 rounded-xl p-3 flex items-center gap-3 shadow-xs">
-          <div className="h-10 w-10 rounded-full bg-blue-50 border border-blue-200 text-[#1574fe] flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-full bg-blue-50 border border-blue-200 text-[#6222cc] flex items-center justify-center shrink-0">
             <Settings className="h-5 w-5" />
           </div>
           <div>
@@ -236,7 +236,7 @@ export function TenantStatusLifecycleScreen() {
               className={cn(
                 'px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-xs',
                 isActive
-                  ? 'bg-[#1574fe] text-white'
+                  ? 'bg-[#6222cc] text-white'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
               )}
             >
@@ -250,7 +250,7 @@ export function TenantStatusLifecycleScreen() {
       {/* Canvas: Tenant Lifecycle (End-to-End) matching Image 2 */}
       <div className="bg-white border border-slate-200/90 rounded-xl p-4 shadow-xs space-y-3">
         <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
-          <RotateCcw className="h-4 w-4 text-[#1574fe]" />
+          <RotateCcw className="h-4 w-4 text-[#6222cc]" />
           <h3 className="text-sm font-bold text-slate-900">Tenant Lifecycle (End-to-End)</h3>
         </div>
 
@@ -264,7 +264,7 @@ export function TenantStatusLifecycleScreen() {
                 icon: FileText,
                 bg: 'bg-white',
                 border: 'border-slate-200',
-                iconColor: 'text-[#1574fe]',
+                iconColor: 'text-[#6222cc]',
               },
               {
                 step: '2. Approval',
@@ -272,7 +272,7 @@ export function TenantStatusLifecycleScreen() {
                 icon: CheckCircle2,
                 bg: 'bg-white',
                 border: 'border-slate-200',
-                iconColor: 'text-blue-600',
+                iconColor: 'text-[#6222cc]',
               },
               {
                 step: '3. Provisioning',
@@ -288,7 +288,7 @@ export function TenantStatusLifecycleScreen() {
                 icon: Users,
                 bg: 'bg-white',
                 border: 'border-slate-200',
-                iconColor: 'text-[#1574fe]',
+                iconColor: 'text-[#6222cc]',
               },
               {
                 step: '5. Active',
@@ -325,7 +325,7 @@ export function TenantStatusLifecycleScreen() {
               <div className="w-5 border-t border-dashed border-blue-300" />
               <div className="flex flex-col gap-2">
                 <div className="px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50/80 flex items-center gap-2 text-xs font-semibold text-blue-900">
-                  <Hourglass className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                  <Hourglass className="h-3.5 w-3.5 text-[#6222cc] shrink-0" />
                   <span>Trial (Time-bound)</span>
                 </div>
                 <div className="px-3 py-1.5 rounded-lg border border-amber-200 bg-amber-50/80 flex items-center gap-2 text-xs font-semibold text-amber-900">
@@ -348,7 +348,7 @@ export function TenantStatusLifecycleScreen() {
         <div className="lg:col-span-9 bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-[#1574fe]" />
+              <Building2 className="h-4 w-4 text-[#6222cc]" />
               <h3 className="text-sm font-bold text-slate-900">Tenants (286)</h3>
             </div>
 
@@ -368,7 +368,7 @@ export function TenantStatusLifecycleScreen() {
                 size="sm"
                 className="h-8 px-2.5 text-xs text-slate-700 border-slate-200 hover:bg-slate-50 flex items-center gap-1"
               >
-                <Filter className="h-3.5 w-3.5 text-[#1574fe]" />
+                <Filter className="h-3.5 w-3.5 text-[#6222cc]" />
                 <span>Filters</span>
               </Button>
             </div>
@@ -430,7 +430,7 @@ export function TenantStatusLifecycleScreen() {
                               : tenant.status === 'Onboarding'
                               ? 'bg-purple-50 text-purple-700 border-purple-200'
                               : tenant.status === 'Trial'
-                              ? 'bg-blue-50 text-blue-700 border-blue-200'
+                              ? 'bg-blue-50 text-[#6222cc] border-blue-200'
                               : tenant.status === 'Suspended'
                               ? 'bg-amber-50 text-amber-700 border-amber-200'
                               : 'bg-rose-50 text-rose-700 border-rose-200'
@@ -452,7 +452,7 @@ export function TenantStatusLifecycleScreen() {
                               if (tenant.status === 'Active') dotColor = 'bg-emerald-500 border-emerald-600';
                               else if (tenant.status === 'Suspended') dotColor = 'bg-amber-500 border-amber-600';
                               else if (tenant.status === 'Terminated') dotColor = 'bg-rose-500 border-rose-600';
-                              else dotColor = 'bg-[#1574fe] border-indigo-700';
+                              else dotColor = 'bg-[#6222cc] border-indigo-700';
                             }
                             return (
                               <React.Fragment key={dot}>
@@ -478,7 +478,7 @@ export function TenantStatusLifecycleScreen() {
                       </td>
 
                       <td className="py-3 px-3 text-center">
-                        <div className="flex items-center justify-center gap-1.5 text-[#1574fe]">
+                        <div className="flex items-center justify-center gap-1.5 text-[#6222cc]">
                           <button
                             type="button"
                             onClick={(e) => {
@@ -522,7 +522,7 @@ export function TenantStatusLifecycleScreen() {
         {/* Lifecycle Actions (3 Cols) matching Image 2 */}
         <div className="lg:col-span-3 bg-white border border-slate-200/90 rounded-xl p-4 shadow-xs space-y-3">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
-            <Settings className="h-4 w-4 text-[#1574fe]" />
+            <Settings className="h-4 w-4 text-[#6222cc]" />
             <h3 className="text-sm font-bold text-slate-900">Lifecycle Actions</h3>
           </div>
 
@@ -531,9 +531,9 @@ export function TenantStatusLifecycleScreen() {
               type="button"
               variant="outline"
               onClick={() => handleAction('Change Status')}
-              className="w-full h-10 flex items-center justify-start gap-2.5 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#1574fe] hover:border-blue-200 transition-colors"
+              className="w-full h-10 flex items-center justify-start gap-2.5 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#6222cc] hover:border-blue-200 transition-colors"
             >
-              <RotateCcw className="h-4 w-4 text-[#1574fe] shrink-0" />
+              <RotateCcw className="h-4 w-4 text-[#6222cc] shrink-0" />
               <span>Change Status</span>
             </Button>
 
@@ -541,9 +541,9 @@ export function TenantStatusLifecycleScreen() {
               type="button"
               variant="outline"
               onClick={() => handleAction('Extend Trial')}
-              className="w-full h-10 flex items-center justify-start gap-2.5 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#1574fe] hover:border-blue-200 transition-colors"
+              className="w-full h-10 flex items-center justify-start gap-2.5 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#6222cc] hover:border-blue-200 transition-colors"
             >
-              <Calendar className="h-4 w-4 text-[#1574fe] shrink-0" />
+              <Calendar className="h-4 w-4 text-[#6222cc] shrink-0" />
               <span>Extend Trial</span>
             </Button>
 
@@ -551,9 +551,9 @@ export function TenantStatusLifecycleScreen() {
               type="button"
               variant="outline"
               onClick={() => handleAction('Upgrade / Downgrade Plan')}
-              className="w-full h-10 flex items-center justify-start gap-2.5 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#1574fe] hover:border-blue-200 transition-colors"
+              className="w-full h-10 flex items-center justify-start gap-2.5 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#6222cc] hover:border-blue-200 transition-colors"
             >
-              <Layers className="h-4 w-4 text-[#1574fe] shrink-0" />
+              <Layers className="h-4 w-4 text-[#6222cc] shrink-0" />
               <span>Upgrade / Downgrade Plan</span>
             </Button>
 
@@ -561,7 +561,7 @@ export function TenantStatusLifecycleScreen() {
               type="button"
               variant="outline"
               onClick={() => handleAction('Suspend Tenant')}
-              className="w-full h-10 flex items-center justify-start gap-2.5 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#1574fe] hover:border-blue-200 transition-colors"
+              className="w-full h-10 flex items-center justify-start gap-2.5 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#6222cc] hover:border-blue-200 transition-colors"
             >
               <Pause className="h-4 w-4 text-amber-600 shrink-0" />
               <span>Suspend Tenant</span>
@@ -581,9 +581,9 @@ export function TenantStatusLifecycleScreen() {
               type="button"
               variant="outline"
               onClick={() => handleAction('View Lifecycle History')}
-              className="w-full h-10 flex items-center justify-start gap-2.5 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#1574fe] hover:border-blue-200 transition-colors"
+              className="w-full h-10 flex items-center justify-start gap-2.5 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-blue-50/50 hover:text-[#6222cc] hover:border-blue-200 transition-colors"
             >
-              <Clock className="h-4 w-4 text-[#1574fe] shrink-0" />
+              <Clock className="h-4 w-4 text-[#6222cc] shrink-0" />
               <span>View Lifecycle History</span>
             </Button>
           </div>

@@ -79,7 +79,7 @@ export function TenantRetentionPolicyScreen() {
       {/* Header matching Image 1 */}
       <div className="flex items-center gap-3">
         <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
-          <Shield className="h-7 w-7 text-[#1574fe]" />
+          <Shield className="h-7 w-7 text-[#6222cc]" />
         </div>
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -138,7 +138,7 @@ export function TenantRetentionPolicyScreen() {
 
         {/* Policy Coverage */}
         <div className="bg-white border border-slate-200/90 rounded-xl p-3.5 flex items-center gap-3.5 shadow-xs">
-          <div className="h-11 w-11 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shrink-0">
+          <div className="h-11 w-11 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-[#6222cc] shrink-0">
             <ShieldCheck className="h-5 w-5 stroke-[2.2]" />
           </div>
           <div>
@@ -164,7 +164,7 @@ export function TenantRetentionPolicyScreen() {
 
         {/* Last Policy Update */}
         <div className="bg-white border border-slate-200/90 rounded-xl p-3.5 flex items-center gap-3.5 shadow-xs">
-          <div className="h-11 w-11 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-[#1574fe] shrink-0">
+          <div className="h-11 w-11 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-[#6222cc] shrink-0">
             <Shield className="h-5 w-5 stroke-[2.2]" />
           </div>
           <div>
@@ -181,7 +181,7 @@ export function TenantRetentionPolicyScreen() {
         {/* Card 1: Retention Policy Configuration (5 Cols) */}
         <div className="lg:col-span-5 bg-white border border-slate-200/90 rounded-xl p-4 shadow-xs space-y-3.5">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
-            <Settings className="h-4 w-4 text-[#1574fe]" />
+            <Settings className="h-4 w-4 text-[#6222cc]" />
             <h3 className="text-sm font-bold text-slate-900">Retention Policy Configuration</h3>
           </div>
 
@@ -278,7 +278,7 @@ export function TenantRetentionPolicyScreen() {
         {/* Card 2: Policy Rules (4 Cols) */}
         <div className="lg:col-span-4 bg-white border border-slate-200/90 rounded-xl p-4 shadow-xs space-y-3">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
-            <FileText className="h-4 w-4 text-[#1574fe]" />
+            <FileText className="h-4 w-4 text-[#6222cc]" />
             <h3 className="text-sm font-bold text-slate-900">Policy Rules</h3>
           </div>
 
@@ -288,7 +288,7 @@ export function TenantRetentionPolicyScreen() {
                 type="checkbox"
                 checked={applyExisting}
                 onChange={(e) => setApplyExisting(e.target.checked)}
-                className="rounded border-slate-300 text-[#1574fe] accent-indigo-600"
+                className="rounded border-slate-300 text-[#6222cc] accent-indigo-600"
               />
               <span>Apply policy to all existing tenants</span>
             </label>
@@ -298,7 +298,7 @@ export function TenantRetentionPolicyScreen() {
                 type="checkbox"
                 checked={applyNew}
                 onChange={(e) => setApplyNew(e.target.checked)}
-                className="rounded border-slate-300 text-[#1574fe] accent-indigo-600"
+                className="rounded border-slate-300 text-[#6222cc] accent-indigo-600"
               />
               <span>Automatically apply to new tenants</span>
             </label>
@@ -308,7 +308,7 @@ export function TenantRetentionPolicyScreen() {
                 type="checkbox"
                 checked={retainAuditLogs}
                 onChange={(e) => setRetainAuditLogs(e.target.checked)}
-                className="rounded border-slate-300 text-[#1574fe] accent-indigo-600"
+                className="rounded border-slate-300 text-[#6222cc] accent-indigo-600"
               />
               <span className="flex items-center gap-1">
                 Retain audit logs for compliance (7 Years)
@@ -321,7 +321,7 @@ export function TenantRetentionPolicyScreen() {
                 type="checkbox"
                 checked={allowOverride}
                 onChange={(e) => setAllowOverride(e.target.checked)}
-                className="rounded border-slate-300 text-[#1574fe] accent-indigo-600"
+                className="rounded border-slate-300 text-[#6222cc] accent-indigo-600"
               />
               <span className="flex items-center gap-1">
                 Allow tenant-specific retention override
@@ -334,7 +334,7 @@ export function TenantRetentionPolicyScreen() {
                 type="checkbox"
                 checked={notifyTenant}
                 onChange={(e) => setNotifyTenant(e.target.checked)}
-                className="rounded border-slate-300 text-[#1574fe] accent-indigo-600"
+                className="rounded border-slate-300 text-[#6222cc] accent-indigo-600"
               />
               <span className="flex items-center gap-1">
                 Notify tenant before data deletion
@@ -347,7 +347,7 @@ export function TenantRetentionPolicyScreen() {
                 type="checkbox"
                 checked={generateReports}
                 onChange={(e) => setGenerateReports(e.target.checked)}
-                className="rounded border-slate-300 text-[#1574fe] accent-indigo-600"
+                className="rounded border-slate-300 text-[#6222cc] accent-indigo-600"
               />
               <span>Generate deletion reports and audit trails</span>
             </label>
@@ -357,7 +357,7 @@ export function TenantRetentionPolicyScreen() {
         {/* Card 3: Compliance & Governance (3 Cols) */}
         <div className="lg:col-span-3 bg-white border border-slate-200/90 rounded-xl p-4 shadow-xs space-y-3">
           <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
-            <ShieldCheck className="h-4 w-4 text-[#1574fe]" />
+            <ShieldCheck className="h-4 w-4 text-[#6222cc]" />
             <h3 className="text-sm font-bold text-slate-900">Compliance & Governance</h3>
           </div>
 
@@ -405,7 +405,7 @@ export function TenantRetentionPolicyScreen() {
         {/* Card 4: Tenant-Specific Retention Settings (7 Cols) */}
         <div className="lg:col-span-7 bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-xs">
           <div className="flex items-center gap-2 p-3.5 border-b border-slate-100">
-            <Users className="h-4 w-4 text-[#1574fe]" />
+            <Users className="h-4 w-4 text-[#6222cc]" />
             <h3 className="text-sm font-bold text-slate-900">Tenant-Specific Retention Settings</h3>
           </div>
 
@@ -434,18 +434,18 @@ export function TenantRetentionPolicyScreen() {
                       </span>
                     </td>
                     <td className="py-2.5 px-3">
-                      <div className="flex items-center justify-center gap-2 text-[#1574fe]">
+                      <div className="flex items-center justify-center gap-2 text-[#6222cc]">
                         <button
                           type="button"
                           onClick={() => toast.info(`Editing settings for ${item.tenantName}`)}
-                          className="hover:text-[#0d62e0]"
+                          className="hover:text-[#521cb0]"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
                         <button
                           type="button"
                           onClick={() => toast.info(`Viewing details for ${item.tenantName}`)}
-                          className="hover:text-[#0d62e0]"
+                          className="hover:text-[#521cb0]"
                         >
                           <Eye className="h-3.5 w-3.5" />
                         </button>
@@ -461,7 +461,7 @@ export function TenantRetentionPolicyScreen() {
         {/* Card 5: Policy Version & History (5 Cols) */}
         <div className="lg:col-span-5 bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-xs">
           <div className="flex items-center gap-2 p-3.5 border-b border-slate-100">
-            <RefreshCw className="h-4 w-4 text-[#1574fe]" />
+            <RefreshCw className="h-4 w-4 text-[#6222cc]" />
             <h3 className="text-sm font-bold text-slate-900">Policy Version & History</h3>
           </div>
 
@@ -490,7 +490,7 @@ export function TenantRetentionPolicyScreen() {
                           pv.status === 'Current'
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                             : pv.status === 'Published'
-                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                            ? 'bg-blue-50 text-[#6222cc] border-blue-200'
                             : 'bg-slate-100 text-slate-600 border-slate-200'
                         )}
                       >
@@ -531,7 +531,7 @@ export function TenantRetentionPolicyScreen() {
           <Button
             type="button"
             onClick={handleSaveChanges}
-            className="bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-xs"
+            className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-xs"
           >
             <Check className="h-4 w-4 stroke-[2.5]" />
             <span>Save Changes</span>

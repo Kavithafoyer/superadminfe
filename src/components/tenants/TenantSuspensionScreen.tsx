@@ -905,7 +905,7 @@ export function TenantSuspensionScreen() {
                             'inline-block px-2 py-0.5 rounded text-[10px] font-bold',
                             req.priority === 'Critical' && 'bg-rose-100 text-rose-700',
                             req.priority === 'High' && 'bg-amber-100 text-amber-800',
-                            req.priority === 'Normal' && 'bg-blue-100 text-blue-700'
+                            req.priority === 'Normal' && 'bg-blue-100 text-[#6222cc]'
                           )}
                         >
                           {req.priority}

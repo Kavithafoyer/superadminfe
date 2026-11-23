@@ -236,7 +236,7 @@ const INITIAL_LICENSES: LicenseItem[] = [
     licenseKey: 'PGT-REA-100463',
     customerTenant: 'City Builders',
     product: 'Pegatto Real Estate',
-    productColor: 'bg-blue-100 text-[#0d62e0]',
+    productColor: 'bg-blue-100 text-[#521cb0]',
     planEdition: 'Enterprise',
     users: 75,
     validFrom: '01 Oct 2026',
@@ -636,7 +636,7 @@ export function LicenseEntitlementsScreen() {
       'Pegatto IT': 'bg-teal-100 text-teal-800',
       'Pegatto People': 'bg-amber-100 text-amber-800',
       'Pegatto Retail': 'bg-emerald-100 text-emerald-800',
-      'Pegatto Real Estate': 'bg-blue-100 text-[#0d62e0]',
+      'Pegatto Real Estate': 'bg-blue-100 text-[#521cb0]',
     };
 
     const newItem: LicenseItem = {
@@ -1785,7 +1785,7 @@ export function LicenseEntitlementsScreen() {
                               ? 'bg-rose-50 text-rose-700 border-rose-200'
                               : alert.severity === 'Warning'
                               ? 'bg-amber-50 text-amber-700 border-amber-200'
-                              : 'bg-blue-50 text-blue-700 border-blue-200'
+                              : 'bg-blue-50 text-[#6222cc] border-blue-200'
                           )}
                         >
                           {alert.severity}

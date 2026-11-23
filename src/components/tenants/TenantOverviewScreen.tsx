@@ -44,7 +44,7 @@ export function TenantOverviewScreen({ tenantId }: { tenantId: string }) {
     region: 'ap-south-1 (Mumbai)',
     dedicatedDb: 'Enabled (PostgreSQL 16)',
     sslStatus: 'Active & Auto-Renewed',
-    tenantColor: '#1574fe',
+    tenantColor: '#6222cc',
     tenantTag: 'Enterprise Tenant',
     status: 'Active',
     dataRetentionYears: 7,
@@ -102,7 +102,7 @@ export function TenantOverviewScreen({ tenantId }: { tenantId: string }) {
           <Button
             type="button"
             onClick={() => router.push(`/tenant-management/edit/${tenantId}`)}
-            className="h-9 px-4 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
+            className="h-9 px-4 bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
           >
             <Edit2 className="h-3.5 w-3.5" />
             Edit Tenant
@@ -119,9 +119,9 @@ export function TenantOverviewScreen({ tenantId }: { tenantId: string }) {
               Tenant Code
             </div>
             <div className="text-lg font-bold text-slate-900 mt-1">{tenant.code}</div>
-            <div className="text-xs text-[#1574fe] font-semibold mt-0.5">{tenant.subdomain}</div>
+            <div className="text-xs text-[#6222cc] font-semibold mt-0.5">{tenant.subdomain}</div>
           </div>
-          <div className="h-10 w-10 rounded-lg bg-blue-50 text-[#1574fe] flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-lg bg-blue-50 text-[#6222cc] flex items-center justify-center shrink-0">
             <Building2 className="h-5 w-5" />
           </div>
         </div>
@@ -137,7 +137,7 @@ export function TenantOverviewScreen({ tenantId }: { tenantId: string }) {
             </div>
             <div className="text-xs text-emerald-600 font-semibold mt-0.5">88% Quota Utilized</div>
           </div>
-          <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-lg bg-blue-50 text-[#6222cc] flex items-center justify-center shrink-0">
             <Users className="h-5 w-5" />
           </div>
         </div>
@@ -164,7 +164,7 @@ export function TenantOverviewScreen({ tenantId }: { tenantId: string }) {
             <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
               Subscription
             </div>
-            <div className="text-lg font-bold text-[#1574fe] mt-1">{tenant.plan}</div>
+            <div className="text-lg font-bold text-[#6222cc] mt-1">{tenant.plan}</div>
             <div className="text-xs text-slate-500 font-medium mt-0.5">{tenant.annualValue}</div>
           </div>
           <div className="h-10 w-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
@@ -178,7 +178,7 @@ export function TenantOverviewScreen({ tenantId }: { tenantId: string }) {
         {/* LEFT CARD: TENANT ORGANIZATION PROFILE */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#6222cc]">
               <Building2 className="h-4 w-4" />
             </span>
             <span>Tenant Organization Information</span>
@@ -195,7 +195,7 @@ export function TenantOverviewScreen({ tenantId }: { tenantId: string }) {
             </div>
             <div>
               <span className="text-slate-400 font-medium block text-[11px]">Subdomain</span>
-              <span className="font-mono text-[#1574fe] font-semibold">{tenant.subdomain}</span>
+              <span className="font-mono text-[#6222cc] font-semibold">{tenant.subdomain}</span>
             </div>
             <div>
               <span className="text-slate-400 font-medium block text-[11px]">Classification Tag</span>
@@ -233,7 +233,7 @@ export function TenantOverviewScreen({ tenantId }: { tenantId: string }) {
         {/* RIGHT CARD: CLOUD INFRASTRUCTURE & SECURITY */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#6222cc]">
               <Server className="h-4 w-4" />
             </span>
             <span>Cloud Infrastructure &amp; Security</span>
@@ -246,7 +246,7 @@ export function TenantOverviewScreen({ tenantId }: { tenantId: string }) {
             </div>
             <div>
               <span className="text-slate-400 font-medium block text-[11px]">Plan Tier</span>
-              <span className="px-2 py-0.5 rounded bg-blue-50 text-[#1574fe] font-semibold text-[11px] border border-blue-100">
+              <span className="px-2 py-0.5 rounded bg-blue-50 text-[#6222cc] font-semibold text-[11px] border border-blue-100">
                 {tenant.plan}
               </span>
             </div>

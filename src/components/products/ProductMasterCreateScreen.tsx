@@ -60,7 +60,7 @@ const AVAILABLE_FEATURES = [
   'Dedicated Cloud Storage',
   'Automated Workflows',
 ];
-const PRESET_COLORS = ['#1574fe', '#2563eb', '#0d9488', '#16a34a', '#d97706', '#9333ea', '#e11d48'];
+const PRESET_COLORS = ['#6222cc', '#2563eb', '#0d9488', '#16a34a', '#d97706', '#9333ea', '#e11d48'];
 
 const INITIAL_FORM: ProductMasterFormData = {
   code: 'PRD-CRM',
@@ -82,7 +82,7 @@ const INITIAL_FORM: ProductMasterFormData = {
   defaultBillingCycle: 'Monthly',
   trialDays: 14,
   minUsers: 5,
-  brandColor: '#1574fe',
+  brandColor: '#6222cc',
   productTag: 'Flagship Product',
   isActive: true,
   apiAccess: true,
@@ -120,7 +120,7 @@ export function ProductMasterCreateScreen({
       defaultBillingCycle: 'Monthly',
       trialDays: 14,
       minUsers: 5,
-      brandColor: '#1574fe',
+      brandColor: '#6222cc',
       productTag: 'Core Module',
       isActive: true,
       apiAccess: true,
@@ -204,7 +204,7 @@ export function ProductMasterCreateScreen({
           <Button
             type="button"
             onClick={handleSave}
-            className="h-9 px-5 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
+            className="h-9 px-5 bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
           >
             <Save className="h-4 w-4" />
             {mode === 'create' ? 'Save Product' : 'Save Changes'}
@@ -216,7 +216,7 @@ export function ProductMasterCreateScreen({
         {/* CARD 1: PRODUCT INFORMATION */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#6222cc]">
               <Package className="h-4 w-4" />
             </span>
             <span>1. Product Information</span>
@@ -256,7 +256,7 @@ export function ProductMasterCreateScreen({
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
               >
                 <option>Enterprise CRM &amp; Sales</option>
                 <option>Higher Education ERP</option>
@@ -283,7 +283,7 @@ export function ProductMasterCreateScreen({
         {/* CARD 2: ARCHITECTURE & EDITIONS */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#6222cc]">
               <Layers className="h-4 w-4" />
             </span>
             <span>2. Architecture &amp; Edition Packaging</span>
@@ -305,7 +305,7 @@ export function ProductMasterCreateScreen({
                       className={cn(
                         'px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5',
                         isSelected
-                          ? 'bg-[#1574fe] text-white border-[#1574fe] shadow-2xs'
+                          ? 'bg-[#6222cc] text-white border-[#6222cc] shadow-2xs'
                           : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                       )}
                     >
@@ -333,7 +333,7 @@ export function ProductMasterCreateScreen({
                 <select
                   value={formData.deploymentType}
                   onChange={(e) => setFormData({ ...formData, deploymentType: e.target.value })}
-                  className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
+                  className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
                 >
                   <option>Multi-Tenant Cloud SaaS</option>
                   <option>Isolated Dedicated DB SaaS</option>
@@ -348,7 +348,7 @@ export function ProductMasterCreateScreen({
         {/* CARD 3: FEATURE CAPABILITIES */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#6222cc]">
               <Sparkles className="h-4 w-4" />
             </span>
             <span>3. Feature Capabilities &amp; Scope</span>
@@ -369,7 +369,7 @@ export function ProductMasterCreateScreen({
                     className={cn(
                       'p-2.5 rounded-lg text-left text-xs font-medium border transition-all cursor-pointer flex items-center justify-between',
                       isSelected
-                        ? 'bg-purple-50/70 text-[#1574fe] border-blue-200 font-semibold'
+                        ? 'bg-purple-50/70 text-[#6222cc] border-blue-200 font-semibold'
                         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                     )}
                   >
@@ -378,7 +378,7 @@ export function ProductMasterCreateScreen({
                       className={cn(
                         'h-4 w-4 rounded flex items-center justify-center border',
                         isSelected
-                          ? 'bg-[#1574fe] border-[#1574fe] text-white'
+                          ? 'bg-[#6222cc] border-[#6222cc] text-white'
                           : 'border-slate-300 bg-white'
                       )}
                     >
@@ -394,7 +394,7 @@ export function ProductMasterCreateScreen({
         {/* CARD 4: COMMERCIAL & PRICING CONFIGURATION */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#6222cc]">
               <DollarSign className="h-4 w-4" />
             </span>
             <span>4. Commercial &amp; Pricing Configuration</span>
@@ -406,7 +406,7 @@ export function ProductMasterCreateScreen({
               <select
                 value={formData.baseCurrency}
                 onChange={(e) => setFormData({ ...formData, baseCurrency: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
               >
                 <option>INR (₹)</option>
                 <option>USD ($)</option>
@@ -420,7 +420,7 @@ export function ProductMasterCreateScreen({
               <select
                 value={formData.defaultBillingCycle}
                 onChange={(e) => setFormData({ ...formData, defaultBillingCycle: e.target.value })}
-                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#1574fe]"
+                className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
               >
                 <option>Monthly</option>
                 <option>Annual</option>
@@ -456,7 +456,7 @@ export function ProductMasterCreateScreen({
         {/* CARD 5: PRODUCT COLOR & TAG */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#6222cc]">
               <Palette className="h-4 w-4" />
             </span>
             <span>5. Product Color &amp; Tag</span>
@@ -503,7 +503,7 @@ export function ProductMasterCreateScreen({
                   onClick={() => setFormData({ ...formData, isActive: !formData.isActive })}
                   className={cn(
                     'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out',
-                    formData.isActive ? 'bg-[#1574fe]' : 'bg-slate-300'
+                    formData.isActive ? 'bg-[#6222cc]' : 'bg-slate-300'
                   )}
                 >
                   <span
@@ -524,7 +524,7 @@ export function ProductMasterCreateScreen({
         {/* CARD 6: TECHNICAL & GOVERNANCE SETTINGS */}
         <div className="bg-white rounded-xl border border-slate-200/90 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 font-bold text-slate-900 text-sm border-b border-slate-100 pb-3">
-            <span className="p-1.5 rounded-lg bg-blue-50 text-[#1574fe]">
+            <span className="p-1.5 rounded-lg bg-blue-50 text-[#6222cc]">
               <Sliders className="h-4 w-4" />
             </span>
             <span>6. Technical &amp; Additional Settings</span>
@@ -540,7 +540,7 @@ export function ProductMasterCreateScreen({
                 type="checkbox"
                 checked={formData.apiAccess}
                 onChange={(e) => setFormData({ ...formData, apiAccess: e.target.checked })}
-                className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
+                className="rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] h-4 w-4"
               />
             </div>
 
@@ -553,7 +553,7 @@ export function ProductMasterCreateScreen({
                 type="checkbox"
                 checked={formData.webhooks}
                 onChange={(e) => setFormData({ ...formData, webhooks: e.target.checked })}
-                className="rounded border-slate-300 text-[#1574fe] focus:ring-[#1574fe] h-4 w-4"
+                className="rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] h-4 w-4"
               />
             </div>
 
@@ -589,7 +589,7 @@ export function ProductMasterCreateScreen({
           </Button>
           <Button
             type="submit"
-            className="h-9 px-5 bg-[#1574fe] hover:bg-[#0d62e0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
+            className="h-9 px-5 bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5"
           >
             <Save className="h-4 w-4" />
             {mode === 'create' ? 'Save Product' : 'Save Changes'}
