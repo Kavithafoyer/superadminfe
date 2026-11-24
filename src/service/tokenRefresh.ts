@@ -1,4 +1,4 @@
-import { getTenantName, normalizeApiUrl } from './baseApi';
+import { getTenantName } from './tenant';
 
 let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
@@ -30,8 +30,8 @@ export async function refreshAccessToken(): Promise<string | null> {
   isRefreshing = true;
 
   refreshPromise = (async () => {
-    const tenant = getTenantName() || 'crmfarmsa';
-    const primaryHost = normalizeApiUrl();
+    const tenant = getTenantName();
+    const primaryHost = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in').replace(/\/$/, '');
     const fallbackHost = 'https://backend.crmfarm.in';
 
     const sendRefreshReq = async (host: string) => {

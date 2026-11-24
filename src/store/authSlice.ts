@@ -7,21 +7,11 @@ interface AuthState {
 const getInitialState = (): AuthState => {
   if (typeof window !== 'undefined') {
     try {
-      // 1. Direct token check matching legacy superadminfe (localStorage.getItem("accesstoken"))
-      const token = localStorage.getItem('token') || localStorage.getItem('accesstoken');
-      const isLoggedIn = localStorage.getItem('isLoggedIn');
-      if (token && (isLoggedIn === 'true' || token.length > 5)) {
-        return { isAuthenticated: true };
-      }
-
-      // 2. Persisted session check
-      const persisted = sessionStorage.getItem('auth-storage');
-      if (persisted) {
-        const parsed = JSON.parse(persisted);
-        if (parsed?.state?.isAuthenticated) {
-          return { isAuthenticated: true };
-        }
-      }
+      const hasToken = ['token', 'accesstoken', 'access_token'].some((key) => {
+        const token = localStorage.getItem(key)?.trim();
+        return Boolean(token && token !== 'null' && token !== 'undefined');
+      });
+      return { isAuthenticated: hasToken };
     } catch (e) {
       console.error(e);
     }
@@ -35,11 +25,11 @@ const authSlice = createSlice({
   reducers: {
     rehydrateAuth: (state) => {
       if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('token') || localStorage.getItem('accesstoken');
-        const isLoggedIn = localStorage.getItem('isLoggedIn');
-        if (token && (isLoggedIn === 'true' || token.length > 5)) {
-          state.isAuthenticated = true;
+        state.isAuthenticated = getInitialState().isAuthenticated;
+        if (state.isAuthenticated) {
           sessionStorage.setItem('auth-storage', JSON.stringify({ state: { isAuthenticated: true } }));
+        } else {
+          sessionStorage.removeItem('auth-storage');
         }
       }
     },

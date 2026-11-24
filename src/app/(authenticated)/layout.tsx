@@ -2,12 +2,14 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { ThemePanel } from '@/components/layout/ThemePanel';
 import { Footer } from '@/components/layout/Footer';
 import { useStore } from '@/store/useStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { rehydrateAuth } from '@/store/authSlice';
 import { cn } from '@/lib/utils';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
@@ -19,21 +21,15 @@ export default function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const dispatch = useDispatch();
   const { isSidebarOpen, mode, primaryColor, density } = useStore();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const rehydrateAuth = useAuthStore((state) => state.rehydrateAuth);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token') || localStorage.getItem('accesstoken');
-      const isLoggedIn = localStorage.getItem('isLoggedIn');
-      if (token && (isLoggedIn === 'true' || token.length > 5)) {
-        rehydrateAuth();
-      }
-    }
+    dispatch(rehydrateAuth());
     setIsMounted(true);
-  }, [rehydrateAuth]);
+  }, [dispatch]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -55,30 +51,15 @@ export default function AuthenticatedLayout({
     document.documentElement.style.setProperty('--ring', activeColor);
   }, [primaryColor]);
 
-  // Handle routing on client side once mounted - verify localStorage before redirecting to prevent refresh logout
   useEffect(() => {
-    if (!isMounted) return;
-
-    const token = typeof window !== 'undefined'
-      ? (localStorage.getItem('token') || localStorage.getItem('accesstoken'))
-      : null;
-    const isLoggedIn = typeof window !== 'undefined'
-      ? localStorage.getItem('isLoggedIn')
-      : null;
-
-    const hasValidToken = Boolean(token && (isLoggedIn === 'true' || token.length > 5));
-
-    if (!isAuthenticated && !hasValidToken) {
+    if (isMounted && !isAuthenticated) {
       router.replace('/login');
     }
   }, [isMounted, isAuthenticated, router]);
 
   // Proactive background token refresh (Matching superadminfe App.js: every 10 minutes)
   useEffect(() => {
-    if (!isMounted) return;
-
-    const hasToken = typeof window !== 'undefined' && Boolean(localStorage.getItem('token') || localStorage.getItem('accesstoken'));
-    if (!isAuthenticated && !hasToken) return;
+    if (!isMounted || !isAuthenticated) return;
 
     // Refresh token once on initial load if present
     refreshAccessToken();
@@ -91,12 +72,7 @@ export default function AuthenticatedLayout({
     return () => clearInterval(intervalId);
   }, [isMounted, isAuthenticated]);
 
-  if (!isMounted) {
-    return null; // Don't render layout components during hydration to avoid mismatch
-  }
-
-  const hasLocalToken = typeof window !== 'undefined' && Boolean(localStorage.getItem('token') || localStorage.getItem('accesstoken'));
-  if (!isAuthenticated && !hasLocalToken) {
+  if (!isMounted || !isAuthenticated) {
     return null;
   }
 

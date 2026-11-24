@@ -57,16 +57,6 @@ const BackgroundCloud = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const DASHBOARD_ROUTES: Record<string, string> = {
-  'SuperAdmin': '/dashboard',
-  'Admin': '/dashboard',
-  'CEO': '/dashboard',
-  'Delivery Manager': '/dashboard',
-  'Project Manager': '/dashboard',
-  'Project Lead': '/dashboard',
-  'Developer': '/dashboard',
-};
-
 export default function LoginPage() {
   const [username, setUsername] = useState('admin');
   const [email, setEmail] = useState('admin@example.com');
@@ -92,15 +82,7 @@ export default function LoginPage() {
 
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const user = useStore((state) => state.user);
   const { updateUserProfile } = useStore();
-
-  useEffect(() => {
-    if (isAuthenticated && user?.role) {
-      router.push(DASHBOARD_ROUTES[user.role] || '/');
-    }
-  }, [isAuthenticated, user?.role, router]);
 
   // Load remembered credentials on mount
   useEffect(() => {
