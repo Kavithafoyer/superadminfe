@@ -17,3 +17,21 @@ export function getTenantName(
 
   return 'crmfarmsa';
 }
+
+/**
+ * Normalizes an API host URL to ensure it always includes a protocol (http:// or https://)
+ * and trims trailing slashes, preventing browser relative-URL resolution.
+ */
+export function normalizeApiUrl(rawUrl?: string): string {
+  const url = (rawUrl || process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in').trim();
+  let cleaned = url.replace(/\/$/, '');
+  if (!/^https?:\/\//i.test(cleaned)) {
+    if (/^(localhost|127\.0\.0\.1|192\.168\.|10\.|0\.0\.0\.0)/i.test(cleaned)) {
+      cleaned = `http://${cleaned}`;
+    } else {
+      cleaned = `https://${cleaned}`;
+    }
+  }
+  return cleaned;
+}
+

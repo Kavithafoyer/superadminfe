@@ -1,8 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { refreshAccessToken } from "./tokenRefresh";
 
-import { getTenantName } from './tenant';
-export { getTenantName } from './tenant';
+import { getTenantName, normalizeApiUrl } from './tenant';
+export { getTenantName, normalizeApiUrl } from './tenant';
 
 /**
  * Base RTK Query API slice for the application.
@@ -13,7 +13,7 @@ export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: async (args, api, extraOptions) => {
     const tenantName = getTenantName();
-    const primaryHost = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in').replace(/\/$/, '');
+    const primaryHost = normalizeApiUrl();
     const fallbackHost = 'https://backend.crmfarm.in';
 
     const executeQuery = (host: string) => {

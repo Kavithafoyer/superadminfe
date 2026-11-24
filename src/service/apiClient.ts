@@ -1,7 +1,7 @@
 import { refreshAccessToken } from './tokenRefresh';
 
-import { getTenantName } from './tenant';
-export { getTenantName } from './tenant';
+import { getTenantName, normalizeApiUrl } from './tenant';
+export { getTenantName, normalizeApiUrl } from './tenant';
 
 // Base API URL
 export const BASE_URL = normalizeApiUrl();
@@ -129,7 +129,7 @@ export interface LoginResponse {
  */
 export async function loginSuperAdminApi(username: string, password: string): Promise<LoginResponse> {
   const tenant = getTenantName();
-  const primaryHost = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in').replace(/\/$/, '');
+  const primaryHost = normalizeApiUrl();
   const fallbackHost = 'https://backend.crmfarm.in';
 
   const payload = JSON.stringify({ username, password });
@@ -179,7 +179,7 @@ export async function loginSuperAdminApi(username: string, password: string): Pr
  */
 export async function getUserDetailsApi(username: string, token: string): Promise<any> {
   const tenant = getTenantName();
-  const primaryHost = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in').replace(/\/$/, '');
+  const primaryHost = normalizeApiUrl();
   const fallbackHost = 'https://backend.crmfarm.in';
 
   const headers = {
