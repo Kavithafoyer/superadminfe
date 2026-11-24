@@ -1,24 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { refreshAccessToken, handleExpiredSession } from "./tokenRefresh";
+import { refreshAccessToken } from "./tokenRefresh";
 
-// Safe tenant extraction: defaults to 'crmfarmsa' as per SuperAdmin specification
-export const getTenantName = (): string => {
-  if (typeof window === 'undefined') return 'crmfarmsa';
-  const hostname = window.location.hostname;
-  if (
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname.startsWith('192.168.') ||
-    hostname.includes('localhost')
-  ) {
-    return 'crmfarmsa';
-  }
-  const parts = hostname.split('.');
-  if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'superadmin') {
-    return parts[0];
-  }
-  return 'crmfarmsa';
-};
+import { getTenantName } from './tenant';
+export { getTenantName } from './tenant';
 
 /**
  * Base RTK Query API slice for the application.
@@ -28,7 +12,7 @@ export const getTenantName = (): string => {
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: async (args, api, extraOptions) => {
-    const tenantName = getTenantName() || 'crmfarmsa';
+    const tenantName = getTenantName();
     const primaryHost = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in').replace(/\/$/, '');
     const fallbackHost = 'https://backend.crmfarm.in';
 

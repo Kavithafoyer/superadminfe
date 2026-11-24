@@ -1,24 +1,7 @@
-import { refreshAccessToken, handleExpiredSession } from './tokenRefresh';
+import { refreshAccessToken } from './tokenRefresh';
 
-export function getTenantName(): string {
-  if (typeof window === 'undefined') {
-    return 'crmfarmsa';
-  }
-  const hostname = window.location.hostname;
-  if (
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname.startsWith('192.168.') ||
-    hostname.includes('localhost')
-  ) {
-    return 'crmfarmsa';
-  }
-  const parts = hostname.split('.');
-  if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'superadmin') {
-    return parts[0];
-  }
-  return 'crmfarmsa';
-}
+import { getTenantName } from './tenant';
+export { getTenantName } from './tenant';
 
 // Base API URL
 export const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in';
@@ -34,7 +17,7 @@ export async function fetchFromApi<T = any>(endpoint: string, options?: RequestI
     typeof window !== 'undefined'
       ? localStorage.getItem('token') || localStorage.getItem('accesstoken') || localStorage.getItem('access_token')
       : null;
-  const tenant = getTenantName() || 'crmfarmsa';
+  const tenant = getTenantName();
 
   const headers = new Headers(options?.headers);
   if (options?.body && !headers.has('Content-Type') && !(typeof FormData !== 'undefined' && options.body instanceof FormData)) {
@@ -116,7 +99,7 @@ export async function fetchFromApi<T = any>(endpoint: string, options?: RequestI
     } catch {
       try {
         errorDetail = await res.clone().text();
-      } catch {}
+      } catch { }
     }
 
     throw new Error(`API error (${res.status}): ${errorDetail || res.statusText}`);
@@ -145,7 +128,7 @@ export interface LoginResponse {
  * Calls: [main backend url] / [tenant] / useradmin/login/
  */
 export async function loginSuperAdminApi(username: string, password: string): Promise<LoginResponse> {
-  const tenant = getTenantName() || 'crmfarmsa';
+  const tenant = getTenantName();
   const primaryHost = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in').replace(/\/$/, '');
   const fallbackHost = 'https://backend.crmfarm.in';
 
@@ -195,7 +178,7 @@ export async function loginSuperAdminApi(username: string, password: string): Pr
  * Calls: [main backend url] / [tenant] / useradmin/UserCRUD_GET/?username=[username]
  */
 export async function getUserDetailsApi(username: string, token: string): Promise<any> {
-  const tenant = getTenantName() || 'crmfarmsa';
+  const tenant = getTenantName();
   const primaryHost = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in').replace(/\/$/, '');
   const fallbackHost = 'https://backend.crmfarm.in';
 

@@ -260,23 +260,27 @@ export const getMenuGroups = (): MenuSection[] => [
       {
         icon: PackagePlus,
         label: 'Add-on Marketplace',
-        path: '/addon-marketplace/master',
+        path: '/addon-marketplace/categories',
         subItems: [
-          {
-            label: 'Add-on Master',
-            path: '/addon-marketplace/master',
-          },
           {
             label: 'Add-on Categories',
             path: '/addon-marketplace/categories',
           },
           {
-            label: 'Add-on Pricing',
-            path: '/addon-marketplace/pricing',
+            label: 'Add-on Master',
+            path: '/addon-marketplace/master',
+          },
+          {
+            label: 'Product Compatibility',
+            path: '/addon-marketplace/compatibility',
           },
           {
             label: 'Price Templates',
             path: '/addon-marketplace/price-templates',
+          },
+          {
+            label: 'Add-on Pricing',
+            path: '/addon-marketplace/pricing',
           },
           {
             label: 'Tiered Pricing',
@@ -289,10 +293,6 @@ export const getMenuGroups = (): MenuSection[] => [
           {
             label: 'Price History',
             path: '/addon-marketplace/price-history',
-          },
-          {
-            label: 'Product Compatibility',
-            path: '/addon-marketplace/compatibility',
           },
         ],
       },
