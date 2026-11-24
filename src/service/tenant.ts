@@ -1,6 +1,13 @@
 export function getTenantName(
   hostname = typeof window === 'undefined' ? '' : window.location.hostname,
 ): string {
+  if (typeof window !== 'undefined') {
+    const storedTenant =
+      localStorage.getItem('tenant') ||
+      localStorage.getItem('tenant_name') ||
+      localStorage.getItem('tenantName');
+    if (storedTenant) return storedTenant;
+  }
   const labels = hostname.toLowerCase().replace(/\.$/, '').split('.');
   const [subdomain] = labels;
   const isLocalTenant = labels.length > 1 && labels.at(-1) === 'localhost';
@@ -15,7 +22,7 @@ export function getTenantName(
     return subdomain;
   }
 
-  return 'crmfarmsa';
+  return process.env.NEXT_PUBLIC_TENANT_NAME || 'pegatto_superadmin';
 }
 
 /**

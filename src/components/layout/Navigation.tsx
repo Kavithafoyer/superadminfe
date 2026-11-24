@@ -102,8 +102,12 @@ export const getMenuGroups = (): MenuSection[] => [
       {
         icon: Package,
         label: 'Product Management',
-        path: '/products/master',
+        path: '/products/category',
         subItems: [
+          {
+            label: 'Product Category',
+            path: '/products/category',
+          },
           {
             label: 'Product Master',
             path: '/products/master',
@@ -525,8 +529,11 @@ export function isRouteActive(targetPath: string, currentPath: string | null): b
   }
 
   // Product Management aliases & deep routes
+  if (targetPath === '/products/category') {
+    return currentPath === '/products' || currentPath.startsWith('/products/category');
+  }
   if (targetPath === '/products/master') {
-    return currentPath === '/products' || currentPath.startsWith('/products/master');
+    return currentPath.startsWith('/products/master');
   }
 
   // Tenant Management aliases & deep routes

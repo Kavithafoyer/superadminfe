@@ -3005,17 +3005,17 @@ export const superAdminApi = baseApi.injectEndpoints({
       },
       providesTags: ['ProductMasters'],
     }),
-    createProductMaster: builder.mutation<ProductMasterRecord, Partial<ProductMasterRecord>>({
+    createProductMaster: builder.mutation<any, any>({
       query: (payload) => ({
-        url: 'superadmin/ProductMasterAPI/',
+        url: 'superadmin/ProductMasterCRUD/',
         method: 'POST',
         body: payload,
       }),
       invalidatesTags: ['ProductMasters'],
     }),
-    updateProductMaster: builder.mutation<ProductMasterRecord, Partial<ProductMasterRecord>>({
+    updateProductMaster: builder.mutation<any, any>({
       query: (payload) => ({
-        url: `superadmin/ProductMasterAPI/${payload.id}/`,
+        url: 'superadmin/ProductMasterCRUD/',
         method: 'PUT',
         body: payload,
       }),
@@ -3023,14 +3023,14 @@ export const superAdminApi = baseApi.injectEndpoints({
     }),
     deleteProductMaster: builder.mutation<any, string | number>({
       query: (id) => ({
-        url: `superadmin/ProductMasterAPI/${id}/`,
+        url: `superadmin/ProductMasterCRUD/?id=${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: ['ProductMasters'],
     }),
     deactivateProductMaster: builder.mutation<any, { id: string | number; status: string; reason?: string }>({
       query: ({ id, status, reason }) => ({
-        url: `superadmin/ProductMasterAPI/${id}/deactivate/`,
+        url: `superadmin/ProductMasterCRUD/${id}/deactivate/`,
         method: 'PATCH',
         body: { status, reason },
       }),
@@ -3038,11 +3038,48 @@ export const superAdminApi = baseApi.injectEndpoints({
     }),
     submitProductApproval: builder.mutation<any, { id: string | number; action: 'SUBMIT' | 'APPROVE' | 'REJECT'; notes?: string }>({
       query: ({ id, action, notes }) => ({
-        url: `superadmin/ProductMasterAPI/${id}/approval/`,
+        url: `superadmin/ProductMasterCRUD/${id}/approval/`,
         method: 'POST',
         body: { action, notes },
       }),
       invalidatesTags: ['ProductMasters'],
+    }),
+
+    // Product Category Master Endpoints (Integrated with Live Django Backend)
+    getProductCategoryList: builder.query<any, { page?: number; search?: string } | void>({
+      query: (params) => {
+        const page = params && typeof params === 'object' && params.page ? params.page : 1;
+        const search = params && typeof params === 'object' && params.search ? `&search=${encodeURIComponent(params.search)}` : '';
+        return `superadmin/ProductCategoryListwithPagination/?page=${page}${search}`;
+      },
+      providesTags: ['ProductCategories'],
+    }),
+    getProductCategoryById: builder.query<any, string | number>({
+      query: (id) => `superadmin/ProductCategoryCRUD/?id=${id}`,
+      providesTags: ['ProductCategories'],
+    }),
+    createProductCategory: builder.mutation<any, Partial<any>>({
+      query: (payload) => ({
+        url: 'superadmin/ProductCategoryCRUD/',
+        method: 'POST',
+        body: payload,
+      }),
+      invalidatesTags: ['ProductCategories'],
+    }),
+    updateProductCategory: builder.mutation<any, Partial<any>>({
+      query: (payload) => ({
+        url: 'superadmin/ProductCategoryCRUD/',
+        method: 'PUT',
+        body: payload,
+      }),
+      invalidatesTags: ['ProductCategories'],
+    }),
+    deleteProductCategory: builder.mutation<any, string | number>({
+      query: (id) => ({
+        url: `superadmin/ProductCategoryCRUD/?id=${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['ProductCategories'],
     }),
   }),
 });
@@ -3167,4 +3204,9 @@ export const {
   useDeleteProductMasterMutation,
   useDeactivateProductMasterMutation,
   useSubmitProductApprovalMutation,
+  useGetProductCategoryListQuery,
+  useGetProductCategoryByIdQuery,
+  useCreateProductCategoryMutation,
+  useUpdateProductCategoryMutation,
+  useDeleteProductCategoryMutation,
 } = superAdminApi;
