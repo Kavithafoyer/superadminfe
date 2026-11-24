@@ -1,4 +1,5 @@
 import { refreshAccessToken, handleExpiredSession } from './tokenRefresh';
+import { normalizeApiUrl } from './baseApi';
 
 export function getTenantName(): string {
   if (typeof window === 'undefined') {
@@ -21,7 +22,7 @@ export function getTenantName(): string {
 }
 
 // Base API URL
-export const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in';
+export const BASE_URL = normalizeApiUrl();
 export const SHOW_ALL_MENUS = true;
 
 /**
@@ -56,7 +57,7 @@ export async function fetchFromApi<T = any>(endpoint: string, options?: RequestI
   headers.set('Accept', 'application/json');
 
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
-  const primaryHost = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in').replace(/\/$/, '');
+  const primaryHost = normalizeApiUrl();
   const fallbackHost = 'https://backend.crmfarm.in';
 
   const makeRequest = async (host: string) => {
@@ -146,7 +147,7 @@ export interface LoginResponse {
  */
 export async function loginSuperAdminApi(username: string, password: string): Promise<LoginResponse> {
   const tenant = getTenantName() || 'crmfarmsa';
-  const primaryHost = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in').replace(/\/$/, '');
+  const primaryHost = normalizeApiUrl();
   const fallbackHost = 'https://backend.crmfarm.in';
 
   const payload = JSON.stringify({ username, password });
@@ -196,7 +197,7 @@ export async function loginSuperAdminApi(username: string, password: string): Pr
  */
 export async function getUserDetailsApi(username: string, token: string): Promise<any> {
   const tenant = getTenantName() || 'crmfarmsa';
-  const primaryHost = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in').replace(/\/$/, '');
+  const primaryHost = normalizeApiUrl();
   const fallbackHost = 'https://backend.crmfarm.in';
 
   const headers = {

@@ -21,6 +21,23 @@ export const getTenantName = (): string => {
 };
 
 /**
+ * Normalizes an API host URL to ensure it always includes a protocol (http:// or https://)
+ * and trims trailing slashes, preventing browser relative-URL resolution.
+ */
+export function normalizeApiUrl(rawUrl?: string): string {
+  const url = (rawUrl || process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in').trim();
+  let cleaned = url.replace(/\/$/, '');
+  if (!/^https?:\/\//i.test(cleaned)) {
+    if (/^(localhost|127\.0\.0\.1|192\.168\.|10\.|0\.0\.0\.0)/i.test(cleaned)) {
+      cleaned = `http://${cleaned}`;
+    } else {
+      cleaned = `https://${cleaned}`;
+    }
+  }
+  return cleaned;
+}
+
+/**
  * Base RTK Query API slice for the application.
  * Follows the pattern: [main backend url] / [tenant] / [backend path] / [endpoint]
  * e.g. https://backend.crmfarm.app/crmfarmsa/superadmin/SubscriptionInsightsAPI/
@@ -29,7 +46,7 @@ export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: async (args, api, extraOptions) => {
     const tenantName = getTenantName() || 'crmfarmsa';
-    const primaryHost = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in').replace(/\/$/, '');
+    const primaryHost = normalizeApiUrl();
     const fallbackHost = 'https://backend.crmfarm.in';
 
     const executeQuery = (host: string) => {
