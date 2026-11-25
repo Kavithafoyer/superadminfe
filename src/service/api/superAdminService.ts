@@ -2588,8 +2588,14 @@ export const superAdminApi = baseApi.injectEndpoints({
     }),
 
     // Sales Module - Subscriptions Endpoints
-    getSubscriptionsList: builder.query<SubscriptionRecord[], void>({
-      query: () => "superadmin/subscriptionlist/?page=1",
+    getSubscriptionsList: builder.query<
+      SubscriptionRecord[],
+      { customerId?: string } | void
+    >({
+      query: (params) => {
+        const cid = params?.customerId ? `&customer_id=${encodeURIComponent(params.customerId)}` : "";
+        return `superadmin/subscriptionlist/?page=1${cid}`;
+      },
       transformResponse: (res: any) => {
         const raw = res?.data || res?.results || res;
         const list =
@@ -3131,13 +3137,25 @@ export const superAdminApi = baseApi.injectEndpoints({
             ];
       },
     }),
-    getAccountFullList: builder.query<AccountRecord[], void>({
-      query: () => "superadmin/AccountFullList/?Is_Deleted=False",
+    getAccountFullList: builder.query<
+      AccountRecord[],
+      { customerId?: string } | void
+    >({
+      query: (params) => {
+        const cid = params?.customerId ? `&customer_id=${encodeURIComponent(params.customerId)}` : "";
+        return `superadmin/AccountFullList/?Is_Deleted=False${cid}`;
+      },
       transformResponse: (res: any) => {
         const raw = res?.data || res?.results || res;
         return Array.isArray(raw) ? raw : raw?.results ? raw.results : [];
       },
       providesTags: ["Accounts"],
+    }),
+
+    getAccountById: builder.query<AccountRecord, string | number>({
+      query: (id) => `superadmin/AccountCRUD/?Account_Id=${id}`,
+      transformResponse: (res: any) => res?.data || res,
+      providesTags: (_res, _err, id) => [{ type: "Accounts", id }],
     }),
 
     getPlanById: builder.query<PlanRecord, string | number>({
@@ -3773,6 +3791,8 @@ export const {
   useGetProductDropdownQuery,
   useGetAddonListQuery,
   useGetAccountFullListQuery,
+  useGetAccountByIdQuery,
+  useLazyGetAccountByIdQuery,
   useGetCustomerKpiAnalyticsQuery,
   useGetCustomerOverviewAnalyticsQuery,
   useLazyGetCustomerOverviewAnalyticsQuery,

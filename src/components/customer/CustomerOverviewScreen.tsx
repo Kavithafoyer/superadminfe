@@ -173,15 +173,18 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }, [customer?.nextRenewal]);
 
-  // 1. Live Subscriptions API
+  // 1. Live Subscriptions API - Filtered for the particular account
   const {
     data: allSubscriptions = [],
     isLoading: isSubsLoading,
     isFetching: isSubsFetching,
     refetch: refetchSubscriptions,
-  } = useGetSubscriptionsListQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-  });
+  } = useGetSubscriptionsListQuery(
+    customer?.customerId ? { customerId: customer.customerId } : undefined,
+    {
+      refetchOnMountOrArgChange: true,
+    }
+  );
 
   const customerSubscriptions = useMemo(() => {
     if (!customer || !Array.isArray(allSubscriptions)) return [];
