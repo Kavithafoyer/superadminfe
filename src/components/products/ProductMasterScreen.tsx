@@ -59,6 +59,7 @@ import {
   EDUCATION_CAPABILITIES,
   INITIAL_PRODUCTS,
 } from './productData';
+import { useGetProductCategoryListQuery } from '@/service/api/superAdminService';
 
 const LOCAL_STORAGE_KEY = 'PEGATTO_PRODUCT_MASTER_RECORDS_V4';
 
@@ -118,6 +119,15 @@ export function ProductMasterScreen({
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [categoryFilter, setCategoryFilter] = useState('All');
+
+  // Dynamic live categories from ProductCategoryListwithPagination
+  const { data: categoryApiResponse } = useGetProductCategoryListQuery();
+  const liveCategoryNames = useMemo(() => {
+    if (!categoryApiResponse?.results) return [];
+    return categoryApiResponse.results
+      .map((c: any) => c.Category_Name || c.Category_Code)
+      .filter(Boolean);
+  }, [categoryApiResponse]);
 
   // Product Form state for right side
   const [productForm, setProductForm] = useState<Partial<InitialProductConfig>>({
@@ -423,6 +433,23 @@ export function ProductMasterScreen({
             <IsometricBoxIcon className="h-8 w-8 text-[#6222cc]" />
           </div>
           <div>
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-0.5">
+              <span
+                className="hover:text-slate-800 cursor-pointer"
+                onClick={() => router.push('/products/category')}
+              >
+                Product Management
+              </span>
+              <span className="text-slate-400">&gt;</span>
+              <span
+                className="hover:text-slate-800 cursor-pointer text-[#6222cc] font-medium"
+                onClick={() => router.push('/products/category')}
+              >
+                Product Category
+              </span>
+              <span className="text-slate-400">&gt;</span>
+              <span className="text-slate-800 font-semibold">Product Master</span>
+            </div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               Product Master
             </h1>
@@ -849,9 +876,18 @@ export function ProductMasterScreen({
                 {/* Row 2: Category & Status */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="font-semibold text-slate-700">
-                      Category <span className="text-red-500">*</span>
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="font-semibold text-slate-700">
+                        Category <span className="text-red-500">*</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => router.push('/products/category')}
+                        className="text-[10px] text-[#6222cc] hover:underline font-medium cursor-pointer"
+                      >
+                        Manage Categories
+                      </button>
+                    </div>
                     <div className="relative">
                       <select
                         value={productForm.category || 'Education'}
@@ -860,13 +896,23 @@ export function ProductMasterScreen({
                         }
                         className="w-full h-8.5 appearance-none px-3 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 outline-none focus:ring-1 focus:ring-[#6222cc] cursor-pointer"
                       >
-                        <option value="Education">Education</option>
-                        <option value="IT / Services">IT / Services</option>
-                        <option value="HRMS">HRMS</option>
-                        <option value="Retail">Retail</option>
-                        <option value="Real Estate">Real Estate</option>
-                        <option value="CRM (Generic)">CRM (Generic)</option>
-                        <option value="Platform">Platform</option>
+                        {liveCategoryNames.length > 0 ? (
+                          liveCategoryNames.map((name: string) => (
+                            <option key={name} value={name}>
+                              {name}
+                            </option>
+                          ))
+                        ) : (
+                          <>
+                            <option value="Education">Education</option>
+                            <option value="IT / Services">IT / Services</option>
+                            <option value="HRMS">HRMS</option>
+                            <option value="Retail">Retail</option>
+                            <option value="Real Estate">Real Estate</option>
+                            <option value="CRM (Generic)">CRM (Generic)</option>
+                            <option value="Platform">Platform</option>
+                          </>
+                        )}
                       </select>
                       <ChevronDown className="h-3.5 w-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>

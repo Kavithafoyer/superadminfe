@@ -1,24 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { refreshAccessToken, handleExpiredSession } from "./tokenRefresh";
+import { refreshAccessToken } from "./tokenRefresh";
 
-// Safe tenant extraction: defaults to 'crmfarmsa' as per SuperAdmin specification
-export const getTenantName = (): string => {
-  if (typeof window === 'undefined') return 'crmfarmsa';
-  const hostname = window.location.hostname;
-  if (
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname.startsWith('192.168.') ||
-    hostname.includes('localhost')
-  ) {
-    return 'crmfarmsa';
-  }
-  const parts = hostname.split('.');
-  if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'superadmin') {
-    return parts[0];
-  }
-  return 'crmfarmsa';
-};
+import { getTenantName, normalizeApiUrl } from './tenant';
+export { getTenantName, normalizeApiUrl } from './tenant';
 
 /**
  * Base RTK Query API slice for the application.
@@ -27,10 +11,11 @@ export const getTenantName = (): string => {
  */
 export const baseApi = createApi({
   reducerPath: "baseApi",
-  baseQuery: async (args, api, extraOptions) => {
-    const tenantName = getTenantName() || 'crmfarmsa';
-    const primaryHost = (process.env.NEXT_PUBLIC_API_URL || 'https://backend.crmfarm.in').replace(/\/$/, '');
+  baseQuery: async (args, api, extraOptions: { skipHostFallback?: boolean; skipAuth?: boolean }) => {
+    const tenantName = getTenantName();
+    const primaryHost = normalizeApiUrl();
     const fallbackHost = 'https://backend.crmfarm.in';
+    const useFallbackHost = primaryHost !== fallbackHost && !extraOptions?.skipHostFallback;
 
     const executeQuery = (host: string) => {
       const baseUrl = `${host}/${tenantName}/`;
@@ -41,7 +26,7 @@ export const baseApi = createApi({
           headers.set("db", dbName);
           headers.set("Db", dbName);
           headers.set("Accept", "application/json");
-          if ((extraOptions as any)?.skipAuth) return headers;
+          if (extraOptions?.skipAuth) return headers;
           if (typeof window !== 'undefined') {
             const token =
               localStorage.getItem("token") ||
@@ -60,21 +45,19 @@ export const baseApi = createApi({
     let result = await executeQuery(primaryHost);
 
     // If request failed due to CORS / FETCH_ERROR and primaryHost was different from fallbackHost
-    if (result.error && (result.error.status === 'FETCH_ERROR' || result.error.status === 404)) {
-      if (primaryHost !== fallbackHost) {
-        console.warn(`[baseApi] Request to ${primaryHost} failed with ${result.error.status}. Retrying with fallback ${fallbackHost}...`);
-        result = await executeQuery(fallbackHost);
-      }
+    if (useFallbackHost && result.error && (result.error.status === 'FETCH_ERROR' || result.error.status === 404)) {
+      console.warn(`[baseApi] Request to ${primaryHost} failed with ${result.error.status}. Retrying with fallback ${fallbackHost}...`);
+      result = await executeQuery(fallbackHost);
     }
 
     // Handle Token Expiration (401 Unauthorized)
-    if (result.error && result.error.status === 401 && !(extraOptions as any)?.skipAuth) {
+    if (result.error && result.error.status === 401 && !extraOptions?.skipAuth) {
       console.warn('[baseApi] 401 Unauthorized detected. Attempting automatic token refresh...');
       const newToken = await refreshAccessToken();
       if (newToken) {
         console.log('[baseApi] Token refreshed successfully. Retrying request with new access token...');
         result = await executeQuery(primaryHost);
-        if (result.error && (result.error.status === 'FETCH_ERROR' || result.error.status === 404) && primaryHost !== fallbackHost) {
+        if (useFallbackHost && result.error && (result.error.status === 'FETCH_ERROR' || result.error.status === 404)) {
           result = await executeQuery(fallbackHost);
         }
       } else {
@@ -105,6 +88,7 @@ export const baseApi = createApi({
     "Tasks",
     "TicketGroups",
     "Tickets",
+    "ProductCategories",
     "ProductMasters",
     "ProductMenus",
     "CompanyDetails",
@@ -112,6 +96,7 @@ export const baseApi = createApi({
     "StorageMaster",
     "UserMaster",
     "AddonMaster",
+    "AddonCategories",
     "SystemPreferences",
   ],
   endpoints: () => ({}),

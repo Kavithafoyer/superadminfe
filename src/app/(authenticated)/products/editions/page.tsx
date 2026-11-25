@@ -1,12 +1,14 @@
 'use client';
 
-import React from 'react';
-import { ProductMasterScreen } from '@/components/products/ProductMasterScreen';
+import React, { Suspense } from 'react';
+import { ProductEditionsScreen } from '@/components/products/ProductEditionsScreen';
 
 export default function EditionsPage() {
   return (
     <div className="w-full">
-      <ProductMasterScreen initialTab="editions" />
+      <Suspense fallback={<div className="p-8 text-center text-xs text-slate-500">Loading Editions...</div>}>
+        <ProductEditionsScreen />
+      </Suspense>
     </div>
   );
 }
