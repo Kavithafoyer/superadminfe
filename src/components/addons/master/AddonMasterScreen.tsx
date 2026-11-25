@@ -2,19 +2,19 @@
 
 import React, { useState, useRef } from 'react';
 import {
-  PackagePlus,
+  Puzzle,
   Plus,
   Search,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
-  FileDown,
+  Hourglass,
+  OctagonAlert,
   ChevronLeft,
   ChevronRight,
   Sparkles,
   Bot,
   MessageSquare,
   FileText,
+  FileDown,
+  Columns,
   ShieldCheck,
   RotateCcw,
   MoreVertical,
@@ -25,7 +25,6 @@ import {
   Check,
   X,
   RefreshCw,
-  Columns,
   Layers,
   Coins,
   ShieldAlert,
@@ -40,16 +39,27 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useGetAddonCategoriesQuery } from '@/service/api/addonCategoryApi';
 import {
-  billingCycles, licenseModels, type MarketplaceAddon,
+  billingCycles, licenseModels, type InitialCompatibility, type MarketplaceAddon,
   useGetMarketplaceAddonsQuery, useSearchMarketplaceAddonsQuery, useGetMarketplaceAddonQuery,
   useGetMarketplaceAddonCardsQuery, useGetMarketplaceAddonProductsQuery,
   useSaveMarketplaceAddonMutation, useDeleteMarketplaceAddonMutation,
 } from '@/service/api/marketplaceAddonApi';
 import { AddonRecord } from '../types';
+
+const listColumns = {
+  'Add-ons': ['Category', 'Supported products', 'License model', 'Starting price', 'Status'],
+  'Feature Mapping': ['Features', 'Supported products', 'Mapped plans'],
+  Compatibility: ['Supported products', 'Minimum core API version', 'Known incompatibilities'],
+  Versions: ['Version', 'Release status', 'Release notes'],
+} as const;
+type ListTab = keyof typeof listColumns;
+const listTabs = Object.keys(listColumns) as ListTab[];
+const emptyFilters = { product: '', category: '', status: '' };
+const purpleOutline = 'border-purple-200 bg-white text-[#6d19e8] hover:border-purple-300 hover:bg-purple-50 hover:text-[#5814bd] dark:border-purple-800 dark:bg-slate-900 dark:text-purple-300 dark:hover:bg-purple-950';
 
 type RightPanelTab = 'basic' | 'features' | 'pricing' | 'compatibility' | 'versions';
 
@@ -111,6 +121,32 @@ function errorMessage(error: unknown, fallback: string) {
   return failure?.error || fallback;
 }
 
+function overviewMoney(amount?: number | null, currency?: string | null) {
+  return amount == null ? null : [currency, amount].filter((value) => value != null && value !== '').join(' ');
+}
+
+function OverviewSection({ title, fields }: {
+  title: string;
+  fields: [label: string, value: string | number | null | undefined][];
+}) {
+  const availableFields = fields.filter(([, value]) => value != null && value !== '');
+  if (!availableFields.length) return null;
+
+  return (
+    <section className="space-y-3 rounded-lg border p-4">
+      <h4 className="font-semibold">{title}</h4>
+      <dl className="grid gap-3 sm:grid-cols-2">
+        {availableFields.map(([label, value]) => (
+          <div key={label} className="min-w-0">
+            <dt className="text-muted-foreground">{label}</dt>
+            <dd className="whitespace-pre-wrap break-words font-medium">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 const emptyRecords: MarketplaceAddon[] = [];
 
 export function AddonMasterScreen() {
@@ -129,8 +165,12 @@ export function AddonMasterScreen() {
   const busy = saveState.isLoading || deleteState.isLoading;
   const editorReady = isCreatingNew || Boolean(detail.currentData && !detail.currentData.Is_Deleted);
   const [overview, setOverview] = useState<MarketplaceAddon | null>(null);
+  const overviewDetail = useGetMarketplaceAddonQuery(overview?.id ?? skipToken, {
+    refetchOnMountOrArgChange: true,
+  });
+  const overviewRecord = overview && { ...overview, ...overviewDetail.currentData };
+  const [initialCompatibility, setInitialCompatibility] = useState<InitialCompatibility>('compatible');
   const [activeRightTab, setActiveRightTab] = useState<RightPanelTab>('basic');
-  const [activeSubTab, setActiveSubTab] = useState<'addons' | 'mapping' | 'compatibility' | 'versions'>('addons');
   const [searchQuery, setSearchQuery] = useState('');
   const term = searchQuery.trim();
   const debounced = useDebounce(term, 300);
@@ -138,10 +178,12 @@ export function AddonMasterScreen() {
   const search = useSearchMarketplaceAddonsQuery(term && !waiting ? term : skipToken);
   const currentQuery = term ? search : list;
   const records = waiting ? emptyRecords : (term ? search.currentData : list.currentData) ?? emptyRecords;
-  const [productFilter, setProductFilter] = useState('All Products');
-  const [categoryFilter, setCategoryFilter] = useState('All Categories');
-  const [statusFilter, setStatusFilter] = useState('All Status');
-  const [appliedFilters, setAppliedFilters] = useState({ product: 'All Products', category: 'All Categories', status: 'All Status' });
+  const [listTab, setListTab] = useState<ListTab>('Add-ons');
+  const [filters, setFilters] = useState(emptyFilters);
+  const [appliedFilters, setAppliedFilters] = useState(emptyFilters);
+  const [hiddenColumns, setHiddenColumns] = useState<Partial<Record<ListTab, string[]>>>({});
+  const visibleColumns = listColumns[listTab].filter((column) => !hiddenColumns[listTab]?.includes(column));
+  const { category: categoryFilter, product: productFilter, status: statusFilter } = appliedFilters;
   const [requestedPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
@@ -159,7 +201,6 @@ export function AddonMasterScreen() {
     { label: 'categories', query: categoryOptions },
     { label: 'products', query: productOptions },
   ].filter(({ query }) => query.isError);
-  const showToast = (message: string) => toast.info(message);
 
   const handleSelectRow = (addon: MasterForm) => {
     if (mutationLock.current || selectedAddonId === addon.id) return;
@@ -171,6 +212,7 @@ export function AddonMasterScreen() {
   };
 
   const resetEditor = () => {
+    setInitialCompatibility('compatible');
     setSelectedAddonId('');
     setFormData(null);
     setNewFeatureTag('');
@@ -181,35 +223,56 @@ export function AddonMasterScreen() {
     if (!mutationLock.current) resetEditor();
   };
 
-  // Filter application
-  const handleApplyFilters = () => {
-    setAppliedFilters({
-      product: productFilter,
-      category: categoryFilter,
-      status: statusFilter,
-    });
-    setCurrentPage(1);
+  const selectedCategory = categories.find(({ id }) => String(id) === categoryFilter);
+  const filteredAddons = records.filter((record) =>
+    (!categoryFilter || (record.Addon_Category
+      ? String(record.Addon_Category) === categoryFilter
+      : Boolean(selectedCategory && record.Category === selectedCategory.Category_Name))) &&
+    (!productFilter || record.Products?.some((id) => String(id) === productFilter) ||
+      record.products_details?.some(({ id }) => String(id) === productFilter))
+  ).map(toForm).filter((item) => !statusFilter || item.status === statusFilter);
+  const recordsById = new Map(records.map((record) => [String(record.id), record]));
+  const columnValues = (addon: MasterForm) => {
+    const record = recordsById.get(addon.id);
+    const plans = record?.Plans?.length ? record.Plans : record?.plans_details?.map(({ id }) => id);
+    return {
+      Category: addon.category,
+      'Supported products': addon.supportedProducts.map((id) => productName(id, record)).join(', '),
+      'License model': addon.licenseModel,
+      'Starting price': `${addon.currency} ${addon.startingPrice}`,
+      Status: addon.status,
+      Features: addon.features?.join(', '),
+      'Mapped plans': plans?.map((id) => {
+        const plan = record?.plans_details?.find((item) => item.id === id);
+        return plan?.Plan_Name || plan?.Plan_Id || `#${id}`;
+      }).join(', '),
+      'Minimum core API version': addon.minimumApiVersion,
+      'Known incompatibilities': addon.incompatibilities,
+      Version: addon.version,
+      'Release status': addon.releaseStatus,
+      'Release notes': addon.releaseNotes,
+    };
   };
 
-  const handleResetFilters = () => {
-    setProductFilter('All Products');
-    setCategoryFilter('All Categories');
-    setStatusFilter('All Status');
-    setSearchQuery('');
-    setAppliedFilters({
-      product: 'All Products',
-      category: 'All Categories',
-      status: 'All Status',
-    });
-    setCurrentPage(1);
+  const handleExport = async () => {
+    try {
+      const XLSX = await import('xlsx');
+      const rows = filteredAddons.map((addon) => {
+        const values = columnValues(addon);
+        return {
+          'Add-on code': addon.code,
+          'Add-on name': addon.name,
+          ...Object.fromEntries(visibleColumns.map((column) => [column, values[column] ?? ''])),
+        };
+      });
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), listTab);
+      XLSX.writeFile(workbook, `add-on-master-${listTab.toLowerCase().replaceAll(' ', '-')}.xlsx`);
+    } catch {
+      toast.error('Unable to export add-ons.');
+    }
   };
 
-  const filteredAddons = records.map(toForm).filter((item) =>
-    (appliedFilters.product === 'All Products' || item.supportedProducts.includes(appliedFilters.product)) &&
-    (appliedFilters.category === 'All Categories' || item.categoryId === appliedFilters.category ||
-      (!item.categoryId && categories.find(({ id }) => String(id) === appliedFilters.category)?.Category_Name === item.category)) &&
-    (appliedFilters.status === 'All Status' || item.status === appliedFilters.status)
-  );
   const totalPages = Math.max(1, Math.ceil(filteredAddons.length / rowsPerPage));
   const currentPage = Math.min(requestedPage, totalPages);
   const paginatedAddons = filteredAddons.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
@@ -249,6 +312,7 @@ export function AddonMasterScreen() {
       await save({
         ...(existing ? { id: existing.id, Updated_Date: new Date().toISOString() } : {
           Plans: [], Cloudflare_Public_Id: [], Started_Date: format(new Date(), 'yyyy-MM-dd'),
+          Product_Compatibility_Type: initialCompatibility,
         }),
         Organization_Id: organization,
         Addon_Name: name,
@@ -347,7 +411,7 @@ export function AddonMasterScreen() {
   const getCategoryIcon = (cat: string) => {
     switch (cat) {
       case 'AI & Automation':
-        return <Bot className="h-4 w-4 text-[#6222cc] dark:text-purple-300" />;
+        return <Bot className="h-4 w-4 text-[#6d19e8] dark:text-purple-300" />;
       case 'Communication':
         return <MessageSquare className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />;
       case 'Productivity':
@@ -355,7 +419,7 @@ export function AddonMasterScreen() {
       case 'Compliance':
         return <ShieldCheck className="h-4 w-4 text-rose-600 dark:text-rose-400" />;
       default:
-        return <Sparkles className="h-4 w-4 text-[#6222cc] dark:text-purple-300" />;
+        return <Sparkles className="h-4 w-4 text-[#6d19e8] dark:text-purple-300" />;
     }
   };
 
@@ -367,7 +431,7 @@ export function AddonMasterScreen() {
           <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-1">
             <span>Add-on Marketplace</span>
             <span>&gt;</span>
-            <span className="text-[#6222cc] dark:text-purple-300 font-medium">Add-on Master</span>
+            <span className="text-[#6d19e8] dark:text-purple-300 font-medium">Add-on Master</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Add-on Master
@@ -377,12 +441,12 @@ export function AddonMasterScreen() {
           </p>
         </div>
 
-        <div>
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={handleStartCreateNew}
             disabled={busy}
-            className="h-9 px-4 text-sm font-semibold bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
+            className="h-9 px-4 text-sm font-semibold bg-[#6d19e8] hover:bg-[#5814bd] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             <span>Create Add-on</span>
@@ -390,52 +454,24 @@ export function AddonMasterScreen() {
         </div>
       </div>
 
-      {/* 4 KPI Cards */}
-      <div aria-busy={cards.isFetching} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Add-ons */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
-          <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Total Add-ons</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{totalCount}</p>
+      <dl aria-busy={cards.isFetching} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: 'Total Add-ons', count: totalCount, Icon: Puzzle, color: 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300' },
+          { label: 'Published', count: publishedCount, Icon: Check, color: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300' },
+          { label: 'In Draft', count: draftCount, Icon: Hourglass, color: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300' },
+          { label: 'Inactive', count: inactiveCount, Icon: OctagonAlert, color: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300' },
+        ].map(({ label, count, Icon, color }) => (
+          <div key={label} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+            <span aria-hidden="true" className={`flex size-13 shrink-0 items-center justify-center rounded-full ${color}`}>
+              <Icon className="size-7" strokeWidth={label === 'Published' ? 3 : 2} />
+            </span>
+            <div className="min-w-0">
+              <dt className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</dt>
+              <dd className="text-3xl font-bold leading-tight tabular-nums text-slate-950 dark:text-slate-100">{count}</dd>
+            </div>
           </div>
-          <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-[#6222cc] dark:text-purple-300">
-            <PackagePlus className="h-5 w-5" />
-          </div>
-        </div>
-
-        {/* Published */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
-          <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Published</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{publishedCount}</p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-            <CheckCircle2 className="h-5 w-5" />
-          </div>
-        </div>
-
-        {/* In Draft */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
-          <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">In Draft</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{draftCount}</p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
-            <Clock className="h-5 w-5" />
-          </div>
-        </div>
-
-        {/* Inactive */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
-          <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Inactive</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{inactiveCount}</p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 flex items-center justify-center text-rose-600 dark:text-rose-400">
-            <AlertCircle className="h-5 w-5" />
-          </div>
-        </div>
-      </div>
+        ))}
+      </dl>
 
       {cards.isError && (
         <div role="alert" className="flex items-center gap-3 text-sm">
@@ -444,392 +480,296 @@ export function AddonMasterScreen() {
         </div>
       )}
 
-      {/* Sub Tabs */}
-      <div className="flex items-center gap-6 border-b border-slate-200 dark:border-slate-800 text-xs font-medium">
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('addons')}
-          className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'addons'
-              ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
-              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
-          }`}
-        >
-          Add-ons
-          {activeSubTab === 'addons' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] dark:bg-purple-400 rounded-full" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('mapping')}
-          className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'mapping'
-              ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
-              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
-          }`}
-        >
-          Feature Mapping
-          {activeSubTab === 'mapping' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] dark:bg-purple-400 rounded-full" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('compatibility')}
-          className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'compatibility'
-              ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
-              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
-          }`}
-        >
-          Compatibility
-          {activeSubTab === 'compatibility' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] dark:bg-purple-400 rounded-full" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('versions')}
-          className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'versions'
-              ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
-              : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
-          }`}
-        >
-          Versions
-          {activeSubTab === 'versions' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] dark:bg-purple-400 rounded-full" />
-          )}
-        </button>
+      <div role="group" aria-label="Add-on list views" className="flex flex-wrap gap-x-2 border-b border-slate-200 dark:border-slate-800">
+        {listTabs.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            aria-pressed={listTab === tab}
+            aria-controls="addon-master-list"
+            onClick={() => {
+              setListTab(tab);
+              setCurrentPage(1);
+            }}
+            className={`border-b-2 px-4 py-2 text-sm font-semibold ${listTab === tab
+              ? 'border-[#6d19e8] text-[#6d19e8] dark:text-purple-300'
+              : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl p-3.5 shadow-xs flex flex-wrap items-center gap-3">
-        <div className="flex-1 min-w-[150px]">
-          <label className="text-sm font-medium text-slate-500 dark:text-slate-400 block mb-1">
-            Product
-          </label>
-          <select
-            value={productFilter}
-            onChange={(e) => setProductFilter(e.target.value)}
-            className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12">
+        <div className="min-w-0 space-y-3 lg:col-span-7">
+          <form
+            aria-label="Filter add-ons"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setAppliedFilters(filters);
+              setCurrentPage(1);
+            }}
+            className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900"
           >
-            <option>All Products</option>
-            {products.map((product) => <option key={product.id} value={product.id}>{product.product_name || product.name}</option>)}
-          </select>
-        </div>
-
-        <div className="flex-1 min-w-[150px]">
-          <label className="text-sm font-medium text-slate-500 dark:text-slate-400 block mb-1">
-            Category
-          </label>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
-          >
-            <option>All Categories</option>
-            {categories.map((category) => <option key={category.id} value={category.id}>{category.Category_Name}</option>)}
-          </select>
-        </div>
-
-        <div className="flex-1 min-w-[150px]">
-          <label className="text-sm font-medium text-slate-500 dark:text-slate-400 block mb-1">
-            Status
-          </label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
-          >
-            <option>All Status</option>
-            <option>Published</option>
-            <option>Draft</option>
-            <option>Inactive</option>
-          </select>
-        </div>
-
-        <div className="flex items-center gap-2 pt-4">
-          <Button
-            variant="ghost"
-            onClick={handleResetFilters}
-            className="h-8 px-3 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-slate-100"
-          >
-            Reset
-          </Button>
-          <Button
-            onClick={handleApplyFilters}
-            className="h-8 px-4 text-sm font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
-          >
-            Apply
-          </Button>
-        </div>
-      </div>
-
-      {/* 2-COLUMN SPLIT GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* LEFT COLUMN: Table List (~58-60% width) */}
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
-          {/* Table Header toolbar */}
-          <div className="p-3 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3">
-            <div className="relative flex-1 max-w-xs sm:max-w-sm">
-              <Search className="h-3.5 w-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <Input
-                type="search"
-                aria-label="Search add-ons"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder="Search by add-on code or name..."
-                className="h-8 pl-9 text-sm bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg focus-visible:ring-purple-600"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => showToast('Exporting current view...')}
-                className="h-8 px-3 text-sm font-medium border border-purple-200 text-[#6222cc] bg-white hover:bg-purple-50 dark:bg-slate-900 dark:border-purple-800 dark:text-purple-400 rounded-lg flex items-center gap-1.5 transition-colors"
-              >
-                <FileDown className="h-3.5 w-3.5" />
-                <span>Export</span>
-              </button>
-              <button
-                type="button"
-                className="h-8 px-3 text-sm font-medium border border-purple-200 text-[#6222cc] bg-white hover:bg-purple-50 dark:bg-slate-900 dark:border-purple-800 dark:text-purple-400 rounded-lg flex items-center gap-1.5 transition-colors"
-              >
-                <Columns className="h-3.5 w-3.5" />
-                <span>Columns</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50/80 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800 font-medium">
-                <tr>
-                    <th className="py-2.5 px-3 w-8">
-                    <input
-                      type="checkbox"
-                      checked={
-                        paginatedAddons.length > 0 &&
-                        paginatedAddons.every(({ id }) => selectedRowIds.includes(id))
-                      }
-                      onChange={handleToggleSelectAll}
-                      className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
-                    />
-                  </th>
-                  <th className="py-2.5 px-3 font-semibold">ADD-ON CODE</th>
-                  <th className="py-2.5 px-3 font-semibold">ADD-ON NAME</th>
-                  <th className="py-2.5 px-3 font-semibold">CATEGORY</th>
-                  <th className="py-2.5 px-3 font-semibold">SUPPORTED PRODUCTS</th>
-                  <th className="py-2.5 px-3 font-semibold">LICENSE MODEL</th>
-                  <th className="py-2.5 px-3 font-semibold">STARTING PRICE</th>
-                  <th className="py-2.5 px-3 font-semibold">STATUS</th>
-                  <th className="py-2.5 px-3 text-right font-semibold">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {!paginatedAddons.length && (
-                  <tr><td colSpan={9} className="p-6 text-center text-muted-foreground">
-                    {waiting || currentQuery.isFetching ? <span role="status">Loading add-ons…</span> : currentQuery.isError ? (
-                      <div role="alert" className="flex flex-wrap items-center justify-center gap-3">
-                        {errorMessage(currentQuery.error, 'Unable to load add-ons.')}
-                        <Button variant="outline" size="sm" onClick={() => currentQuery.refetch()}>Retry</Button>
-                      </div>
-                    ) : 'No matching add-ons.'}
-                  </td></tr>
-                )}
-                {paginatedAddons.map((addon) => {
-                  const isSelected = selectedAddonId === addon.id && !isCreatingNew;
-                  const isChecked = selectedRowIds.includes(addon.id);
-                  const record = records.find(({ id }) => String(id) === addon.id);
-
-                  return (
-                    <tr
-                      key={addon.id}
-                      onClick={() => handleSelectRow(addon)}
-                      className={`cursor-pointer transition-colors ${
-                        isSelected
-                          ? 'bg-purple-50/60 dark:bg-purple-950/30'
-                          : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40'
-                      }`}
-                    >
-                      <td className="py-3 px-3" onClick={(e) => handleToggleRow(addon.id, e)}>
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {}}
-                          className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
-                        />
-                      </td>
-                      <td className="py-3 px-3 font-semibold text-[#6222cc] dark:text-purple-300 hover:underline">
-                        <button type="button" id={`addon-overview-${addon.id}`} aria-haspopup="dialog" className="hover:underline focus-visible:underline"
-                          onClick={(event) => { event.stopPropagation(); if (record) setOverview(record); }}>
-                          {addon.code || 'View details'}
-                        </button>
-                      </td>
-                      <td className="py-3 px-3 font-medium text-slate-900 dark:text-slate-100">
-                        <div className="flex items-center gap-1.5">
-                          {getCategoryIcon(addon.category)}
-                          <span>{addon.name}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3 text-slate-600 dark:text-slate-400">
-                        {addon.category}
-                      </td>
-                      <td className="py-3 px-3">
-                        <div className="flex flex-wrap gap-1">
-                          {addon.supportedProducts.slice(0, 2).map((prod) => (
-                            <span
-                              key={productName(prod, detail.currentData)}
-                              className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-300"
-                            >
-                              {productName(prod, record)}
-                            </span>
-                          ))}
-                          {addon.supportedProducts.length > 2 && (
-                            <span className="text-xs text-slate-400">
-                              +{addon.supportedProducts.length - 2}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-3 px-3 text-slate-600 dark:text-slate-400">
-                        {addon.licenseModel}
-                      </td>
-                      <td className="py-3 px-3 font-medium text-slate-900 dark:text-slate-200">
-                        {addon.currency} {addon.startingPrice}
-                      </td>
-                      <td className="py-3 px-3">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-medium ${
-                            addon.status === 'Published'
-                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                              : addon.status === 'Draft'
-                              ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
-                              : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
-                          }`}
-                        >
-                          <span
-                            className={`h-1.5 w-1.5 rounded-full ${
-                              addon.status === 'Published'
-                                ? 'bg-emerald-600'
-                                : addon.status === 'Draft'
-                                ? 'bg-amber-600'
-                                : 'bg-rose-600'
-                            }`}
-                          />
-                          {addon.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-right">
-                        <div
-                          className="flex items-center justify-end gap-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => handleSelectRow(addon)}
-                            disabled={busy}
-                            className="p-1 rounded text-slate-400 hover:text-[#6222cc] hover:bg-slate-100 dark:hover:bg-slate-800"
-                            title="Edit Add-on"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <DropdownMenu modal={false}>
-                            <DropdownMenuTrigger type="button" disabled={busy} aria-label={`Actions for ${addon.name}`} className="rounded p-1 text-slate-500 hover:bg-accent">
-                              <MoreVertical className="size-4" />
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => record && setOverview(record)}><Eye /> Overview</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleSelectRow(addon)}><Pencil /> Edit Record</DropdownMenuItem>
-                              <DropdownMenuItem variant="destructive" onClick={() => handleDeletePrompt(addon)}><Trash2 /> Delete</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Table Footer / Pagination */}
-          <div className="p-3 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-slate-500">
-            <div>
-              Showing {filteredAddons.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}-
-              {Math.min(currentPage * rowsPerPage, filteredAddons.length)} of {filteredAddons.length} add-ons
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5">
-                <span>Rows per page:</span>
+            {([
+              ['product', 'Product', 'All products', products.map(({ id, product_name, name }) => [id, product_name || name] as const)],
+              ['category', 'Category', 'All categories', categories.map(({ id, Category_Name }) => [id, Category_Name] as const)],
+              ['status', 'Status', 'All statuses', ['Published', 'Draft', 'Inactive'].map((status) => [status, status] as const)],
+            ] as const).map(([key, label, placeholder, options]) => (
+              <label key={key} className="min-w-32 flex-1 space-y-1 text-sm font-medium">
+                <span>{label}</span>
                 <select
-                  value={rowsPerPage}
-                  onChange={(e) => {
-                    setRowsPerPage(Number(e.target.value));
+                  value={filters[key]}
+                  onChange={(event) => setFilters({ ...filters, [key]: event.target.value })}
+                  className="h-9 w-full truncate rounded-lg border border-slate-200 bg-white px-2.5 text-sm dark:border-slate-700 dark:bg-slate-900"
+                >
+                  <option value="">{placeholder}</option>
+                  {options.map(([value, name]) => <option key={value} value={value}>{name}</option>)}
+                </select>
+              </label>
+            ))}
+            <div className="flex gap-2">
+              <Button type="button" variant="ghost" className="h-9" onClick={() => {
+                setFilters(emptyFilters);
+                setAppliedFilters(emptyFilters);
+                setCurrentPage(1);
+              }}>Reset</Button>
+              <Button type="submit" className="h-9 bg-[#6d19e8] text-white hover:bg-[#5814bd]">Apply</Button>
+            </div>
+          </form>
+          <div id="addon-master-list" className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 p-4 dark:border-slate-800">
+              <div className="relative min-w-48 flex-1">
+                <Search aria-hidden="true" className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-slate-400" />
+                <Input
+                  value={searchQuery}
+                  onChange={(event) => {
+                    setSearchQuery(event.target.value);
                     setCurrentPage(1);
                   }}
-                  className="h-7 px-2 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                </select>
+                  type="search"
+                  aria-label="Search add-ons by code or name"
+                  placeholder="Search by add-on code or name..."
+                  className="mb-0 h-9 pl-8"
+                />
               </div>
+              <div className="ml-auto flex gap-2">
+                <Button type="button" variant="outline" className={`h-9 ${purpleOutline}`} disabled={!filteredAddons.length} onClick={handleExport}>
+                  <FileDown /> Export
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger render={<Button type="button" variant="outline" className={`h-9 ${purpleOutline}`} />}>
+                    <Columns /> Columns
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {listColumns[listTab].map((column) => (
+                      <DropdownMenuCheckboxItem
+                        key={column}
+                        checked={visibleColumns.includes(column)}
+                        onCheckedChange={(checked) => setHiddenColumns((previous) => ({
+                          ...previous,
+                          [listTab]: checked ? (previous[listTab] ?? []).filter((item) => item !== column)
+                            : [...(previous[listTab] ?? []), column],
+                        }))}
+                      >
+                        {column}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
 
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(1)}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  &laquo;
-                </button>
-                <button
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </button>
-                {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-                  <button
-                    key={page}
-                    type="button"
-                    onClick={() => setCurrentPage(page)}
-                    className={`h-6 w-6 rounded text-sm font-medium flex items-center justify-center ${
-                      currentPage === page
-                        ? 'bg-[#6222cc] text-white font-semibold'
-                        : 'text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table aria-label={listTab} className="w-full text-left text-sm">
+                <thead className="bg-[#f4f3fa] text-slate-900 dark:bg-slate-800/80 dark:text-slate-200 border-b border-slate-200/80 dark:border-slate-800 font-medium">
+                  <tr>
+                      <th className="py-2.5 px-3 w-8">
+                      <input
+                        type="checkbox"
+                        checked={
+                          paginatedAddons.length > 0 &&
+                          paginatedAddons.every(({ id }) => selectedRowIds.includes(id))
+                        }
+                        onChange={handleToggleSelectAll}
+                        className="rounded border-slate-300 accent-[#6d19e8] text-[#6d19e8] focus:ring-[#6d19e8] focus:border-[#6d19e8] cursor-pointer"
+                      />
+                    </th>
+                    <th className="py-2.5 px-3 font-semibold">ADD-ON CODE</th>
+                    <th className="py-2.5 px-3 font-semibold">ADD-ON NAME</th>
+                    {visibleColumns.map((column) => (
+                      <th key={column} scope="col" className="px-3 py-2.5 font-semibold uppercase">{column}</th>
+                    ))}
+                    <th className="py-2.5 px-3 text-right font-semibold">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {!paginatedAddons.length && (
+                    <tr><td colSpan={visibleColumns.length + 4} className="p-6 text-center text-muted-foreground">
+                      {waiting || currentQuery.isFetching ? <span role="status">Loading add-ons…</span> : currentQuery.isError ? (
+                        <div role="alert" className="flex flex-wrap items-center justify-center gap-3">
+                          {errorMessage(currentQuery.error, 'Unable to load add-ons.')}
+                          <Button variant="outline" size="sm" onClick={() => currentQuery.refetch()}>Retry</Button>
+                        </div>
+                      ) : 'No matching add-ons.'}
+                    </td></tr>
+                  )}
+                  {paginatedAddons.map((addon) => {
+                    const isSelected = selectedAddonId === addon.id && !isCreatingNew;
+                    const isChecked = selectedRowIds.includes(addon.id);
+                    const record = recordsById.get(addon.id);
+                    const values = columnValues(addon);
+
+                    return (
+                      <tr
+                        key={addon.id}
+                        onClick={() => handleSelectRow(addon)}
+                        className={`cursor-pointer transition-colors ${
+                          (isSelected || isChecked)
+                            ? 'bg-[#f3e8ff] dark:bg-purple-950/65'
+                            : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40'
+                        }`}
+                      >
+                        <td className="py-3 px-3" onClick={(e) => handleToggleRow(addon.id, e)}>
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {}}
+                            className="rounded border-slate-300 accent-[#6d19e8] text-[#6d19e8] focus:ring-[#6d19e8] focus:border-[#6d19e8] cursor-pointer"
+                          />
+                        </td>
+                        <td className="py-3 px-3 font-semibold text-[#6d19e8] dark:text-purple-300 hover:underline">
+                          <button type="button" id={`addon-overview-${addon.id}`} aria-haspopup="dialog" className="underline underline-offset-2"
+                            onClick={(event) => { event.stopPropagation(); if (record) setOverview(record); }}>
+                            {addon.code || 'View details'}
+                          </button>
+                        </td>
+                        <td className="py-3 px-3 font-medium text-slate-900 dark:text-slate-100">
+                          <div className="flex items-center gap-1.5">
+                            {getCategoryIcon(addon.category)}
+                            <span>{addon.name}</span>
+                          </div>
+                        </td>
+                        {visibleColumns.map((column) => (
+                          <td key={column} className="max-w-64 whitespace-pre-wrap break-words px-3 py-3 text-muted-foreground">
+                            {column === 'Status' ? (
+                              <Badge variant="secondary" className={
+                                addon.status === 'Published' ? 'bg-[#bbf7b0] text-green-950 dark:bg-green-950 dark:text-green-300'
+                                  : addon.status === 'Draft' ? 'bg-[#ffe27a] text-amber-950 dark:bg-amber-950 dark:text-amber-300'
+                                  : 'bg-[#fecdd3] text-red-900 dark:bg-rose-950 dark:text-rose-300'
+                              }>{addon.status}</Badge>
+                            ) : column === 'Category' && values.Category ? (
+                              <Badge variant="secondary" className="h-auto max-w-full whitespace-normal break-words bg-[#eee5ff] text-[#34205e] dark:bg-purple-900/70 dark:text-purple-100">
+                                {values.Category}
+                              </Badge>
+                            ) : values[column] || '?'}
+                          </td>
+                        ))}
+                        <td className="py-3 px-3 text-right">
+                          <div
+                            className="flex items-center justify-end gap-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => handleSelectRow(addon)}
+                              disabled={busy}
+                              className="rounded p-1 text-[#6d19e8] hover:bg-purple-100 dark:text-purple-300 dark:hover:bg-purple-900"
+                              title="Edit Add-on"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <DropdownMenu modal={false}>
+                              <DropdownMenuTrigger type="button" disabled={busy} aria-label={`Actions for ${addon.name}`} className="rounded p-1 text-[#6d19e8] hover:bg-purple-100 dark:text-purple-300 dark:hover:bg-purple-900">
+                                <MoreVertical className="size-4" />
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => record && setOverview(record)}><Eye /> Overview</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleSelectRow(addon)}><Pencil /> Edit Record</DropdownMenuItem>
+                                <DropdownMenuItem variant="destructive" onClick={() => handleDeletePrompt(addon)}><Trash2 /> Delete</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Table Footer / Pagination */}
+            <div className="p-3 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-slate-500">
+              <div>
+                Showing {filteredAddons.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}-
+                {Math.min(currentPage * rowsPerPage, filteredAddons.length)} of {filteredAddons.length} add-ons
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span>Rows per page:</span>
+                  <select
+                    value={rowsPerPage}
+                    onChange={(e) => {
+                      setRowsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="h-7 px-2 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
                   >
-                    {page}
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(1)}
+                    className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
+                  >
+                    &laquo;
                   </button>
-                ))}
-                <button
-                  type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(totalPages)}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  &raquo;
-                </button>
+                  <button
+                    type="button"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </button>
+                  {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      onClick={() => setCurrentPage(page)}
+                      className={`h-6 w-6 rounded text-sm font-medium flex items-center justify-center ${
+                        currentPage === page
+                          ? 'bg-[#6d19e8] text-white font-semibold'
+                          : 'text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(totalPages)}
+                    className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
+                  >
+                    &raquo;
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -838,7 +778,7 @@ export function AddonMasterScreen() {
         {/* RIGHT COLUMN: Create / Edit Add-on Card (~40-42% width) */}
         <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
           {/* Card Top Title & Status */}
-          <div className="p-4 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3 border-b border-purple-100 bg-[#f3eafa] p-4 dark:border-purple-900 dark:bg-purple-950/60">
             <div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 {isCreatingNew ? 'Create Add-on' : 'Edit Add-on'}
@@ -850,10 +790,10 @@ export function AddonMasterScreen() {
             <span
               className={`px-2.5 py-0.5 rounded-full text-sm font-semibold ${
                 formData.status === 'Published'
-                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                  ? 'bg-[#008019] text-white dark:bg-green-800 dark:text-white'
                   : formData.status === 'Draft'
-                  ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
-                  : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
+                  ? 'bg-[#ffe27a] text-amber-950 dark:bg-amber-950 dark:text-amber-300'
+                  : 'bg-[#fecdd3] text-red-900 dark:bg-rose-950 dark:text-rose-300'
               }`}
             >
               {formData.status}
@@ -867,13 +807,13 @@ export function AddonMasterScreen() {
               onClick={() => setActiveRightTab('basic')}
               className={`pb-2 whitespace-nowrap transition-colors relative ${
                 activeRightTab === 'basic'
-                  ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
+                  ? 'text-[#6d19e8] dark:text-purple-300 font-semibold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Basic Details
               {activeRightTab === 'basic' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6d19e8] rounded-full" />
               )}
             </button>
             <button
@@ -881,13 +821,13 @@ export function AddonMasterScreen() {
               onClick={() => setActiveRightTab('features')}
               className={`pb-2 whitespace-nowrap transition-colors relative ${
                 activeRightTab === 'features'
-                  ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
+                  ? 'text-[#6d19e8] dark:text-purple-300 font-semibold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Features & Mapping
               {activeRightTab === 'features' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6d19e8] rounded-full" />
               )}
             </button>
             <button
@@ -895,13 +835,13 @@ export function AddonMasterScreen() {
               onClick={() => setActiveRightTab('pricing')}
               className={`pb-2 whitespace-nowrap transition-colors relative ${
                 activeRightTab === 'pricing'
-                  ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
+                  ? 'text-[#6d19e8] dark:text-purple-300 font-semibold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Pricing
               {activeRightTab === 'pricing' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6d19e8] rounded-full" />
               )}
             </button>
             <button
@@ -909,13 +849,13 @@ export function AddonMasterScreen() {
               onClick={() => setActiveRightTab('compatibility')}
               className={`pb-2 whitespace-nowrap transition-colors relative ${
                 activeRightTab === 'compatibility'
-                  ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
+                  ? 'text-[#6d19e8] dark:text-purple-300 font-semibold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Compatibility
               {activeRightTab === 'compatibility' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6d19e8] rounded-full" />
               )}
             </button>
             <button
@@ -923,13 +863,13 @@ export function AddonMasterScreen() {
               onClick={() => setActiveRightTab('versions')}
               className={`pb-2 whitespace-nowrap transition-colors relative ${
                 activeRightTab === 'versions'
-                  ? 'text-[#6222cc] dark:text-purple-300 font-semibold'
+                  ? 'text-[#6d19e8] dark:text-purple-300 font-semibold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Versions
               {activeRightTab === 'versions' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6d19e8] rounded-full" />
               )}
             </button>
           </div>
@@ -1000,7 +940,7 @@ export function AddonMasterScreen() {
                         categoryId: e.target.value,
                         category: categories.find(({ id }) => String(id) === e.target.value)?.Category_Name ?? '',
                       })}
-                      className="w-full h-10 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-base focus:ring-1 focus:ring-[#6222cc]"
+                      className="w-full h-10 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-base focus:ring-1 focus:ring-[#6d19e8]"
                     >
                       <option value="">{!formData.categoryId && formData.category ? formData.category : 'Select category'}</option>
                       {formData.categoryId && !categories.some(({ id }) => String(id) === formData.categoryId) && (
@@ -1017,7 +957,7 @@ export function AddonMasterScreen() {
                       id="addon-license-model"
                       value={formData.licenseModel}
                       onChange={(e) => setFormData({ ...formData, licenseModel: e.target.value as MasterForm['licenseModel'] })}
-                      className="w-full h-10 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-base focus:ring-1 focus:ring-[#6222cc]"
+                      className="w-full h-10 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-base focus:ring-1 focus:ring-[#6d19e8]"
                     >
                       {licenseModels.map((license) => <option key={license}>{license}</option>)}
                     </select>
@@ -1033,7 +973,7 @@ export function AddonMasterScreen() {
                     {formData.supportedProducts.map((prod) => (
                       <span
                         key={productName(prod, detail.currentData)}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-sm font-medium"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#e9dfff] text-[#34205e] dark:bg-purple-900 dark:text-purple-100 text-sm font-medium"
                       >
                         {productName(prod, detail.currentData)}
                         <button
@@ -1075,7 +1015,7 @@ export function AddonMasterScreen() {
                     value={formData.fullDescription}
                     onChange={(e) => setFormData({ ...formData, fullDescription: e.target.value })}
                     placeholder="Uses AI to analyze lead data and predict conversion probability..."
-                    className="block min-h-24 w-full resize-y px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-base focus:ring-1 focus:ring-[#6222cc] focus:outline-none"
+                    className="block min-h-24 w-full resize-y px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-base focus:ring-1 focus:ring-[#6d19e8] focus:outline-none"
                   />
                 </div>
 
@@ -1089,7 +1029,7 @@ export function AddonMasterScreen() {
                       onChange={(e) =>
                         setFormData({ ...formData, trialAvailable: e.target.checked })
                       }
-                      className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer h-4 w-4"
+                      className="rounded border-slate-300 accent-[#6d19e8] text-[#6d19e8] focus:ring-[#6d19e8] focus:border-[#6d19e8] cursor-pointer h-4 w-4"
                     />
                     <label htmlFor="trialToggle" className="font-medium text-slate-800 dark:text-slate-200 cursor-pointer">
                       Trial Available
@@ -1138,7 +1078,7 @@ export function AddonMasterScreen() {
                           status: e.target.value as 'Published' | 'Draft' | 'Inactive',
                         })
                       }
-                      className="w-full h-10 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-base focus:ring-1 focus:ring-[#6222cc]"
+                      className="w-full h-10 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-base focus:ring-1 focus:ring-[#6d19e8]"
                     >
                       <option>Published</option>
                       <option>Draft</option>
@@ -1166,7 +1106,7 @@ export function AddonMasterScreen() {
                     <Button
                       type="button"
                       onClick={handleAddFeatureTag}
-                      className="h-8 px-3 text-sm bg-[#6222cc] hover:bg-[#521cb0] text-white shrink-0"
+                      className="h-8 px-3 text-sm bg-[#6d19e8] hover:bg-[#5814bd] text-white shrink-0"
                     >
                       Add
                     </Button>
@@ -1240,6 +1180,22 @@ export function AddonMasterScreen() {
 
             {activeRightTab === 'compatibility' && (
               <div className="space-y-3">
+                {isCreatingNew && (
+                  <div className="space-y-2 rounded-lg border border-purple-200 bg-purple-50/60 p-3 dark:border-purple-900 dark:bg-purple-950/40">
+                    <label htmlFor="initial-product-compatibility" className="block font-semibold">Initial product compatibility</label>
+                    <select id="initial-product-compatibility" value={initialCompatibility}
+                      onChange={(event) => setInitialCompatibility(event.target.value === 'incompatible' ? 'incompatible' : 'compatible')}
+                      className="h-10 w-full rounded-lg border border-input bg-background px-2.5">
+                      <option value="compatible">Compatible</option>
+                      <option value="incompatible">Not compatible</option>
+                    </select>
+                    <p className="text-sm text-muted-foreground">
+                      {formData.supportedProducts.length
+                        ? `A rule will be created for each selected product. ${formData.supportedProducts.map((id) => productName(id)).join(', ')}`
+                        : 'Choose supported products in Basic Details to create their rules with the add-on.'}
+                    </p>
+                  </div>
+                )}
                 <div>
                   <label htmlFor="addon-minimum-api-version" className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                     Minimum Core API Version
@@ -1303,7 +1259,7 @@ export function AddonMasterScreen() {
               type="button"
               onClick={handleStartCreateNew}
               disabled={busy}
-              className="h-8 px-3 text-sm border-slate-200"
+              className={`h-8 px-3 text-sm ${purpleOutline}`}
             >
               Cancel
             </Button>
@@ -1314,7 +1270,7 @@ export function AddonMasterScreen() {
                 type="button"
                 disabled={!editorReady || busy}
                 onClick={() => handleSaveForm(true)}
-                className="h-8 px-3 text-sm border-slate-200 hover:bg-slate-100 text-slate-700"
+                className={`h-8 px-3 text-sm ${purpleOutline}`}
               >
                 Save as Draft
               </Button>
@@ -1322,7 +1278,7 @@ export function AddonMasterScreen() {
                 type="button"
                 disabled={!editorReady || busy}
                 onClick={() => handleSaveForm(false)}
-                className="h-8 px-4 text-sm font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
+                className="h-8 px-4 text-sm font-medium bg-[#6d19e8] hover:bg-[#5814bd] text-white rounded-lg shadow-xs"
               >
                 {saveState.isLoading ? 'Saving…' : isCreatingNew ? 'Create Add-on' : 'Update Add-on'}
               </Button>
@@ -1332,22 +1288,88 @@ export function AddonMasterScreen() {
       </div>
 
       <Dialog open={overview !== null} onOpenChange={(open) => { if (!open) setOverview(null); }}>
-        <DialogContent className="max-w-[min(38rem,calc(100%-2rem))] p-6">
-          <DialogTitle className="pr-8 text-lg font-semibold">Add-on Overview</DialogTitle>
-          <DialogDescription>{overview?.AddonMaster_Id || 'Add-on details'}</DialogDescription>
-          {overview && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/40 p-4">
-                <h3 className="text-lg font-semibold">{overview.Addon_Name || 'Unnamed add-on'}</h3>
-                <span>{toForm(overview).status}</span>
+        <DialogContent className="max-w-[min(36rem,calc(100%-2rem))] gap-4 p-6">
+          <div className="space-y-1 pr-8">
+            <DialogDescription>
+              {overviewRecord?.AddonMaster_Id || 'Add-on overview'}
+            </DialogDescription>
+            <DialogTitle className="break-words text-xl font-semibold leading-tight">
+              {overviewRecord?.Addon_Name || 'Add-on Overview'}
+            </DialogTitle>
+          </div>
+          {overviewRecord && (
+            <div className="min-w-0 space-y-4" aria-busy={overviewDetail.isFetching}>
+              <div className="space-y-3 rounded-xl border border-purple-200 bg-purple-50/60 p-4 dark:border-purple-900 dark:bg-purple-950/30">
+                <div className="flex flex-wrap items-center gap-2">
+                  {(overviewRecord.Status || overviewRecord.Is_Active != null) && (
+                    <Badge variant="secondary">{toForm(overviewRecord).status}</Badge>
+                  )}
+                  {overviewRecord.Trial_Available && (
+                    <Badge variant="outline">
+                      {overviewRecord.Trial_Days ? `${overviewRecord.Trial_Days}-day free trial` : 'Free trial available'}
+                    </Badge>
+                  )}
+                </div>
+                {overviewRecord.Price != null && (
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="text-xl font-semibold">
+                      {overviewMoney(overviewRecord.Price, overviewRecord.Currency_code)}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {overviewRecord.Billing_Cycle ? billingCycles[overviewRecord.Billing_Cycle] : 'Starting price'}
+                    </span>
+                  </div>
+                )}
+                {overviewRecord.Description && (
+                  <p className="whitespace-pre-wrap break-words text-muted-foreground">{overviewRecord.Description}</p>
+                )}
               </div>
-              <p className="whitespace-pre-wrap break-words text-muted-foreground">{overview.Description || 'No description provided.'}</p>
-              <dl className="grid gap-4 sm:grid-cols-2">
-                <div><dt className="font-semibold">Category</dt><dd>{overview.Category || '—'}</dd></div>
-                <div><dt className="font-semibold">Price</dt><dd>{overview.Currency_code || 'INR'} {overview.Price ?? 0}</dd></div>
-                <div><dt className="font-semibold">Products</dt><dd>{toForm(overview).supportedProducts.map((id) => productName(id, overview)).join(', ') || '—'}</dd></div>
-                <div><dt className="font-semibold">Billing cycle</dt><dd>{billingCycles[overview.Billing_Cycle ?? 'monthly']}</dd></div>
-              </dl>
+              {overviewDetail.isError && (
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+                  <p role="alert">{errorMessage(overviewDetail.error, 'Unable to refresh add-on details.')}</p>
+                  <Button variant="outline" size="sm" onClick={() => overviewDetail.refetch()}>Retry</Button>
+                </div>
+              )}
+              <OverviewSection title="Availability" fields={[
+                ['Category', overviewRecord.Category || categories.find(({ id }) => Number(id) === overviewRecord.Addon_Category)?.Category_Name],
+                ['License model', overviewRecord.License_Model],
+                ['Supported products', (overviewRecord.Products?.length ? overviewRecord.Products : overviewRecord.products_details?.map(({ id }) => id))
+                  ?.map((id) => productName(String(id), overviewRecord)).join(', ')],
+                ['Mapped plans', (overviewRecord.Plans?.length ? overviewRecord.Plans : overviewRecord.plans_details?.map(({ id }) => id))
+                  ?.map((id) => {
+                    const plan = overviewRecord.plans_details?.find((item) => item.id === id);
+                    return plan?.Plan_Name || plan?.Plan_Id || `#${id}`;
+                  }).join(', ')],
+              ]} />
+              {Array.isArray(overviewRecord.Features) && overviewRecord.Features.length > 0 && (
+                <section className="space-y-2">
+                  <h3 className="font-semibold">Included features</h3>
+                  <ul className="flex flex-wrap gap-2">
+                    {overviewRecord.Features.map((feature, index) => (
+                      <li key={index} className="min-w-0">
+                        <Badge variant="secondary" className="h-auto max-w-full whitespace-normal break-words">{feature}</Badge>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+              {(overviewRecord.Minimum_Core_API_Version || overviewRecord.Known_Incompatibilities ||
+                overviewRecord.Release_Version || overviewRecord.Release_Status || overviewRecord.Release_Notes) && (
+                <details className="rounded-lg border px-4 py-3">
+                  <summary className="cursor-pointer font-medium">Compatibility and release details</summary>
+                  <div className="mt-3 space-y-3">
+                    <OverviewSection title="Compatibility" fields={[
+                      ['Minimum core API version', overviewRecord.Minimum_Core_API_Version],
+                      ['Known incompatibilities', overviewRecord.Known_Incompatibilities],
+                    ]} />
+                    <OverviewSection title="Release" fields={[
+                      ['Version', overviewRecord.Release_Version],
+                      ['Release status', overviewRecord.Release_Status],
+                      ['Release notes', overviewRecord.Release_Notes],
+                    ]} />
+                  </div>
+                </details>
+              )}
             </div>
           )}
         </DialogContent>

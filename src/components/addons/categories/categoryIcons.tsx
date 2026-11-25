@@ -41,10 +41,24 @@ export const categoryIcons = [
   ['zap', 'Lightning', Zap],
 ] as const;
 
-export function CategoryIcon({ value, className = 'size-4 text-violet-700 dark:text-purple-300' }: {
+const categoryIconDefaults = [
+  [/\bai\b|automation/i, Cpu],
+  [/communication|messaging/i, MessageSquare],
+  [/analytics|insights/i, BarChart2],
+  [/productivity/i, Settings],
+  [/compliance|security/i, ShieldCheck],
+  [/integration/i, Link2],
+  [/crm/i, Users],
+  [/education|training/i, GraduationCap],
+] as const;
+
+export function CategoryIcon({ value, categoryName, className = 'size-4 text-violet-700 dark:text-purple-300' }: {
   value?: string | null;
+  categoryName?: string;
   className?: string;
 }) {
-  const Icon = categoryIcons.find(([key]) => key === value)?.[2] ?? Layers;
+  const Icon = categoryIcons.find(([key]) => key === value)?.[2]
+    ?? categoryIconDefaults.find(([pattern]) => pattern.test(categoryName ?? ''))?.[1]
+    ?? Layers;
   return <Icon aria-hidden="true" className={className} />;
 }

@@ -7,6 +7,8 @@ export const billingCycles = {
 
 export const licenseModels = ['Per Tenant', 'Per User', 'Usage Based', 'Tiered Volume'] as const;
 
+export type InitialCompatibility = 'compatible' | 'incompatible';
+
 export interface MarketplaceAddon {
   id: number;
   AddonMaster_Id?: string | null;
@@ -87,14 +89,16 @@ export const marketplaceAddonApi = baseApi.injectEndpoints({
       providesTags: ['ProductMasters'],
       extraOptions,
     }),
-    saveMarketplaceAddon: builder.mutation<MarketplaceAddon, Partial<MarketplaceAddon>>({
+    saveMarketplaceAddon: builder.mutation<MarketplaceAddon, Partial<MarketplaceAddon> & {
+      Product_Compatibility_Type?: InitialCompatibility;
+    }>({
       query: (body) => ({ url: crudUrl, method: body.id ? 'PUT' : 'POST', body }),
-      invalidatesTags: (_result, error) => error ? [] : tags,
+      invalidatesTags: (_result, error) => error ? [] : [...tags, 'AddonProductCompatibility'],
       extraOptions,
     }),
     deleteMarketplaceAddon: builder.mutation<{ message: string }, number>({
       query: (id) => ({ url: crudUrl, method: 'DELETE', params: { id } }),
-      invalidatesTags: (_result, error) => error ? [] : tags,
+      invalidatesTags: (_result, error) => error ? [] : [...tags, 'AddonProductCompatibility'],
       extraOptions,
     }),
   }),

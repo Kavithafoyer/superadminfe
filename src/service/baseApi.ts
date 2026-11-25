@@ -96,6 +96,7 @@ export const baseApi = createApi({
     "StorageMaster",
     "UserMaster",
     "AddonMaster",
+    "AddonProductCompatibility",
     "AddonCategories",
     "SystemPreferences",
   ],

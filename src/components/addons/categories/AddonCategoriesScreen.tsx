@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from '@/components/ui/popover';
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
@@ -45,11 +46,14 @@ import {
   type AddonCategoryInput,
   type AddonCategoryStatus,
 } from '@/service/api/addonCategoryApi';
+import { useGetMarketplaceAddonsQuery } from '@/service/api/marketplaceAddonApi';
 import type { CategoryRecord } from '../types';
 import { CategoryIcon, categoryIcons } from './categoryIcons';
 import { CategoryOverviewDialog } from './CategoryOverviewDialog';
 
-type Category = Omit<CategoryRecord, 'addonsCount' | 'parentCategory' | 'displayOrder' | 'showInMarketplace'>;
+type Category = Omit<CategoryRecord, 'addonsCount' | 'parentCategory'>;
+const categoryColumns = ['Description', 'Add-ons', 'Status', 'Display Order'] as const;
+const purpleOutline = 'border-purple-200 text-[#6d19e8] hover:bg-purple-50 hover:text-[#5814bd] dark:border-purple-800 dark:text-purple-300 dark:hover:bg-purple-950';
 
 function toCategory(category: AddonCategoryDto): Category {
   const status = category.Status?.toLowerCase();
@@ -60,6 +64,8 @@ function toCategory(category: AddonCategoryDto): Category {
     description: category.Description ?? '',
     status: status === 'active' ? 'Active' : status === 'draft' ? 'Draft' : 'Inactive',
     icon: category.Category_Icon ?? '',
+    displayOrder: category.Display_Order,
+    showInMarketplace: category.Show_In_Marketplace ?? true,
   };
 }
 
@@ -99,52 +105,62 @@ function CategoryIconPicker({ value, disabled, onChange }: {
       <label htmlFor="addon-category-icon" className="mb-1 block font-semibold text-slate-700 dark:text-slate-300">
         Category Icon
       </label>
-      <Popover open={open} onOpenChange={(nextOpen) => {
-        if (nextOpen) setSearch('');
-        setOpen(nextOpen);
-      }}>
-        <PopoverTrigger
-          id="addon-category-icon"
-          type="button"
-          disabled={disabled}
-          aria-label={`Choose category icon. Current selection: ${label}`}
-          className="flex h-10 max-w-full items-center gap-2 rounded-lg border border-slate-200 px-2.5 text-sm hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring dark:border-slate-700"
-        >
-          <CategoryIcon value={value} className="size-4 shrink-0 text-violet-700 dark:text-purple-300" />
-          <span className="truncate">{value ? label : 'Choose icon'}</span>
-        </PopoverTrigger>
-        <PopoverContent align="end" className="w-80 max-w-[calc(100vw-2rem)]">
-          <div className="flex items-center justify-between gap-2">
-            <PopoverTitle className="px-1 text-sm font-semibold">Choose category icon</PopoverTitle>
-            <Button type="button" variant="ghost" size="sm" aria-pressed={!value} onClick={() => chooseIcon('')}>
-              No icon
-            </Button>
-          </div>
-          <Input
-            type="search"
-            aria-label="Search category icons"
-            placeholder="Search icons"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          <div className="grid max-h-[min(16rem,40dvh)] grid-cols-3 gap-1.5 overflow-y-auto overscroll-contain p-1">
-            {choices.map(([key, name]) => (
-              <Button
-                key={key}
-                type="button"
-                variant={value === key ? 'secondary' : 'ghost'}
-                aria-pressed={value === key}
-                className="h-auto min-h-12 flex-col gap-1 whitespace-normal px-1 py-2 text-sm leading-tight"
-                onClick={() => chooseIcon(key)}
-              >
-                <CategoryIcon value={key} />
-                {name}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-[#e9dfff] dark:bg-purple-900">
+          <CategoryIcon value={value} className="size-8 text-violet-700 dark:text-purple-300" />
+        </div>
+        <Popover open={open} onOpenChange={(nextOpen) => {
+          if (nextOpen) setSearch('');
+          setOpen(nextOpen);
+        }}>
+          <PopoverTrigger
+            id="addon-category-icon"
+            type="button"
+            disabled={disabled}
+            aria-label={`Choose category icon. Current selection: ${label}`}
+            className={`h-10 rounded-lg border px-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-ring ${purpleOutline}`}
+          >
+            {value ? 'Change Icon' : 'Choose Icon'}
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-80 max-w-[calc(100vw-2rem)]">
+            <div className="flex items-center justify-between gap-2">
+              <PopoverTitle className="px-1 text-sm font-semibold">Choose category icon</PopoverTitle>
+              <Button type="button" variant="ghost" size="sm" aria-pressed={!value} onClick={() => chooseIcon('')}>
+                No icon
               </Button>
-            ))}
-            {!choices.length && <p className="col-span-3 p-3 text-center text-sm text-muted-foreground">No matching icons.</p>}
-          </div>
-        </PopoverContent>
-      </Popover>
+            </div>
+            <Input
+              type="search"
+              aria-label="Search category icons"
+              placeholder="Search icons"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+            <div className="grid max-h-[min(16rem,40dvh)] grid-cols-3 gap-1.5 overflow-y-auto overscroll-contain p-1">
+              {choices.map(([key, name]) => (
+                <Button
+                  key={key}
+                  type="button"
+                  variant={value === key ? 'secondary' : 'ghost'}
+                  aria-pressed={value === key}
+                  className="h-auto min-h-12 flex-col gap-1 whitespace-normal px-1 py-2 text-sm leading-tight"
+                  onClick={() => chooseIcon(key)}
+                >
+                  <CategoryIcon value={key} />
+                  {name}
+                </Button>
+              ))}
+              {!choices.length && <p className="col-span-3 p-3 text-center text-sm text-muted-foreground">No matching icons.</p>}
+            </div>
+          </PopoverContent>
+        </Popover>
+        {value && (
+          <Button type="button" variant="ghost" disabled={disabled} onClick={() => chooseIcon('')}
+            className="bg-rose-100 text-rose-700 hover:bg-rose-200 hover:text-rose-900 dark:bg-rose-950 dark:text-rose-300">
+            Remove
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
@@ -204,6 +220,8 @@ export function AddonCategoriesScreen() {
     description: '',
     status: 'Active',
     icon: '',
+    displayOrder: (list.data ?? emptyCategories).reduce((max, category) => Math.max(max, category.Display_Order ?? 0), 0) + 1,
+    showInMarketplace: true,
   };
   const formData = draft ?? (isCreatingNew ? blankCategory : detail.currentData ? toCategory(detail.currentData) : null);
   const detailLoadFailed = detail.isError && !detail.isFetching;
@@ -211,6 +229,8 @@ export function AddonCategoriesScreen() {
   const [deleteCategory, deleteState] = useDeleteAddonCategoryMutation();
   const mutationPending = saveState.isLoading || deleteState.isLoading;
   const mutationLock = useRef(false);
+  const addons = useGetMarketplaceAddonsQuery();
+  const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<AddonCategoryStatus | ''>('');
   const searchTerm = searchQuery.trim();
@@ -248,7 +268,7 @@ export function AddonCategoriesScreen() {
     resetEditor();
   };
 
-  const handleSaveForm = async () => {
+  const handleSaveForm = async (asDraft = false) => {
     if (!formData || mutationLock.current) return;
     const name = formData.name.trim();
     const description = formData.description.trim();
@@ -257,6 +277,10 @@ export function AddonCategoriesScreen() {
       return;
     }
 
+    if (!Number.isSafeInteger(formData.displayOrder) || formData.displayOrder < 0) {
+      toast.error('Enter a valid display order.');
+      return;
+    }
     const userId = getAuditUserId();
     if (!userId) {
       toast.error('Sign in with a valid user account before saving a category.');
@@ -268,10 +292,9 @@ export function AddonCategoriesScreen() {
     const body: AddonCategoryInput = {
       Category_Name: name,
       Description: description,
-      Display_Order: existing?.Display_Order ??
-        ((list.data ?? emptyCategories).reduce((max, category) => Math.max(max, category.Display_Order), 0) + 1),
-      Show_In_Marketplace: existing?.Show_In_Marketplace ?? true,
-      Status: formData.status,
+      Display_Order: formData.displayOrder,
+      Show_In_Marketplace: formData.showInMarketplace,
+      Status: asDraft ? 'Draft' : formData.status,
       Category_Icon: formData.icon || null,
       Is_Deleted: false,
       Created_By: existing?.Created_By ?? userId,
@@ -322,7 +345,12 @@ export function AddonCategoriesScreen() {
 
   const filteredCategories = useMemo(() => {
     if (waitingForSearch) return [];
-    const rows = searchTerm ? search.currentData : statusFilter ? statusResults.currentData : list.data;
+    const codeMatches = searchTerm ? (list.data ?? emptyCategories).filter((category) =>
+      category.AddonCategory_Id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      category.Category_Code?.toLowerCase().includes(searchTerm.toLowerCase())
+    ) : [];
+    const rows = searchTerm ? [...new Map([...codeMatches, ...(search.currentData ?? [])].map((category) => [category.id, category])).values()]
+      : statusFilter ? statusResults.currentData : list.data;
     if (searchTerm && statusFilter) {
       const matchingIds = new Set(statusResults.currentData?.map((category) => category.id));
       return (rows ?? emptyCategories).filter((category) => matchingIds.has(category.id)).map(toCategory);
@@ -340,6 +368,35 @@ export function AddonCategoriesScreen() {
     const start = (currentPage - 1) * rowsPerPage;
     return filteredCategories.slice(start, start + rowsPerPage);
   }, [filteredCategories, currentPage, rowsPerPage]);
+
+  const addonCounts = new Map<string, number>();
+  for (const addon of addons.currentData ?? []) {
+    const key = addon.Addon_Category ? `id:${addon.Addon_Category}` : addon.Category?.trim() ? `name:${addon.Category.trim().toLowerCase()}` : '';
+    if (key) addonCounts.set(key, (addonCounts.get(key) ?? 0) + 1);
+  }
+  const countFor = (category: Category) => addons.currentData
+    ? (addonCounts.get(`id:${category.id}`) ?? 0) + (addonCounts.get(`name:${category.name.trim().toLowerCase()}`) ?? 0)
+    : undefined;
+  const handleExport = async () => {
+    try {
+      const XLSX = await import('xlsx');
+      const rows = filteredCategories.map((category) => ({
+        'Category Code': category.code,
+        'Category Name': category.name,
+        ...Object.fromEntries(Object.entries({
+          Description: category.description,
+          'Add-ons': countFor(category) ?? '',
+          Status: category.status,
+          'Display Order': category.displayOrder,
+        }).filter(([column]) => !hiddenColumns.includes(column))),
+      }));
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), 'Categories');
+      XLSX.writeFile(workbook, 'add-on-categories.xlsx');
+    } catch {
+      toast.error('Unable to export categories.');
+    }
+  };
 
   const summaryCards = [
     { label: 'Total Categories', count: cards.data?.Total_Categories, Icon: Layers, color: 'bg-purple-100 text-violet-700 dark:bg-purple-950 dark:text-purple-300' },
@@ -374,7 +431,7 @@ export function AddonCategoriesScreen() {
           <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-1">
             <span>Add-on Marketplace</span>
             <span>&gt;</span>
-            <span className="text-[#6222cc] dark:text-purple-300 font-medium">Add-on Categories</span>
+            <span className="text-[#6d19e8] dark:text-purple-300 font-medium">Add-on Categories</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Add-on Categories
@@ -389,7 +446,7 @@ export function AddonCategoriesScreen() {
             type="button"
             onClick={handleStartCreateNew}
             disabled={mutationPending}
-            className="h-9 px-4 text-sm font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
+            className="h-9 px-4 text-sm font-medium bg-[#6d19e8] hover:bg-[#5814bd] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             <span>Create Category</span>
@@ -429,17 +486,33 @@ export function AddonCategoriesScreen() {
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,3fr)]">
         {/* LEFT COLUMN: Table List (~58-60% width) */}
         <div className="min-w-0 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
-          {/* Table Header toolbar */}
-          <div className="p-4 border-b border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-base font-semibold text-slate-900 dark:text-slate-100">
-                Categories ({filteredCategories.length})
-              </span>
+          <div className="space-y-3 px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-xl font-bold">Categories ({filteredCategories.length})</h2>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" className={`h-9 ${purpleOutline}`} disabled={!filteredCategories.length} onClick={handleExport}>
+                  <FileDown /> Export
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger render={<Button type="button" variant="outline" className={`h-9 ${purpleOutline}`} />}>
+                    <Columns /> Columns
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {categoryColumns.map((column) => (
+                      <DropdownMenuCheckboxItem key={column} checked={!hiddenColumns.includes(column)}
+                        onCheckedChange={(checked) => setHiddenColumns((current) =>
+                          checked ? current.filter((item) => item !== column) : [...current, column]
+                        )}>
+                        {column}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-
             <div className="flex flex-wrap items-center gap-2">
-              <div className="relative w-full sm:w-56">
-                <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <div className="relative w-full min-w-0 max-w-[31rem] sm:flex-[1_1_16rem]">
+                <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => {
@@ -447,9 +520,9 @@ export function AddonCategoriesScreen() {
                     setCurrentPage(1);
                   }}
                   type="search"
-                  aria-label="Search categories by name or status"
-                  placeholder="Search name or status"
-                  className="h-9 pl-8 text-sm bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg"
+                  aria-label="Search categories by name or code"
+                  placeholder="Search by category name or code..."
+                  className="mb-0 h-10 rounded-lg border-slate-200 bg-slate-50 pl-9 text-sm dark:border-slate-700 dark:bg-slate-800"
                 />
               </div>
               <select
@@ -459,37 +532,20 @@ export function AddonCategoriesScreen() {
                   setStatusFilter(event.target.value as AddonCategoryStatus | '');
                   setCurrentPage(1);
                 }}
-                className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-sm dark:border-slate-700 dark:bg-slate-900"
+                className="h-10 rounded-lg border border-slate-200 bg-white px-2.5 text-sm dark:border-slate-700 dark:bg-slate-900"
               >
                 <option value="">All statuses</option>
                 {[...new Set([...availableStatuses, ...(statusFilter ? [statusFilter] : [])])].map((status) => (
                   <option key={status} value={status}>{status}</option>
                 ))}
               </select>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => toast.info('Exporting Categories...')}
-                className="h-9 px-2.5 text-sm text-slate-600 border-slate-200 dark:border-slate-700"
-              >
-                <FileDown className="h-3.5 w-3.5 mr-1" />
-                Export
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 px-2.5 text-sm text-slate-600 border-slate-200 dark:border-slate-700"
-              >
-                <Columns className="h-3.5 w-3.5 mr-1" />
-                Columns
-              </Button>
             </div>
           </div>
 
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50/80 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800 font-medium">
+              <thead className="bg-[#f4f3fa] text-slate-900 dark:bg-slate-800 dark:text-slate-200 border-b border-slate-200/80 dark:border-slate-800 font-medium">
                 <tr>
                   <th className="py-2.5 px-3 w-8">
                     <input
@@ -497,20 +553,21 @@ export function AddonCategoriesScreen() {
                       checked={allVisibleSelected}
                       disabled={!paginatedCategories.length}
                       onChange={handleToggleSelectAll}
-                      className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
+                      className="rounded border-slate-300 accent-[#6d19e8] text-[#6d19e8] focus:ring-[#6d19e8] focus:border-[#6d19e8] cursor-pointer"
                     />
                   </th>
                   <th className="py-2.5 px-3 font-semibold">Category Code</th>
                   <th className="py-2.5 px-3 font-semibold">Category Name</th>
-                  <th className="py-2.5 px-3 font-semibold">Description</th>
-                  <th className="py-2.5 px-3 font-semibold">Status</th>
+                  {categoryColumns.filter((column) => !hiddenColumns.includes(column)).map((column) => (
+                    <th key={column} scope="col" className="px-3 py-2.5 font-semibold">{column}</th>
+                  ))}
                   <th className="py-2.5 px-3 text-right font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {!paginatedCategories.length && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                    <td colSpan={8 - hiddenColumns.length} className="px-4 py-8 text-center text-slate-500">
                       {tableLoading ? 'Loading categories…' : tableError ? (
                         <div role="alert" className="flex items-center justify-center gap-3">
                           {requestError(tableError.error, 'Unable to load categories.')}
@@ -529,8 +586,8 @@ export function AddonCategoriesScreen() {
                       key={cat.id}
                       onClick={() => handleSelectCategory(cat)}
                       className={`cursor-pointer transition-colors ${
-                        isSelected
-                          ? 'bg-purple-50/60 dark:bg-purple-950/30'
+                        (isSelected || isChecked)
+                          ? 'bg-[#f3e8ff] dark:bg-purple-950/60'
                           : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40'
                       }`}
                     >
@@ -539,7 +596,7 @@ export function AddonCategoriesScreen() {
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => {}}
-                          className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
+                          className="rounded border-slate-300 accent-[#6d19e8] text-[#6d19e8] focus:ring-[#6d19e8] focus:border-[#6d19e8] cursor-pointer"
                         />
                       </td>
                       <td className="py-3 px-3">
@@ -551,31 +608,39 @@ export function AddonCategoriesScreen() {
                             event.stopPropagation();
                             setOverview({ id: cat.id, open: true });
                           }}
-                          className="inline-flex items-center gap-1.5 font-mono font-semibold text-violet-700 underline-offset-4 hover:underline focus-visible:underline dark:text-purple-300"
+                          className="inline-flex items-center gap-2 font-semibold text-violet-700 underline underline-offset-2 dark:text-purple-300"
                         >
-                          <CategoryIcon value={cat.icon} />
+                          <CategoryIcon value={cat.icon} categoryName={cat.name} className="size-5 shrink-0 text-violet-700 dark:text-purple-300" />
                           <span>{cat.code}</span>
                         </button>
                       </td>
                       <td className="py-3 px-3 font-medium text-slate-900 dark:text-slate-100">
                         {cat.name}
                       </td>
-                      <td className="py-3 px-3 text-slate-600 dark:text-slate-400 max-w-[180px] truncate">
-                        {cat.description}
-                      </td>
-                      <td className="py-3 px-3">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold ${
-                            cat.status === 'Active'
-                              ? 'bg-[#dcfce7] text-[#15803d]'
-                              : cat.status === 'Draft'
-                              ? 'bg-[#fef9c3] text-[#a16207]'
-                              : 'bg-[#fee2e2] text-[#b91c1c]'
-                          }`}
-                        >
-                          {cat.status}
-                        </span>
-                      </td>
+                      {!hiddenColumns.includes('Description') && (
+                        <td className="min-w-36 max-w-56 break-words px-3 py-3 text-muted-foreground">{cat.description}</td>
+                      )}
+                      {!hiddenColumns.includes('Add-ons') && (
+                        <td className="px-3 py-3 text-center tabular-nums">{countFor(cat) ?? '?'}</td>
+                      )}
+                      {!hiddenColumns.includes('Status') && (
+                        <td className="py-3 px-3">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold ${
+                              cat.status === 'Active'
+                                ? 'bg-[#bbf7b0] text-green-950 dark:bg-green-950 dark:text-green-300'
+                                : cat.status === 'Draft'
+                                ? 'bg-[#ffe27a] text-amber-950 dark:bg-amber-950 dark:text-amber-300'
+                                : 'bg-[#fecdd3] text-red-900 dark:bg-rose-950 dark:text-rose-300'
+                            }`}
+                          >
+                            {cat.status}
+                          </span>
+                        </td>
+                      )}
+                      {!hiddenColumns.includes('Display Order') && (
+                        <td className="px-3 py-3 text-center tabular-nums">{cat.displayOrder ?? '?'}</td>
+                      )}
                       <td className="py-3 px-3 text-right">
                         <div
                           className="flex items-center justify-end gap-1"
@@ -585,7 +650,7 @@ export function AddonCategoriesScreen() {
                             type="button"
                             onClick={() => handleSelectCategory(cat)}
                             disabled={mutationPending}
-                            className="p-1 rounded text-slate-400 hover:text-[#6222cc] hover:bg-slate-100 dark:hover:bg-slate-800"
+                            className="rounded p-1 text-[#6d19e8] hover:bg-purple-100 dark:text-purple-300 dark:hover:bg-purple-950"
                             title="Edit Category"
                           >
                             <Pencil className="h-3.5 w-3.5" />
@@ -601,11 +666,11 @@ export function AddonCategoriesScreen() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => setOverview({ id: cat.id, open: true })}>
-                                <Eye className="size-3.5 text-[#6222cc]" />
+                                <Eye className="size-3.5 text-[#6d19e8]" />
                                 Overview
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleSelectCategory(cat)} className="text-sm">
-                                <Pencil className="size-3.5 text-[#6222cc]" />
+                                <Pencil className="size-3.5 text-[#6d19e8]" />
                                 Edit Record
                               </DropdownMenuItem>
                               <DropdownMenuItem variant="destructive" onClick={() => handleDeletePrompt(cat)} className="text-sm">
@@ -670,7 +735,7 @@ export function AddonCategoriesScreen() {
                     onClick={() => setCurrentPage(idx + 1)}
                     className={`h-6 w-6 rounded text-sm font-medium flex items-center justify-center ${
                       currentPage === idx + 1
-                        ? 'bg-[#6222cc] text-white'
+                        ? 'bg-[#6d19e8] text-white'
                         : 'text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
@@ -701,7 +766,7 @@ export function AddonCategoriesScreen() {
         {/* Category editor */}
         <div className="min-w-0 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
           {/* Card Top Title & Status */}
-          <div className="flex items-center justify-between gap-3 border-b border-slate-200/80 px-5 py-4 sm:px-6 dark:border-slate-800">
+          <div className="flex items-center justify-between gap-3 border-b border-purple-100 bg-[#f3eafa] px-5 py-4 sm:px-6 dark:border-purple-900 dark:bg-purple-950/60">
             <div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 {isCreatingNew ? 'Create Category' : 'Edit Category'}
@@ -711,7 +776,7 @@ export function AddonCategoriesScreen() {
               <span
                 className={`px-2.5 py-0.5 rounded-full text-sm font-semibold ${
                   formData.status === 'Active'
-                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
+                    ? 'bg-[#008019] text-white dark:bg-green-800'
                     : formData.status === 'Draft'
                     ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
                     : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
@@ -773,7 +838,7 @@ export function AddonCategoriesScreen() {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Briefly describe this category"
-                    className="block min-h-24 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-base focus:ring-1 focus:ring-[#6222cc] focus:outline-none dark:border-slate-700 dark:bg-slate-900"
+                    className="block min-h-24 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-base focus:ring-1 focus:ring-[#6d19e8] focus:outline-none dark:border-slate-700 dark:bg-slate-900"
                   />
                 </div>
 
@@ -793,30 +858,47 @@ export function AddonCategoriesScreen() {
                       <option value="Draft">Draft</option>
                     </select>
                   </div>
-                  <CategoryIconPicker
-                    key={selectedCategoryId}
-                    value={formData.icon ?? ''}
-                    disabled={mutationPending}
-                    onChange={(icon) => setFormData({ ...formData, icon })}
-                  />
+                  <div>
+                    <label htmlFor="addon-category-order" className="mb-1 block font-semibold">Display Order</label>
+                    <Input id="addon-category-order" type="number" min={0} step={1}
+                      value={Number.isNaN(formData.displayOrder) ? '' : formData.displayOrder}
+                      onChange={(event) => setFormData({ ...formData, displayOrder: event.target.valueAsNumber })}
+                      className="mb-0 h-10" />
+                  </div>
                 </div>
+                <label className="flex items-center gap-2 font-medium">
+                  <input type="checkbox" role="switch" checked={formData.showInMarketplace}
+                    onChange={(event) => setFormData({ ...formData, showInMarketplace: event.target.checked })}
+                    className="peer sr-only" />
+                  <span aria-hidden="true" className="relative h-6 w-10 rounded-full bg-slate-300 after:absolute after:left-0.5 after:top-0.5 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:bg-[#6d19e8] peer-checked:after:translate-x-4 peer-focus-visible:ring-2 peer-focus-visible:ring-purple-600 peer-focus-visible:ring-offset-2 dark:bg-slate-700" />
+                  Show in Marketplace
+                </label>
+                <CategoryIconPicker
+                  key={selectedCategoryId}
+                  value={formData.icon ?? ''}
+                  disabled={mutationPending}
+                  onChange={(icon) => setFormData({ ...formData, icon })}
+                />
               </div>
 
               {/* Card Footer Actions */}
-              <div className="flex items-center justify-between gap-2 border-t border-slate-200/80 bg-slate-50/50 px-5 py-4 sm:px-6 dark:border-slate-800 dark:bg-slate-800/20">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/80 bg-slate-50/50 px-5 py-4 sm:px-6 dark:border-slate-800 dark:bg-slate-800/20">
                 <Button
                   variant="outline"
                   type="button"
                   onClick={resetEditor}
-                  className="h-10 border-slate-200 px-4 text-sm"
+                  className={`h-10 px-4 text-sm ${purpleOutline}`}
                 >
                   Cancel
                 </Button>
 
+                <Button type="button" variant="outline" onClick={() => handleSaveForm(true)} className={`h-10 ${purpleOutline}`}>
+                  Save as Draft
+                </Button>
                 <Button
                   type="button"
-                  onClick={handleSaveForm}
-                  className="h-10 px-4 text-sm font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
+                  onClick={() => handleSaveForm()}
+                  className="h-10 px-4 text-sm font-medium bg-[#6d19e8] hover:bg-[#5814bd] text-white rounded-lg shadow-xs"
                 >
                   {saveState.isLoading ? 'Saving…' : isCreatingNew ? 'Create Category' : 'Update Category'}
                 </Button>
