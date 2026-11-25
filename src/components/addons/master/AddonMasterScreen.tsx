@@ -158,7 +158,12 @@ export function AddonMasterScreen() {
   const isCreatingNew = !selectedAddonId;
   const detail = useGetMarketplaceAddonQuery(selectedAddonId ? Number(selectedAddonId) : skipToken);
   const [draft, setFormData] = useState<MasterForm | null>(null);
-  const formData = draft ?? toForm(detail.currentData);
+  const [productsChanged, setProductsChanged] = useState(false);
+  const persistedForm = toForm(detail.currentData);
+  const formData = draft ? {
+    ...draft,
+    supportedProducts: productsChanged ? draft.supportedProducts : persistedForm.supportedProducts,
+  } : persistedForm;
   const [save, saveState] = useSaveMarketplaceAddonMutation();
   const [remove, deleteState] = useDeleteMarketplaceAddonMutation();
   const mutationLock = useRef(false);
@@ -207,11 +212,13 @@ export function AddonMasterScreen() {
     setSelectedAddonId(addon.id);
     setSelectedRowIds([addon.id]);
     setFormData(null);
+    setProductsChanged(false);
     setNewFeatureTag('');
     setActiveRightTab('basic');
   };
 
   const resetEditor = () => {
+    setProductsChanged(false);
     setInitialCompatibility('compatible');
     setSelectedAddonId('');
     setFormData(null);
@@ -317,7 +324,7 @@ export function AddonMasterScreen() {
         Organization_Id: organization,
         Addon_Name: name,
         Description: formData.fullDescription.trim() || null,
-        Products: formData.supportedProducts.map(Number),
+        ...(!existing || productsChanged ? { Products: formData.supportedProducts.map(Number) } : {}),
         Category: formData.category || null,
         Addon_Category: formData.categoryId ? Number(formData.categoryId) : null,
         Billing_Cycle: formData.cycle,
@@ -387,6 +394,7 @@ export function AddonMasterScreen() {
 
   const handleToggleProduct = (product: string) => {
     const ids = formData.supportedProducts;
+    setProductsChanged(true);
     setFormData({ ...formData, supportedProducts: ids.includes(product) ? ids.filter((id) => id !== product) : [...ids, product] });
   };
 
@@ -1191,7 +1199,9 @@ export function AddonMasterScreen() {
                     </select>
                     <p className="text-sm text-muted-foreground">
                       {formData.supportedProducts.length
-                        ? `A rule will be created for each selected product. ${formData.supportedProducts.map((id) => productName(id)).join(', ')}`
+                        ? initialCompatibility === 'incompatible'
+                          ? 'These selections will be saved as incompatible rules and excluded from supported products.'
+                          : `A rule will be created for each selected product. ${formData.supportedProducts.map((id) => productName(id)).join(', ')}`
                         : 'Choose supported products in Basic Details to create their rules with the add-on.'}
                     </p>
                   </div>
