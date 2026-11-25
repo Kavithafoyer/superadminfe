@@ -38,6 +38,7 @@ import { PriceHistoryItem, PriceChangeRecord } from '../types';
 import {
   useGetAddonPriceHistoryKPIQuery,
   useGetAddonPriceHistoryWithoutPaginationQuery,
+  useFilterAddonPriceHistoryMutationMutation,
   useCreateAddonPriceHistoryMutation,
   downloadAddonPriceHistoryExportCsv,
 } from '@/service/api/superAdminService';
@@ -59,6 +60,7 @@ export function PriceHistoryScreen() {
     isLoading: isLoadingList,
     refetch: refetchHistory,
   } = useGetAddonPriceHistoryWithoutPaginationQuery();
+  const [filterPriceHistory, { isLoading: isFiltering }] = useFilterAddonPriceHistoryMutationMutation();
   const [createPriceHistory, { isLoading: isCreating }] = useCreateAddonPriceHistoryMutation();
   const [isExporting, setIsExporting] = useState<boolean>(false);
 
@@ -172,7 +174,18 @@ export function PriceHistoryScreen() {
   const priceDecreasesCount = 38;
   const lastChangeDate = selectedItem?.lastUpdated || '05 Nov 2026';
 
-  const handleApplyFilter = () => {
+  const handleApplyFilter = async () => {
+    try {
+      const res = await filterPriceHistory({
+        addon_name: addonFilter !== 'All Add-ons' ? addonFilter : undefined,
+        product: productFilter,
+      }).unwrap();
+      if (res && res.length > 0) {
+        // Results returned from backend filter
+      }
+    } catch (e) {
+      console.error('Filter query failed:', e);
+    }
     const matched = historyItems.find((i) => i.addonName === addonFilter);
     if (matched) {
       setSelectedItemId(matched.id);
@@ -441,10 +454,12 @@ export function PriceHistoryScreen() {
             </Button>
             <Button
               size="sm"
+              disabled={isFiltering}
               onClick={handleApplyFilter}
-              className="h-9 bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs px-5 shadow-sm"
+              className="h-9 bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs px-5 shadow-sm flex items-center gap-1.5"
             >
-              Apply
+              {isFiltering && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              <span>Apply</span>
             </Button>
           </div>
         </div>
