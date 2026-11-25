@@ -10,7 +10,6 @@ import {
   SlidersHorizontal,
   ChevronDown,
   Edit2,
-  MoreVertical,
   Eye,
   Trash2,
   Building2,
@@ -19,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
+  ArrowLeft,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -174,8 +174,19 @@ export function CustomerMasterListScreen() {
     <div className="w-full space-y-5 pb-12 font-sans text-slate-800 antialiased">
       {/* 1. BREADCRUMBS & TOP HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-1">
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => router.back()}
+            title="Go Back"
+            className="h-10 w-10 rounded-xl border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shrink-0 cursor-pointer shadow-xs"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-1">
             <span
               className="hover:text-slate-800 cursor-pointer"
               onClick={() => router.push('/customer/master')}
@@ -192,6 +203,7 @@ export function CustomerMasterListScreen() {
             Manage global client accounts, enterprise contracts, billing profiles, and relationship executives.
           </p>
         </div>
+      </div>
 
         <div className="flex items-center gap-2.5 self-start sm:self-auto">
           <Button
@@ -351,59 +363,35 @@ export function CustomerMasterListScreen() {
                       </span>
                     </td>
                     <td
-                      className="py-3.5 px-4 text-right whitespace-nowrap relative"
+                      className="py-3.5 px-4 text-right whitespace-nowrap"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <button
-                        type="button"
-                        onClick={() => setActiveMenuId(isMenuOpen ? null : c.id)}
-                        className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-
-                      {/* Dropdown Menu */}
-                      {isMenuOpen && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-40"
-                            onClick={() => setActiveMenuId(null)}
-                          />
-                          <div className="absolute right-4 top-10 z-50 w-36 bg-white rounded-lg border border-slate-200 shadow-md py-1 text-xs">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActiveMenuId(null);
-                                router.push(`/customer/master/view/${c.id}`);
-                              }}
-                              className="w-full px-3 py-1.5 text-left text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
-                            >
-                              <Eye className="h-3.5 w-3.5 text-slate-500" />
-                              <span>Overview</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActiveMenuId(null);
-                                router.push(`/customer/master/edit/${c.id}`);
-                              }}
-                              className="w-full px-3 py-1.5 text-left text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
-                            >
-                              <Edit2 className="h-3.5 w-3.5 text-slate-500" />
-                              <span>Edit</span>
-                            </button>
-                            <div className="border-t border-slate-100 my-0.5" />
-                            <button
-                              type="button"
-                              onClick={(e) => handleOpenDelete(c, e)}
-                              className="w-full px-3 py-1.5 text-left text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
-                            >
-                              <Trash2 className="h-3.5 w-3.5 text-rose-600" />
-                              <span>Delete</span>
-                            </button>
-                          </div>
-                        </>
-                      )}
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/customer/master/view/${c.id}`)}
+                          title="View Customer Overview"
+                          className="p-1 rounded-md text-slate-400 hover:text-[#5046e5] hover:bg-purple-50 transition-colors cursor-pointer"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/customer/master/edit/${c.id}`)}
+                          title="Edit Customer"
+                          className="p-1 rounded-md text-slate-400 hover:text-[#5046e5] hover:bg-purple-50 transition-colors cursor-pointer"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleOpenDelete(c, e)}
+                          title="Delete Customer"
+                          className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
