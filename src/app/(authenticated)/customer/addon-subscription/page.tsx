@@ -589,16 +589,28 @@ export default function AddonSubscriptionPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-              <PackagePlus className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              Addon Subscriptions
-            </h1>
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => router.back()}
+            title="Go Back"
+            className="h-10 w-10 rounded-xl border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shrink-0 cursor-pointer shadow-xs"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                <PackagePlus className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                Addon Subscriptions
+              </h1>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              Manage optional modular upgrades, feature add-ons, and supplementary integrations requested by clients
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage optional modular upgrades, feature add-ons, and supplementary integrations requested by clients
-          </p>
         </div>
 
         <div className="flex items-center gap-2">

@@ -76,6 +76,15 @@ export async function refreshAccessToken(): Promise<string | null> {
         if (newAccessToken) {
           localStorage.setItem('accesstoken', newAccessToken);
           localStorage.setItem('token', newAccessToken);
+          const newRefreshToken =
+            data.refresh ||
+            data.refreshToken ||
+            data.refresh_token;
+          if (newRefreshToken) {
+            localStorage.setItem('refreshtoken', newRefreshToken);
+            localStorage.setItem('refreshToken', newRefreshToken);
+            localStorage.setItem('refresh_token', newRefreshToken);
+          }
           console.log('[tokenRefresh] Access token refreshed successfully.');
           return newAccessToken;
         }
