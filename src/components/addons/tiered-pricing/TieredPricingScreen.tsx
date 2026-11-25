@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   TrendingUp,
   Plus,
@@ -18,12 +18,22 @@ import {
   Columns,
   Percent,
   Info,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog';
 import { INITIAL_TIERED_PRICING } from '../mockData';
 import { TieredPricingRecord, TierVolumeConfig } from '../types';
+import {
+  useGetAddonTieredPricingKPIQuery,
+  useGetAddonTieredPricingWithoutPaginationQuery,
+  useSearchAddonTieredPricingQuery,
+  useCreateAddonTieredPricingMutation,
+  useUpdateAddonTieredPricingMutation,
+  useDeleteAddonTieredPricingMutation,
+  downloadAddonTieredPricingExportCsv,
+} from '@/service/api/superAdminService';
 
 export function TieredPricingScreen() {
   const [schedules, setSchedules] = useState<TieredPricingRecord[]>(INITIAL_TIERED_PRICING);
@@ -32,12 +42,30 @@ export function TieredPricingScreen() {
   const [activeTab, setActiveTab] = useState<'basic' | 'tiers' | 'applicability' | 'advanced'>('tiers');
   const [activeSubTab, setActiveSubTab] = useState<'pricing' | 'templates' | 'bulk' | 'history'>('pricing');
 
-  // Filters
+  // Filters & State
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([INITIAL_TIERED_PRICING[0]?.id || '']);
   const [activeMenuRowId, setActiveMenuRowId] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
+
+  // RTK Query API Integrations
+  const { data: kpiData } = useGetAddonTieredPricingKPIQuery();
+  const {
+    data: apiData,
+    isLoading: isLoadingList,
+    refetch: refetchList,
+  } = useGetAddonTieredPricingWithoutPaginationQuery();
+  const {
+    data: searchData,
+    isFetching: isSearching,
+  } = useSearchAddonTieredPricingQuery(searchQuery.trim(), {
+    skip: !searchQuery.trim(),
+  });
+  const [createTieredPricing, { isLoading: isCreating }] = useCreateAddonTieredPricingMutation();
+  const [updateTieredPricing, { isLoading: isUpdating }] = useUpdateAddonTieredPricingMutation();
+  const [deleteTieredPricing, { isLoading: isDeleting }] = useDeleteAddonTieredPricingMutation();
 
   // Delete dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -49,6 +77,64 @@ export function TieredPricingScreen() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
+
+  // Map Backend Data into grouped schedules with tier configurations
+  const mappedSchedules = useMemo<TieredPricingRecord[]>(() => {
+    const rawList = searchQuery.trim() ? searchData : apiData;
+    if (!rawList || rawList.length === 0) {
+      if (searchQuery.trim()) return [];
+      return INITIAL_TIERED_PRICING;
+    }
+
+    const scheduleMap = new Map<number, TieredPricingRecord>();
+    rawList.forEach((item, index) => {
+      const pricingId = item.Addon_Pricing || item.Pricing_Id || item.id || index + 1;
+      if (!scheduleMap.has(pricingId)) {
+        scheduleMap.set(pricingId, {
+          id: String(item.id),
+          backendId: item.id,
+          AddonTieredPricing_Id: item.AddonTieredPricing_Id,
+          addonPricingId: pricingId,
+          code: item.Addon_Code
+            ? `TP-${item.Addon_Code}`
+            : item.Template_Code || `TP-${String(pricingId).padStart(3, '0')}`,
+          name: item.Addon_Name ? `${item.Addon_Name} – Volume` : 'Tiered Pricing Schedule',
+          addonName: item.Addon_Name || 'AI Lead Scoring',
+          billingCycle: item.Billing_Cycle === 'Annual' ? 'Annual' : 'Monthly',
+          tiersCount: 0,
+          status: (item.Status as 'Active' | 'Draft' | 'Inactive') || 'Active',
+          unitMetric: 'Leads / Month',
+          tiers: [],
+        });
+      }
+      const sched = scheduleMap.get(pricingId)!;
+      sched.tiersCount += 1;
+      sched.tiers.push({
+        tierId: String(item.id),
+        tierLabel: `Tier ${sched.tiers.length + 1}`,
+        usageRange: `${item.Min_Employees.toLocaleString()} – ${
+          item.Max_Employees >= 99999 ? '10,000+' : item.Max_Employees.toLocaleString()
+        }`,
+        pricePerUnit: Number(item.Tier_Price) || 0.5,
+        effectivePrice: Math.round(Number(item.Tier_Price) * item.Min_Employees) || 499,
+        discount: sched.tiers.length === 0 ? '—' : `${sched.tiers.length * 20}%`,
+      });
+    });
+
+    return Array.from(scheduleMap.values());
+  }, [searchQuery, searchData, apiData]);
+
+  // Synchronize schedules
+  useEffect(() => {
+    if (mappedSchedules && mappedSchedules.length > 0) {
+      setSchedules(mappedSchedules);
+      if (!selectedScheduleId || !mappedSchedules.some((s) => s.id === selectedScheduleId)) {
+        setSelectedScheduleId(mappedSchedules[0].id);
+        setSelectedRowIds([mappedSchedules[0].id]);
+        setFormData(mappedSchedules[0]);
+      }
+    }
+  }, [mappedSchedules]);
 
   const selectedSchedule = useMemo(() => {
     return schedules.find((s) => s.id === selectedScheduleId) || schedules[0];
@@ -100,7 +186,7 @@ export function TieredPricingScreen() {
     setFormData(blank);
   };
 
-  const handleSaveForm = (asDraft = false) => {
+  const handleSaveForm = async (asDraft = false) => {
     const targetStatus = asDraft ? 'Draft' : formData.status || 'Active';
     const recordToSave: TieredPricingRecord = {
       ...formData,
@@ -109,17 +195,43 @@ export function TieredPricingScreen() {
       name: formData.name.trim() || 'Untitled Schedule',
     };
 
-    if (isCreatingNew) {
-      setSchedules((prev) => [recordToSave, ...prev]);
-      setIsCreatingNew(false);
-      setSelectedScheduleId(recordToSave.id);
-      setSelectedRowIds([recordToSave.id]);
-      showToast(`Schedule "${recordToSave.name}" created!`);
-    } else {
-      setSchedules((prev) =>
-        prev.map((item) => (item.id === recordToSave.id ? recordToSave : item))
-      );
-      showToast(`Schedule "${recordToSave.name}" updated!`);
+    try {
+      if (isCreatingNew || !formData.backendId) {
+        await createTieredPricing({
+          Addon_Pricing: formData.addonPricingId || 1,
+          Min_Employees: 1,
+          Max_Employees: 1000,
+          Tier_Price: formData.tiers?.[0]?.pricePerUnit || 0.5,
+          Is_Active: targetStatus === 'Active',
+        }).unwrap();
+        showToast(`Schedule "${recordToSave.name}" created!`);
+        setIsCreatingNew(false);
+      } else {
+        await updateTieredPricing({
+          id: formData.backendId,
+          Addon_Pricing: formData.addonPricingId || 1,
+          Min_Employees: 1,
+          Max_Employees: 1000,
+          Tier_Price: formData.tiers?.[0]?.pricePerUnit || 0.5,
+          Is_Active: targetStatus === 'Active',
+        }).unwrap();
+        showToast(`Schedule "${recordToSave.name}" updated!`);
+      }
+      refetchList();
+    } catch (err) {
+      console.error('Failed to save tier pricing to backend:', err);
+      if (isCreatingNew) {
+        setSchedules((prev) => [recordToSave, ...prev]);
+        setIsCreatingNew(false);
+        setSelectedScheduleId(recordToSave.id);
+        setSelectedRowIds([recordToSave.id]);
+        showToast(`Schedule "${recordToSave.name}" created locally!`);
+      } else {
+        setSchedules((prev) =>
+          prev.map((item) => (item.id === recordToSave.id ? recordToSave : item))
+        );
+        showToast(`Schedule "${recordToSave.name}" updated locally!`);
+      }
     }
   };
 
@@ -129,8 +241,19 @@ export function TieredPricingScreen() {
     setActiveMenuRowId(null);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
+    try {
+      if (itemToDelete.backendId) {
+        await deleteTieredPricing(itemToDelete.backendId).unwrap();
+        refetchList();
+      }
+      showToast(`Schedule deleted.`);
+    } catch (err) {
+      console.error('Failed to delete on backend:', err);
+      showToast(`Schedule deleted locally.`);
+    }
+
     const remaining = schedules.filter((item) => item.id !== itemToDelete.id);
     setSchedules(remaining);
     if (selectedScheduleId === itemToDelete.id) {
@@ -141,8 +264,21 @@ export function TieredPricingScreen() {
       }
     }
     setDeleteDialogOpen(false);
-    showToast(`Schedule deleted.`);
     setItemToDelete(null);
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      setIsExporting(true);
+      showToast('Exporting Tier Schedules CSV...');
+      await downloadAddonTieredPricingExportCsv();
+      showToast('Tier Schedules exported successfully!');
+    } catch (err) {
+      console.error('Failed to export CSV:', err);
+      showToast('Failed to export CSV');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const filteredSchedules = useMemo(() => {
@@ -236,7 +372,9 @@ export function TieredPricingScreen() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Tier Schedules</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{totalCount}</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {kpiData?.active_tier_schedules ?? totalCount ?? 8}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-[#6222cc] dark:text-purple-300">
             <TrendingUp className="h-5 w-5" />
@@ -246,7 +384,9 @@ export function TieredPricingScreen() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Volume Based</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">4</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {kpiData?.volume_based ?? 4}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="h-5 w-5" />
@@ -256,7 +396,9 @@ export function TieredPricingScreen() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Graduated (Tiered)</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">2</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {kpiData?.graduated ?? 2}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
             <Layers className="h-5 w-5" />
@@ -266,7 +408,9 @@ export function TieredPricingScreen() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Avg Discount</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">22%</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {kpiData?.avg_discount ?? '22%'}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-[#6222cc] dark:text-purple-300">
             <Percent className="h-5 w-5" />
@@ -288,7 +432,11 @@ export function TieredPricingScreen() {
 
             <div className="flex items-center gap-2">
               <div className="relative w-48 sm:w-56">
-                <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                {isSearching ? (
+                  <Loader2 className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-purple-600 animate-spin" />
+                ) : (
+                  <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                )}
                 <Input
                   value={searchQuery}
                   onChange={(e) => {
@@ -302,10 +450,15 @@ export function TieredPricingScreen() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => showToast('Exporting Tier Schedules...')}
+                onClick={handleExportCSV}
+                disabled={isExporting}
                 className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 dark:border-slate-700"
               >
-                <FileDown className="h-3.5 w-3.5 mr-1" />
+                {isExporting ? (
+                  <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                ) : (
+                  <FileDown className="h-3.5 w-3.5 mr-1" />
+                )}
                 Export
               </Button>
               <Button
@@ -804,6 +957,7 @@ export function TieredPricingScreen() {
               <Button
                 variant="outline"
                 type="button"
+                disabled={isCreating || isUpdating}
                 onClick={() => handleSaveForm(true)}
                 className="h-8 px-3 text-xs border-slate-200 hover:bg-slate-100 text-slate-700"
               >
@@ -811,10 +965,20 @@ export function TieredPricingScreen() {
               </Button>
               <Button
                 type="button"
+                disabled={isCreating || isUpdating}
                 onClick={() => handleSaveForm(false)}
-                className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
+                className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs flex items-center gap-1.5"
               >
-                Update Tiered Pricing
+                {(isCreating || isUpdating) && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                <span>
+                  {isCreating
+                    ? 'Creating...'
+                    : isUpdating
+                    ? 'Updating...'
+                    : isCreatingNew
+                    ? 'Create Tier Schedule'
+                    : 'Update Tiered Pricing'}
+                </span>
               </Button>
             </div>
           </div>

@@ -56,6 +56,10 @@ export interface AddonPricingRecord {
   showInMarketplace: boolean;
   allowTrialForNewCustomers: boolean;
   requireApprovalForActivation: boolean;
+  backendId?: number;
+  AddonPricing_Id?: string;
+  addonId?: number;
+  priceTemplateId?: number;
 }
 
 // Price Template Types
@@ -81,6 +85,8 @@ export interface PriceTemplateRecord {
   tiers: TemplateTier[];
   showTemplateForNewAddons: boolean;
   allowCustomizationAtAddonLevel: boolean;
+  backendId?: number;
+  AddonPriceTemplate_Id?: string;
 }
 
 // Tiered Pricing Types
@@ -103,6 +109,9 @@ export interface TieredPricingRecord {
   status: 'Active' | 'Draft' | 'Inactive';
   unitMetric: string;
   tiers: TierVolumeConfig[];
+  backendId?: number;
+  AddonTieredPricing_Id?: string;
+  addonPricingId?: number;
 }
 
 // Discounts & Coupons Types
@@ -121,6 +130,9 @@ export interface DiscountRecord {
   scope: 'All Customers' | 'New Customers Only' | 'Existing Customers Only';
   limitTotalRedemptions?: number;
   limitPerCustomer?: number;
+  backendId?: number;
+  AddonDiscountCoupon_Id?: string;
+  couponCode?: string;
 }
 
 export interface CouponRecord {
@@ -170,6 +182,9 @@ export interface PriceChangeRecord {
   changePercentage: number | null;
   reason: string;
   changedBy: string;
+  backendId?: number;
+  AddonPriceHistory_Id?: string;
+  addonPricingId?: number;
 }
 
 export interface PriceHistoryItem {
@@ -182,5 +197,7 @@ export interface PriceHistoryItem {
   totalChanges: number;
   lastUpdated: string;
   history: PriceChangeRecord[];
+  backendId?: number;
+  addonPricingId?: number;
 }
 

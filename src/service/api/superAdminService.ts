@@ -584,13 +584,13 @@ export interface TicketRecord {
   Severity?: "Critical" | "Major" | "Minor" | "Normal" | string;
   Priority?: string;
   Ticket_Status?:
-  | "New"
-  | "Open"
-  | "In Progress"
-  | "Pending"
-  | "Fixed"
-  | "Closed"
-  | string;
+    | "New"
+    | "Open"
+    | "In Progress"
+    | "Pending"
+    | "Fixed"
+    | "Closed"
+    | string;
   Status?: string;
   RisedBy?: any;
   Created_By?: any;
@@ -627,14 +627,14 @@ export interface StatusHistoryEntry {
 export interface AuditHistoryEntry {
   id: string;
   action:
-  | "CREATE"
-  | "UPDATE"
-  | "DEACTIVATE"
-  | "ACTIVATE"
-  | "APPROVAL_SUBMIT"
-  | "APPROVED"
-  | "REJECTED"
-  | "DELETE";
+    | "CREATE"
+    | "UPDATE"
+    | "DEACTIVATE"
+    | "ACTIVATE"
+    | "APPROVAL_SUBMIT"
+    | "APPROVED"
+    | "REJECTED"
+    | "DELETE";
   performedBy: string;
   userRole: string;
   timestamp: string;
@@ -2308,7 +2308,9 @@ export const superAdminApi = baseApi.injectEndpoints({
     >({
       query: (params) => {
         const customerId = params?.customerId?.trim() || "";
-        const queryParam = customerId ? `?customer_id=${encodeURIComponent(customerId)}` : "";
+        const queryParam = customerId
+          ? `?customer_id=${encodeURIComponent(customerId)}`
+          : "";
         return `superadmin/CustomerOverviewAnalytics/${queryParam}`;
       },
       transformResponse: (res: any) => res?.data || res,
@@ -2381,12 +2383,12 @@ export const superAdminApi = baseApi.injectEndpoints({
       any,
       | FormData
       | {
-        Account_Id: string | number;
-        FileName: string;
-        File: string;
-        Description?: string;
-        File_Type?: string;
-      }
+          Account_Id: string | number;
+          FileName: string;
+          File: string;
+          Description?: string;
+          File_Type?: string;
+        }
     >({
       query: (body) => ({
         url: "superadmin/DocumentMasterCRUD/",
@@ -2593,7 +2595,9 @@ export const superAdminApi = baseApi.injectEndpoints({
       { customerId?: string } | void
     >({
       query: (params) => {
-        const cid = params?.customerId ? `&customer_id=${encodeURIComponent(params.customerId)}` : "";
+        const cid = params?.customerId
+          ? `&customer_id=${encodeURIComponent(params.customerId)}`
+          : "";
         return `superadmin/subscriptionlist/?page=1${cid}`;
       },
       transformResponse: (res: any) => {
@@ -2669,7 +2673,8 @@ export const superAdminApi = baseApi.injectEndpoints({
 
     // Sales Module - Invoices Endpoints
     getInvoicesList: builder.query<InvoiceRecord[], void>({
-      query: () => "superadmin/InvoiceDetailsAdditional/?Is_Deleted=False&page=1",
+      query: () =>
+        "superadmin/InvoiceDetailsAdditional/?Is_Deleted=False&page=1",
       transformResponse: (res: any) => {
         const raw = res?.data || res?.results || res;
         return Array.isArray(raw) ? raw : [];
@@ -3044,11 +3049,11 @@ export const superAdminApi = baseApi.injectEndpoints({
         return Array.isArray(raw) && raw.length > 0
           ? raw
           : [
-            { id: "1", name: "SuperAdmin Cloud" },
-            { id: "2", name: "CRM Enterprise" },
-            { id: "3", name: "ERP Core" },
-            { id: "4", name: "Analytics Pro" },
-          ];
+              { id: "1", name: "SuperAdmin Cloud" },
+              { id: "2", name: "CRM Enterprise" },
+              { id: "3", name: "ERP Core" },
+              { id: "4", name: "Analytics Pro" },
+            ];
       },
     }),
     getMenuList: builder.query<
@@ -3061,25 +3066,25 @@ export const superAdminApi = baseApi.injectEndpoints({
         return Array.isArray(raw) && raw.length > 0
           ? raw
           : [
-            { id: "1", title: "Dashboard & Telemetry", category: "Overview" },
-            {
-              id: "2",
-              title: "Customer & Tenant Admin",
-              category: "Customer",
-            },
-            { id: "3", title: "Subscription Management", category: "Sales" },
-            {
-              id: "4",
-              title: "Analytics & Revenue Reports",
-              category: "Analytics",
-            },
-            {
-              id: "5",
-              title: "Role & Permission Matrix",
-              category: "Settings",
-            },
-            { id: "6", title: "Defect & Ticket Desk", category: "Support" },
-          ];
+              { id: "1", title: "Dashboard & Telemetry", category: "Overview" },
+              {
+                id: "2",
+                title: "Customer & Tenant Admin",
+                category: "Customer",
+              },
+              { id: "3", title: "Subscription Management", category: "Sales" },
+              {
+                id: "4",
+                title: "Analytics & Revenue Reports",
+                category: "Analytics",
+              },
+              {
+                id: "5",
+                title: "Role & Permission Matrix",
+                category: "Settings",
+              },
+              { id: "6", title: "Defect & Ticket Desk", category: "Support" },
+            ];
       },
     }),
     getIndustryList: builder.query<
@@ -3130,11 +3135,11 @@ export const superAdminApi = baseApi.injectEndpoints({
         return Array.isArray(raw) && raw.length > 0
           ? raw
           : [
-            { id: "1", addon_name: "Advanced Analytics Addon", price: 49 },
-            { id: "2", addon_name: "Custom Domain SSL", price: 19 },
-            { id: "3", addon_name: "Dedicated Cloud Database", price: 99 },
-            { id: "4", addon_name: "24/7 Priority Support SLA", price: 79 },
-          ];
+              { id: "1", addon_name: "Advanced Analytics Addon", price: 49 },
+              { id: "2", addon_name: "Custom Domain SSL", price: 19 },
+              { id: "3", addon_name: "Dedicated Cloud Database", price: 99 },
+              { id: "4", addon_name: "24/7 Priority Support SLA", price: 79 },
+            ];
       },
     }),
     getAccountFullList: builder.query<
@@ -3142,7 +3147,9 @@ export const superAdminApi = baseApi.injectEndpoints({
       { customerId?: string } | void
     >({
       query: (params) => {
-        const cid = params?.customerId ? `&customer_id=${encodeURIComponent(params.customerId)}` : "";
+        const cid = params?.customerId
+          ? `&customer_id=${encodeURIComponent(params.customerId)}`
+          : "";
         return `superadmin/AccountFullList/?Is_Deleted=False${cid}`;
       },
       transformResponse: (res: any) => {
@@ -3208,11 +3215,11 @@ export const superAdminApi = baseApi.injectEndpoints({
         return Array.isArray(raw) && raw.length > 0
           ? raw
           : [
-            { id: "1", name: "Infrastructure Scaling" },
-            { id: "2", name: "Security & Compliance" },
-            { id: "3", name: "Sales Billing Module" },
-            { id: "4", name: "Customer Support Portal" },
-          ];
+              { id: "1", name: "Infrastructure Scaling" },
+              { id: "2", name: "Security & Compliance" },
+              { id: "3", name: "Sales Billing Module" },
+              { id: "4", name: "Customer Support Portal" },
+            ];
       },
     }),
 
@@ -3473,21 +3480,21 @@ export const superAdminApi = baseApi.injectEndpoints({
         return Array.isArray(raw) && raw.length > 0
           ? raw
           : [
-            { id: 1, name: "Dashboard View", code: "dashboard.view" },
-            {
-              id: 2,
-              name: "Customer Accounts Manage",
-              code: "accounts.manage",
-            },
-            { id: 3, name: "Plans & Pricing Manage", code: "plans.manage" },
-            { id: 4, name: "Invoices & Billing", code: "invoices.manage" },
-            { id: 5, name: "Support Tickets Manage", code: "tickets.manage" },
-            {
-              id: 6,
-              name: "System Settings Manage",
-              code: "settings.manage",
-            },
-          ];
+              { id: 1, name: "Dashboard View", code: "dashboard.view" },
+              {
+                id: 2,
+                name: "Customer Accounts Manage",
+                code: "accounts.manage",
+              },
+              { id: 3, name: "Plans & Pricing Manage", code: "plans.manage" },
+              { id: 4, name: "Invoices & Billing", code: "invoices.manage" },
+              { id: 5, name: "Support Tickets Manage", code: "tickets.manage" },
+              {
+                id: 6,
+                name: "System Settings Manage",
+                code: "settings.manage",
+              },
+            ];
       },
     }),
     getUserAdminList: builder.query<UserAdminRecord[], void>({
@@ -3686,26 +3693,32 @@ export const superAdminApi = baseApi.injectEndpoints({
       },
       providesTags: ["ProductMasters"],
     }),
-    createProductMaster: builder.mutation<any, any>({
+    createProductMaster: builder.mutation<
+      ProductMasterRecord,
+      Partial<ProductMasterRecord>
+    >({
       query: (payload) => ({
-        url: 'superadmin/ProductMasterCRUD/',
-        method: 'POST',
+        url: "superadmin/ProductMasterAPI/",
+        method: "POST",
         body: payload,
       }),
       invalidatesTags: ["ProductMasters"],
     }),
-    updateProductMaster: builder.mutation<any, any>({
+    updateProductMaster: builder.mutation<
+      ProductMasterRecord,
+      Partial<ProductMasterRecord>
+    >({
       query: (payload) => ({
-        url: 'superadmin/ProductMasterCRUD/',
-        method: 'PUT',
+        url: `superadmin/ProductMasterAPI/${payload.id}/`,
+        method: "PUT",
         body: payload,
       }),
       invalidatesTags: ["ProductMasters"],
     }),
     deleteProductMaster: builder.mutation<any, string | number>({
       query: (id) => ({
-        url: `superadmin/ProductMasterCRUD/?id=${id}`,
-        method: 'DELETE',
+        url: `superadmin/ProductMasterAPI/${id}/`,
+        method: "DELETE",
       }),
       invalidatesTags: ["ProductMasters"],
     }),
@@ -3714,8 +3727,8 @@ export const superAdminApi = baseApi.injectEndpoints({
       { id: string | number; status: string; reason?: string }
     >({
       query: ({ id, status, reason }) => ({
-        url: `superadmin/ProductMasterCRUD/${id}/deactivate/`,
-        method: 'PATCH',
+        url: `superadmin/ProductMasterAPI/${id}/deactivate/`,
+        method: "PATCH",
         body: { status, reason },
       }),
       invalidatesTags: ["ProductMasters"],
@@ -3729,48 +3742,11 @@ export const superAdminApi = baseApi.injectEndpoints({
       }
     >({
       query: ({ id, action, notes }) => ({
-        url: `superadmin/ProductMasterCRUD/${id}/approval/`,
-        method: 'POST',
+        url: `superadmin/ProductMasterAPI/${id}/approval/`,
+        method: "POST",
         body: { action, notes },
       }),
-      invalidatesTags: ['ProductMasters'],
-    }),
-
-    // Product Category Master Endpoints (Integrated with Live Django Backend)
-    getProductCategoryList: builder.query<any, { page?: number; search?: string } | void>({
-      query: (params) => {
-        const page = params && typeof params === 'object' && params.page ? params.page : 1;
-        const search = params && typeof params === 'object' && params.search ? `&search=${encodeURIComponent(params.search)}` : '';
-        return `superadmin/ProductCategoryListwithPagination/?page=${page}${search}`;
-      },
-      providesTags: ['ProductCategories'],
-    }),
-    getProductCategoryById: builder.query<any, string | number>({
-      query: (id) => `superadmin/ProductCategoryCRUD/?id=${id}`,
-      providesTags: ['ProductCategories'],
-    }),
-    createProductCategory: builder.mutation<any, Partial<any>>({
-      query: (payload) => ({
-        url: 'superadmin/ProductCategoryCRUD/',
-        method: 'POST',
-        body: payload,
-      }),
-      invalidatesTags: ['ProductCategories'],
-    }),
-    updateProductCategory: builder.mutation<any, Partial<any>>({
-      query: (payload) => ({
-        url: 'superadmin/ProductCategoryCRUD/',
-        method: 'PUT',
-        body: payload,
-      }),
-      invalidatesTags: ['ProductCategories'],
-    }),
-    deleteProductCategory: builder.mutation<any, string | number>({
-      query: (id) => ({
-        url: `superadmin/ProductCategoryCRUD/?id=${id}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['ProductCategories'],
+      invalidatesTags: ["ProductMasters"],
     }),
   }),
 });
@@ -3912,11 +3888,6 @@ export const {
   useDeleteProductMasterMutation,
   useDeactivateProductMasterMutation,
   useSubmitProductApprovalMutation,
-  useGetProductCategoryListQuery,
-  useGetProductCategoryByIdQuery,
-  useCreateProductCategoryMutation,
-  useUpdateProductCategoryMutation,
-  useDeleteProductCategoryMutation,
 } = superAdminApi;
 
 /**
@@ -3949,9 +3920,9 @@ export const downloadAccountsExportCsv = async (params?: {
     const token =
       typeof window !== "undefined"
         ? localStorage.getItem("token") ||
-        localStorage.getItem("accesstoken") ||
-        localStorage.getItem("access_token") ||
-        ""
+          localStorage.getItem("accesstoken") ||
+          localStorage.getItem("access_token") ||
+          ""
         : "";
     const dbName =
       typeof window !== "undefined"
@@ -4001,3 +3972,11 @@ export const downloadAccountsExportCsv = async (params?: {
     return false;
   }
 };
+
+// Re-export Add-on Price Template API hooks and types
+export * from "./addonPriceTemplateApi";
+export * from "./addonPricingApi";
+export * from "./addonDiscountCouponApi";
+export * from "./addonTieredPricingApi";
+export * from "./addonPriceHistoryApi";
+

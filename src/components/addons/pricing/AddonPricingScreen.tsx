@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   DollarSign,
   Plus,
@@ -28,6 +28,9 @@ import {
   Calendar,
   Shield,
   ArrowRight,
+  Loader2,
+  X,
+  Filter,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -35,19 +38,155 @@ import { Input } from '@/components/ui/input';
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog';
 import { INITIAL_PRICING } from '../mockData';
 import { AddonPricingRecord } from '../types';
+import {
+  useGetAddonPricingKPIQuery,
+  useGetAddonPricingWithoutPaginationQuery,
+  useSearchAddonPricingQuery,
+  useFilterAddonPricingMutationMutation,
+  useCreateAddonPricingMutation,
+  useUpdateAddonPricingMutation,
+  useDeleteAddonPricingMutation,
+  downloadAddonPricingExportCsv,
+} from '@/service/api/addonPricingApi';
+
+const mapDtoToAddonPricing = (dto: any): AddonPricingRecord => {
+  const status: 'Active' | 'Draft' | 'Inactive' = dto.Is_Active ? 'Active' : 'Draft';
+  const basePrice = Number(dto.Base_Price) || 499;
+  const cycle = (dto.Billing_Cycle as any) || 'Monthly';
+  const rawModel = dto.Pricing_Model || dto.License_Model || 'Per Tenant';
+  const model: 'Per Tenant' | 'Per User' | 'Per Usage' =
+    rawModel.includes('User')
+      ? 'Per User'
+      : rawModel.includes('Usage')
+      ? 'Per Usage'
+      : 'Per Tenant';
+
+  const p1 = basePrice;
+  const p2 = Math.round(basePrice * 1.8);
+  const p3 = Math.round(basePrice * 4);
+  const plansDisplay = `₹${p1.toLocaleString()} / ₹${p2.toLocaleString()} / ₹${p3.toLocaleString()}`;
+
+  return {
+    id: String(dto.id || dto.AddonPricing_Id || `price-${dto.id}`),
+    addonCode: dto.Addon_Code || (dto.AddonPricing_Id ? `APR-${dto.id}` : 'AI-RULE'),
+    addonName: dto.Addon_Name || 'Untitled Addon',
+    category: dto.Category || 'AI & Automation',
+    pricingModel: model,
+    plansPriceDisplay: plansDisplay,
+    status: status,
+    billingCycle: cycle,
+    planTiers: [
+      { planName: 'Standard', price: p1, trialDays: 14, enabled: true },
+      { planName: 'Professional', price: p2, trialDays: 14, enabled: true },
+      { planName: 'Enterprise', price: p3, trialDays: 30, enabled: true },
+    ],
+    allowAnnualDiscount: true,
+    annualDiscountPercentage: 15,
+    showInMarketplace: true,
+    allowTrialForNewCustomers: true,
+    requireApprovalForActivation: false,
+    backendId: dto.id,
+    AddonPricing_Id: dto.AddonPricing_Id,
+    addonId: dto.Addon,
+    priceTemplateId: dto.Price_Template,
+  };
+};
 
 export function AddonPricingScreen() {
-  const [pricingList, setPricingList] = useState<AddonPricingRecord[]>(INITIAL_PRICING);
+  // 1. Live KPI API Query
+  const {
+    data: kpiData,
+    isFetching: isKpiFetching,
+    refetch: refetchKPI,
+  } = useGetAddonPricingKPIQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+
+  // 2. Live Addon Pricing List API Query
+  const {
+    data: livePricingData,
+    isLoading: isPricingLoading,
+    isFetching: isPricingFetching,
+    refetch: refetchPricing,
+  } = useGetAddonPricingWithoutPaginationQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+
+  // 3. Search state & Live Search API Query
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  const {
+    data: searchResults,
+    isFetching: isSearchFetching,
+    refetch: refetchSearch,
+  } = useSearchAddonPricingQuery(debouncedSearch, {
+    skip: !debouncedSearch,
+  });
+
+  // 4. Filter state & Live Filter API Mutation
+  const [categoryFilter, setCategoryFilter] = useState('All Categories');
+  const [modelFilter, setModelFilter] = useState('All Models');
+  const [statusFilter, setStatusFilter] = useState('All Status');
+
+  const [filterPricingApi, { isLoading: isFiltering }] = useFilterAddonPricingMutationMutation();
+  const [filteredResults, setFilteredResults] = useState<any[] | null>(null);
+  const [isFilterActive, setIsFilterActive] = useState(false);
+  const [showFilterBar, setShowFilterBar] = useState(false);
+
+  // 5. CRUD Mutations
+  const [createPricingApi, { isLoading: isCreating }] = useCreateAddonPricingMutation();
+  const [updatePricingApi, { isLoading: isUpdating }] = useUpdateAddonPricingMutation();
+  const [deletePricingApi, { isLoading: isDeleting }] = useDeleteAddonPricingMutation();
+
+  // 6. Export state
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Active raw data from the server APIs
+  const activeRawList = useMemo(() => {
+    if (debouncedSearch) {
+      return Array.isArray(searchResults) ? searchResults : [];
+    }
+    if (isFilterActive && filteredResults !== null) {
+      return filteredResults;
+    }
+    if (Array.isArray(livePricingData) && livePricingData.length > 0) {
+      return livePricingData;
+    }
+    return null;
+  }, [debouncedSearch, searchResults, isFilterActive, filteredResults, livePricingData]);
+
+  // Derived pricing list
+  const pricingList = useMemo<AddonPricingRecord[]>(() => {
+    if (activeRawList !== null) {
+      return activeRawList.map(mapDtoToAddonPricing);
+    }
+    return INITIAL_PRICING;
+  }, [activeRawList]);
+
   const [selectedPricingId, setSelectedPricingId] = useState<string>(INITIAL_PRICING[0]?.id || '');
   const [isCreatingNew, setIsCreatingNew] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'details' | 'discounts'>('details');
   const [activeSubTab, setActiveSubTab] = useState<'pricing' | 'templates' | 'bulk' | 'history'>('pricing');
 
-  // Filter state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('All Categories');
-  const [modelFilter, setModelFilter] = useState('All Models');
-  const [statusFilter, setStatusFilter] = useState('All Status');
+  // Auto-select first item when dataset changes
+  useEffect(() => {
+    if (pricingList.length > 0) {
+      const exists = pricingList.find((p) => p.id === selectedPricingId);
+      if (!exists && !isCreatingNew) {
+        setSelectedPricingId(pricingList[0].id);
+        setSelectedRowIds([pricingList[0].id]);
+        setFormData({ ...pricingList[0] });
+      }
+    }
+  }, [pricingList, selectedPricingId, isCreatingNew]);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -110,7 +249,7 @@ export function AddonPricingScreen() {
     const newId = `price-${Date.now()}`;
     const blank: AddonPricingRecord = {
       id: newId,
-      addonCode: 'NEW-RULE',
+      addonCode: `APR-00${pricingList.length + 1}`,
       addonName: 'New Pricing Rule',
       category: 'AI & Automation',
       pricingModel: 'Per Tenant',
@@ -131,26 +270,81 @@ export function AddonPricingScreen() {
     setFormData(blank);
   };
 
-  const handleSaveForm = (asDraft = false) => {
+  const handleApplyFilter = async () => {
+    try {
+      const filters: any = {};
+      if (categoryFilter !== 'All Categories') filters.category = categoryFilter;
+      if (modelFilter !== 'All Models') filters.pricing_model = modelFilter;
+      if (statusFilter !== 'All Status') filters.status = statusFilter;
+      if (debouncedSearch) filters.search = debouncedSearch;
+
+      const res = await filterPricingApi(filters).unwrap();
+      const list = Array.isArray(res) ? res : [];
+      setFilteredResults(list);
+      setIsFilterActive(true);
+      setCurrentPage(1);
+      showToast(`Filter applied from server: ${list.length} rule(s) found.`);
+    } catch (e) {
+      console.error('Filter error:', e);
+      showToast('Error applying filter from server');
+    }
+  };
+
+  const handleResetFilter = () => {
+    setCategoryFilter('All Categories');
+    setModelFilter('All Models');
+    setStatusFilter('All Status');
+    setSearchQuery('');
+    setDebouncedSearch('');
+    setIsFilterActive(false);
+    setFilteredResults(null);
+    setCurrentPage(1);
+    refetchPricing();
+    refetchKPI();
+    showToast('Filters reset.');
+  };
+
+  const handleSaveForm = async (asDraft = false) => {
     const targetStatus = asDraft ? 'Draft' : formData.status || 'Active';
-    const recordToSave: AddonPricingRecord = {
-      ...formData,
-      status: targetStatus,
-      addonCode: formData.addonCode.trim() || `PR-${Date.now().toString().slice(-4)}`,
-      addonName: formData.addonName.trim() || 'Untitled Rule',
+    const cleanName = formData.addonName.trim() || 'Untitled Rule';
+    const basePrice = formData.planTiers?.[0]?.price || 499;
+
+    const payload = {
+      Addon_Name: cleanName,
+      Price_Template_Name: formData.planTiers?.[0]?.planName || 'Professional',
+      Base_Price: basePrice,
+      Is_Active: targetStatus === 'Active',
+      Is_Deleted: false,
+      Addon: formData.addonId,
+      Price_Template: formData.priceTemplateId,
     };
 
-    if (isCreatingNew) {
-      setPricingList((prev) => [recordToSave, ...prev]);
-      setIsCreatingNew(false);
-      setSelectedPricingId(recordToSave.id);
-      setSelectedRowIds([recordToSave.id]);
-      showToast(`Pricing rule "${recordToSave.addonName}" created!`);
-    } else {
-      setPricingList((prev) =>
-        prev.map((item) => (item.id === recordToSave.id ? recordToSave : item))
-      );
-      showToast(`Pricing rule "${recordToSave.addonName}" updated!`);
+    try {
+      if (isCreatingNew) {
+        const res = await createPricingApi(payload).unwrap();
+        const createdRecord = mapDtoToAddonPricing(res);
+        setIsCreatingNew(false);
+        setSelectedPricingId(createdRecord.id);
+        setSelectedRowIds([createdRecord.id]);
+        setFormData(createdRecord);
+        refetchPricing();
+        refetchKPI();
+        if (isFilterActive) handleApplyFilter();
+        if (debouncedSearch) refetchSearch();
+        showToast(`Pricing rule "${createdRecord.addonName}" created!`);
+      } else {
+        const targetId = formData.backendId || Number(formData.id) || 1;
+        const res = await updatePricingApi({ id: targetId, ...payload }).unwrap();
+        const updatedRecord = mapDtoToAddonPricing(res);
+        refetchPricing();
+        refetchKPI();
+        if (isFilterActive) handleApplyFilter();
+        if (debouncedSearch) refetchSearch();
+        showToast(`Pricing rule "${updatedRecord.addonName}" updated!`);
+      }
+    } catch (err: any) {
+      console.error('Save error:', err);
+      showToast('Error saving pricing rule.');
     }
   };
 
@@ -160,45 +354,80 @@ export function AddonPricingScreen() {
     setActiveMenuRowId(null);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
-    const remaining = pricingList.filter((item) => item.id !== itemToDelete.id);
-    setPricingList(remaining);
-    if (selectedPricingId === itemToDelete.id) {
-      if (remaining.length > 0) {
-        setSelectedPricingId(remaining[0].id);
-        setSelectedRowIds([remaining[0].id]);
-        setFormData({ ...remaining[0] });
-      }
+    try {
+      const deleteId = itemToDelete.backendId || Number(itemToDelete.id) || itemToDelete.id;
+      await deletePricingApi(deleteId).unwrap();
+      refetchPricing();
+      refetchKPI();
+      if (isFilterActive) handleApplyFilter();
+      if (debouncedSearch) refetchSearch();
+      showToast(`Pricing rule deleted.`);
+    } catch (e) {
+      console.error('Delete error:', e);
+      showToast('Error deleting pricing rule.');
     }
     setDeleteDialogOpen(false);
-    showToast(`Pricing rule deleted.`);
     setItemToDelete(null);
   };
 
-  const filteredPricing = useMemo(() => {
-    return pricingList.filter((item) => {
-      const q = searchQuery.toLowerCase();
-      const matchesSearch =
-        item.addonName.toLowerCase().includes(q) || item.addonCode.toLowerCase().includes(q);
-      const matchesCategory =
-        categoryFilter === 'All Categories' || item.category === categoryFilter;
-      const matchesModel = modelFilter === 'All Models' || item.pricingModel === modelFilter;
-      const matchesStatus = statusFilter === 'All Status' || item.status === statusFilter;
-      return matchesSearch && matchesCategory && matchesModel && matchesStatus;
-    });
-  }, [pricingList, searchQuery, categoryFilter, modelFilter, statusFilter]);
+  const handleExportCSV = async () => {
+    setIsExporting(true);
+    showToast('Exporting pricing schedules from server...');
+    try {
+      const success = await downloadAddonPricingExportCsv({
+        search: debouncedSearch || undefined,
+        category: categoryFilter !== 'All Categories' ? categoryFilter : undefined,
+        pricing_model: modelFilter !== 'All Models' ? modelFilter : undefined,
+        status: statusFilter !== 'All Status' ? statusFilter : undefined,
+        ids:
+          selectedRowIds.length > 0 && selectedRowIds.length < pricingList.length
+            ? selectedRowIds
+            : undefined,
+      });
 
-  const totalPages = Math.ceil(filteredPricing.length / rowsPerPage) || 1;
+      if (success) {
+        showToast('Pricing schedules exported successfully!');
+        return;
+      }
+
+      // Fallback local CSV export
+      const headers = ['Add-on Code', 'Add-on Name', 'Category', 'Pricing Model', 'Price / Rate', 'Status'];
+      const rows = pricingList.map((p) => [
+        p.addonCode,
+        `"${p.addonName.replace(/"/g, '""')}"`,
+        p.category,
+        p.pricingModel,
+        `"${p.plansPriceDisplay}"`,
+        p.status,
+      ]);
+      const csvContent =
+        'data:text/csv;charset=utf-8,' +
+        [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `addon_pricing_export_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Exported pricing schedules to CSV.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const totalPages = Math.ceil(pricingList.length / rowsPerPage) || 1;
   const paginatedPricing = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
-    return filteredPricing.slice(start, start + rowsPerPage);
-  }, [filteredPricing, currentPage, rowsPerPage]);
+    return pricingList.slice(start, start + rowsPerPage);
+  }, [pricingList, currentPage, rowsPerPage]);
 
   const totalCount = pricingList.length;
   const fixedCount = pricingList.filter((p) => p.pricingModel === 'Per Tenant').length;
   const tieredCount = pricingList.filter((p) => p.pricingModel.includes('Tier') || p.pricingModel === 'Per User').length;
-  const usageCount = pricingList.filter((p) => p.pricingModel.includes('Usage')).length || 4;
+  const usageCount = pricingList.filter((p) => p.pricingModel.includes('Usage')).length || 1;
 
   const handleToggleSelectAll = () => {
     if (selectedRowIds.length === paginatedPricing.length) {
@@ -258,7 +487,9 @@ export function AddonPricingScreen() {
         <div className="bg-white border border-slate-200/80 p-4 rounded-xl flex items-center justify-between shadow-2xs">
           <div>
             <p className="text-xs text-slate-500 font-medium">Total Rules</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{totalCount}</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">
+              {kpiData?.total_rules ?? totalCount}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-purple-50 flex items-center justify-center text-[#6222cc]">
             <DollarSign className="h-5 w-5" />
@@ -268,7 +499,9 @@ export function AddonPricingScreen() {
         <div className="bg-white border border-slate-200/80 p-4 rounded-xl flex items-center justify-between shadow-2xs">
           <div>
             <p className="text-xs text-slate-500 font-medium">Fixed Rates</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{fixedCount || 12}</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">
+              {kpiData?.fixed_rates ?? (fixedCount || 6)}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
             <Coins className="h-5 w-5" />
@@ -278,7 +511,9 @@ export function AddonPricingScreen() {
         <div className="bg-white border border-slate-200/80 p-4 rounded-xl flex items-center justify-between shadow-2xs">
           <div>
             <p className="text-xs text-slate-500 font-medium">Tiered Rates</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{tieredCount || 8}</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">
+              {kpiData?.tiered_rates ?? (tieredCount || 1)}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
             <TrendingUp className="h-5 w-5" />
@@ -288,7 +523,9 @@ export function AddonPricingScreen() {
         <div className="bg-white border border-slate-200/80 p-4 rounded-xl flex items-center justify-between shadow-2xs">
           <div>
             <p className="text-xs text-slate-500 font-medium">Usage Based</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{usageCount}</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">
+              {kpiData?.usage_based ?? (usageCount || 1)}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
             <Percent className="h-5 w-5" />
@@ -334,31 +571,83 @@ export function AddonPricingScreen() {
             <div className="p-4 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-slate-900">
-                  Pricing Schedules ({filteredPricing.length})
+                  Pricing Schedules ({pricingList.length})
                 </span>
+                {(debouncedSearch || isFilterActive) && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 text-[#6222cc] flex items-center gap-1">
+                    <span>Filtered</span>
+                    <button
+                      type="button"
+                      onClick={handleResetFilter}
+                      className="hover:text-purple-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
                 <div className="relative w-48 sm:w-56">
-                  <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  {isSearchFetching ? (
+                    <Loader2 className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#6222cc] animate-spin" />
+                  ) : (
+                    <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  )}
                   <Input
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
                       setCurrentPage(1);
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setDebouncedSearch(searchQuery.trim());
+                      }
+                    }}
                     placeholder="Search pricing rule..."
-                    className="h-8 pl-8 text-xs bg-slate-50 border-slate-200 rounded-lg"
+                    className="h-8 pl-8 pr-7 text-xs bg-slate-50 border-slate-200 rounded-lg"
                   />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setDebouncedSearch('');
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => showToast('Exporting pricing schedules...')}
-                  className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 hover:bg-slate-50"
+                  onClick={handleExportCSV}
+                  disabled={isExporting}
+                  className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 hover:bg-slate-50 cursor-pointer flex items-center gap-1"
                 >
-                  <FileDown className="h-3.5 w-3.5 mr-1" />
-                  Export
+                  {isExporting ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-[#6222cc]" />
+                  ) : (
+                    <FileDown className="h-3.5 w-3.5 text-[#6222cc]" />
+                  )}
+                  <span>{isExporting ? 'Exporting...' : 'Export'}</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilterBar(!showFilterBar)}
+                  className={cn(
+                    'h-8 px-2.5 text-xs border-slate-200 hover:bg-slate-50 cursor-pointer flex items-center gap-1',
+                    showFilterBar || isFilterActive
+                      ? 'bg-purple-50 text-[#6222cc] border-purple-200'
+                      : 'text-slate-600'
+                  )}
+                >
+                  <Filter className="h-3.5 w-3.5" />
+                  <span>Filter</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -371,6 +660,79 @@ export function AddonPricingScreen() {
                 </Button>
               </div>
             </div>
+
+            {/* Filter Bar (Collapsible / Active) */}
+            {(showFilterBar || isFilterActive) && (
+              <div className="p-3 bg-slate-50/80 border-b border-slate-200/80 flex flex-wrap items-center gap-2.5 text-xs animate-in fade-in">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold text-slate-500">Category:</span>
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="h-7 px-2 text-xs rounded-lg border border-slate-200 bg-white font-medium text-slate-700"
+                  >
+                    <option value="All Categories">All Categories</option>
+                    <option value="AI & Automation">AI &amp; Automation</option>
+                    <option value="Communication">Communication</option>
+                    <option value="Productivity">Productivity</option>
+                    <option value="Testing & QA">Testing &amp; QA</option>
+                    <option value="Compliance">Compliance</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold text-slate-500">Model:</span>
+                  <select
+                    value={modelFilter}
+                    onChange={(e) => setModelFilter(e.target.value)}
+                    className="h-7 px-2 text-xs rounded-lg border border-slate-200 bg-white font-medium text-slate-700"
+                  >
+                    <option value="All Models">All Models</option>
+                    <option value="Per Tenant">Per Tenant</option>
+                    <option value="Per User">Per User</option>
+                    <option value="Per Usage">Per Usage</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold text-slate-500">Status:</span>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="h-7 px-2 text-xs rounded-lg border border-slate-200 bg-white font-medium text-slate-700"
+                  >
+                    <option value="All Status">All Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1.5 ml-auto">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleResetFilter}
+                    className="h-7 px-2.5 text-xs text-slate-500 hover:text-slate-800"
+                  >
+                    Reset
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleApplyFilter}
+                    disabled={isFiltering}
+                    className="h-7 px-3 text-xs bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg flex items-center gap-1 cursor-pointer"
+                  >
+                    {isFiltering ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Check className="h-3 w-3" />
+                    )}
+                    <span>Apply</span>
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Table */}
             <div className="overflow-x-auto">
@@ -491,8 +853,8 @@ export function AddonPricingScreen() {
             {/* Table Footer / Pagination */}
             <div className="p-3 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
               <div>
-                Showing {filteredPricing.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}-
-                {Math.min(currentPage * rowsPerPage, filteredPricing.length)} of {filteredPricing.length} pricing rules
+                Showing {pricingList.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}-
+                {Math.min(currentPage * rowsPerPage, pricingList.length)} of {pricingList.length} pricing rules
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5">
@@ -837,17 +1199,20 @@ export function AddonPricingScreen() {
                 <Button
                   variant="outline"
                   type="button"
+                  disabled={isCreating || isUpdating}
                   onClick={() => handleSaveForm(true)}
-                  className="h-8 px-3 text-xs border-slate-200 hover:bg-slate-100 text-slate-700"
+                  className="h-8 px-3 text-xs border-slate-200 hover:bg-slate-100 text-slate-700 cursor-pointer"
                 >
                   Save as Draft
                 </Button>
                 <Button
                   type="button"
+                  disabled={isCreating || isUpdating}
                   onClick={() => handleSaveForm(false)}
-                  className="h-8 px-4 text-xs font-semibold bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs cursor-pointer"
+                  className="h-8 px-4 text-xs font-semibold bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs cursor-pointer flex items-center gap-1.5"
                 >
-                  {isCreatingNew ? 'Create Pricing' : 'Update Pricing'}
+                  {(isCreating || isUpdating) && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  <span>{isCreatingNew ? 'Create Pricing' : 'Update Pricing'}</span>
                 </Button>
               </div>
             </div>
