@@ -1316,14 +1316,6 @@ export function CustomerMasterScreen({
               type="button"
               onClick={() => {
                 setActiveSubTab(tab.label);
-                if (tab.label === 'Renewals & Billing') {
-                  refetchRenewals();
-                  refetchInvoices();
-                } else if (tab.label === 'Documents') {
-                  refetchDocuments();
-                } else if (tab.label === 'Activity & History') {
-                  refetchAudit();
-                }
                 // Keep Customer List, Activity & History, Documents, and Renewals & Billing inline within Customer Master
                 if (
                   tab.label !== 'Customer List' &&
@@ -1385,7 +1377,11 @@ export function CustomerMasterScreen({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => refetchAudit()}
+                onClick={() => {
+                  try {
+                    refetchAudit();
+                  } catch (_) {}
+                }}
                 disabled={isAuditFetching}
                 className="h-8.5 gap-1.5 text-xs font-semibold border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg cursor-pointer shadow-xs"
               >
@@ -1624,7 +1620,11 @@ export function CustomerMasterScreen({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => refetchDocuments()}
+                onClick={() => {
+                  try {
+                    refetchDocuments();
+                  } catch (_) {}
+                }}
                 disabled={isDocFetching}
                 className="h-8.5 gap-1.5 text-xs font-semibold border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg cursor-pointer shadow-xs"
               >
@@ -1959,8 +1959,10 @@ export function CustomerMasterScreen({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  refetchRenewals();
-                  refetchInvoices();
+                  try {
+                    refetchRenewals();
+                    refetchInvoices();
+                  } catch (_) {}
                 }}
                 disabled={isRenewalFetching || isInvoiceFetching}
                 className="h-8.5 gap-1.5 text-xs font-semibold border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg cursor-pointer shadow-xs"

@@ -53,6 +53,7 @@ import {
   useGetTicketsListQuery,
   useGetUsageAnalyticsQuery,
   useGetCustomerOverviewAnalyticsQuery,
+  downloadAccountsExportCsv,
 } from '@/service/api/superAdminService';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -290,23 +291,50 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
   >('overview');
 
   const [billingSubView, setBillingSubView] = useState<'schedule' | 'invoices'>('schedule');
+  const [isExporting, setIsExporting] = useState(false);
 
-  // Trigger explicit API network calls on button clicks
+  const handleDownloadReport = async () => {
+    if (!customer?.customerId) {
+      toast.error('No customer selected');
+      return;
+    }
+    try {
+      setIsExporting(true);
+      toast.info(`Preparing live report for ${customer.name || customer.customerId}...`);
+      const success = await downloadAccountsExportCsv({ customerId: customer.customerId });
+      if (success) {
+        toast.success(`Report downloaded successfully for ${customer.name || customer.customerId}`);
+      } else {
+        toast.error('Failed to download report from server');
+      }
+    } catch (err) {
+      console.error('Export error:', err);
+      toast.error('Error initiating report download');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Trigger explicit API network calls on button clicks safely
   const handleTabClick = (tabId: typeof activeTab) => {
     setActiveTab(tabId);
-    if (tabId === 'overview') {
-      refetchOverviewAnalytics();
-    } else if (tabId === 'billing') {
-      refetchRenewals();
-      refetchInvoices();
-    } else if (tabId === 'documents') {
-      refetchDocuments();
-    } else if (tabId === 'activity') {
-      refetchAudit();
-    } else if (tabId === 'subscriptions') {
-      refetchSubscriptions();
-    } else if (tabId === 'tickets') {
-      refetchTickets();
+    try {
+      if (tabId === 'overview') {
+        refetchOverviewAnalytics?.();
+      } else if (tabId === 'billing') {
+        refetchRenewals?.();
+        refetchInvoices?.();
+      } else if (tabId === 'documents') {
+        refetchDocuments?.();
+      } else if (tabId === 'activity') {
+        refetchAudit?.();
+      } else if (tabId === 'subscriptions') {
+        refetchSubscriptions?.();
+      } else if (tabId === 'tickets') {
+        refetchTickets?.();
+      }
+    } catch (e) {
+      // safe fallback if query is not yet started or in flight
     }
   };
 
@@ -325,6 +353,10 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
 
   const handleAction = (actionName: string) => {
     setShowActionsMenu(false);
+    if (actionName === 'Download Statement') {
+      handleDownloadReport();
+      return;
+    }
     toast.info(`Triggered: ${actionName} for ${customer?.name || 'Customer'}`);
   };
 
@@ -541,14 +573,14 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
           <button
             type="button"
             onClick={() => {
-              refetch();
-              refetchOverviewAnalytics();
-              refetchRenewals();
-              refetchInvoices();
-              refetchDocuments();
-              refetchAudit();
-              refetchSubscriptions();
-              refetchTickets();
+              try { refetch?.(); } catch (e) {}
+              try { refetchOverviewAnalytics?.(); } catch (e) {}
+              try { refetchRenewals?.(); } catch (e) {}
+              try { refetchInvoices?.(); } catch (e) {}
+              try { refetchDocuments?.(); } catch (e) {}
+              try { refetchAudit?.(); } catch (e) {}
+              try { refetchSubscriptions?.(); } catch (e) {}
+              try { refetchTickets?.(); } catch (e) {}
               toast.success('Refreshed customer data from database');
             }}
             disabled={isFetching || isOverviewAnalyticsFetching}
@@ -1405,11 +1437,16 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
 
                 <button
                   type="button"
-                  onClick={() => toast.success('Report download initiated')}
-                  className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200/80 hover:border-[#6366f1] hover:bg-purple-50/30 text-xs font-semibold text-slate-800 transition-colors cursor-pointer text-left"
+                  disabled={isExporting}
+                  onClick={handleDownloadReport}
+                  className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200/80 hover:border-[#6366f1] hover:bg-purple-50/30 text-xs font-semibold text-slate-800 transition-colors cursor-pointer text-left disabled:opacity-50"
                 >
-                  <FileText className="h-4 w-4 text-[#6366f1] shrink-0" />
-                  <span className="truncate">Download Reports</span>
+                  {isExporting ? (
+                    <Loader2 className="h-4 w-4 text-[#6366f1] shrink-0 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4 text-[#6366f1] shrink-0" />
+                  )}
+                  <span className="truncate">{isExporting ? 'Downloading...' : 'Download Reports'}</span>
                 </button>
 
                 <button

@@ -3892,6 +3892,7 @@ export const downloadAccountsExportCsv = async (params?: {
   search?: string;
   status?: string;
   ids?: string[];
+  customerId?: string;
 }): Promise<boolean> => {
   try {
     const primaryHost = (
@@ -3899,6 +3900,8 @@ export const downloadAccountsExportCsv = async (params?: {
     ).replace(/\/$/, "");
     const tenantName = "crmfarmsa";
     const query = new URLSearchParams();
+    if (params?.customerId && params.customerId !== "ALL")
+      query.set("customer_id", params.customerId);
     if (params?.product && params.product !== "All Products")
       query.set("Primary_Product", params.product);
     if (params?.search?.trim()) query.set("search", params.search.trim());
