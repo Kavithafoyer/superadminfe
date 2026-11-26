@@ -45,10 +45,36 @@ function isSavedCategory(data: unknown): data is AddonCategoryDto {
   return Boolean(category && Number.isSafeInteger(category.id) && category.AddonCategory_Id);
 }
 
+export interface PaginatedAddonCategories {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: AddonCategoryDto[];
+}
+
 export const addonCategoryApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAddonCategories: builder.query<AddonCategoryDto[], void>({
       query: () => 'superadmin/AddonCategorylistwithoutpaginaton/',
+      providesTags: categoryTags,
+      extraOptions,
+    }),
+    getAddonCategoriesPaginated: builder.query<PaginatedAddonCategories, { page?: number; page_size?: number }>({
+      query: ({ page = 1, page_size } = {}) => ({
+        url: 'superadmin/AddonCategoryListwithPagination/',
+        params: { page, ...(page_size ? { page_size } : {}) },
+      }),
+      transformResponse: (response: any): PaginatedAddonCategories => {
+        if (Array.isArray(response)) {
+          return { count: response.length, next: null, previous: null, results: response };
+        }
+        return {
+          count: response?.count ?? 0,
+          next: response?.next ?? null,
+          previous: response?.previous ?? null,
+          results: response?.results ?? [],
+        };
+      },
       providesTags: categoryTags,
       extraOptions,
     }),
@@ -124,6 +150,7 @@ export const addonCategoryApi = baseApi.injectEndpoints({
 
 export const {
   useGetAddonCategoriesQuery,
+  useGetAddonCategoriesPaginatedQuery,
   useSearchAddonCategoriesQuery,
   useFilterAddonCategoriesQuery,
   useGetAddonCategoryCardsQuery,

@@ -40,7 +40,7 @@ import { INITIAL_PRICING } from '../mockData';
 import { AddonPricingRecord } from '../types';
 import {
   useGetAddonPricingKPIQuery,
-  useGetAddonPricingWithoutPaginationQuery,
+  useGetAddonPricingWithPaginationQuery,
   useSearchAddonPricingQuery,
   useFilterAddonPricingMutationMutation,
   useCreateAddonPricingMutation,
@@ -93,6 +93,18 @@ const mapDtoToAddonPricing = (dto: any): AddonPricingRecord => {
 };
 
 export function AddonPricingScreen() {
+  // Pagination & Search/Filter states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All Categories');
+  const [modelFilter, setModelFilter] = useState('All Models');
+  const [statusFilter, setStatusFilter] = useState('All Status');
+  const [filteredResults, setFilteredResults] = useState<any[] | null>(null);
+  const [isFilterActive, setIsFilterActive] = useState(false);
+  const [showFilterBar, setShowFilterBar] = useState(false);
+
   // 1. Live KPI API Query
   const {
     data: kpiData,
@@ -102,20 +114,22 @@ export function AddonPricingScreen() {
     refetchOnMountOrArgChange: true,
   });
 
-  // 2. Live Addon Pricing List API Query
+  // 2. Live Addon Pricing List With Pagination API Query
   const {
-    data: livePricingData,
+    data: livePricingPage,
     isLoading: isPricingLoading,
     isFetching: isPricingFetching,
     refetch: refetchPricing,
-  } = useGetAddonPricingWithoutPaginationQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-  });
+  } = useGetAddonPricingWithPaginationQuery(
+    { page: currentPage, page_size: rowsPerPage },
+    {
+      skip: Boolean(debouncedSearch || isFilterActive),
+      refetchOnMountOrArgChange: true,
+    }
+  );
+  const livePricingData = livePricingPage?.results;
 
   // 3. Search state & Live Search API Query
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery.trim());
@@ -131,15 +145,8 @@ export function AddonPricingScreen() {
     skip: !debouncedSearch,
   });
 
-  // 4. Filter state & Live Filter API Mutation
-  const [categoryFilter, setCategoryFilter] = useState('All Categories');
-  const [modelFilter, setModelFilter] = useState('All Models');
-  const [statusFilter, setStatusFilter] = useState('All Status');
-
+  // 4. Filter API Mutation
   const [filterPricingApi, { isLoading: isFiltering }] = useFilterAddonPricingMutationMutation();
-  const [filteredResults, setFilteredResults] = useState<any[] | null>(null);
-  const [isFilterActive, setIsFilterActive] = useState(false);
-  const [showFilterBar, setShowFilterBar] = useState(false);
 
   // 5. CRUD Mutations
   const [createPricingApi, { isLoading: isCreating }] = useCreateAddonPricingMutation();
@@ -187,10 +194,6 @@ export function AddonPricingScreen() {
       }
     }
   }, [pricingList, selectedPricingId, isCreatingNew]);
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   // Row selection checkboxes
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([INITIAL_PRICING[0]?.id || '']);
@@ -381,10 +384,6 @@ export function AddonPricingScreen() {
         category: categoryFilter !== 'All Categories' ? categoryFilter : undefined,
         pricing_model: modelFilter !== 'All Models' ? modelFilter : undefined,
         status: statusFilter !== 'All Status' ? statusFilter : undefined,
-        ids:
-          selectedRowIds.length > 0 && selectedRowIds.length < pricingList.length
-            ? selectedRowIds
-            : undefined,
       });
 
       if (success) {
@@ -418,11 +417,16 @@ export function AddonPricingScreen() {
     }
   };
 
-  const totalPages = Math.ceil(pricingList.length / rowsPerPage) || 1;
+  const isServerPaginated = !debouncedSearch && !isFilterActive;
+  const totalPricingCount = isServerPaginated ? (livePricingPage?.count ?? pricingList.length) : pricingList.length;
+  const totalPages = isServerPaginated
+    ? Math.max(1, Math.ceil(totalPricingCount / 10))
+    : Math.ceil(pricingList.length / rowsPerPage) || 1;
   const paginatedPricing = useMemo(() => {
+    if (isServerPaginated) return pricingList;
     const start = (currentPage - 1) * rowsPerPage;
     return pricingList.slice(start, start + rowsPerPage);
-  }, [pricingList, currentPage, rowsPerPage]);
+  }, [isServerPaginated, pricingList, currentPage, rowsPerPage]);
 
   const totalCount = pricingList.length;
   const fixedCount = pricingList.filter((p) => p.pricingModel === 'Per Tenant').length;

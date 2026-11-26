@@ -27,7 +27,7 @@ import { INITIAL_TIERED_PRICING } from '../mockData';
 import { TieredPricingRecord, TierVolumeConfig } from '../types';
 import {
   useGetAddonTieredPricingKPIQuery,
-  useGetAddonTieredPricingWithoutPaginationQuery,
+  useGetAddonTieredPricingWithPaginationQuery,
   useSearchAddonTieredPricingQuery,
   useCreateAddonTieredPricingMutation,
   useUpdateAddonTieredPricingMutation,
@@ -53,10 +53,14 @@ export function TieredPricingScreen() {
   // RTK Query API Integrations
   const { data: kpiData } = useGetAddonTieredPricingKPIQuery();
   const {
-    data: apiData,
+    data: apiPage,
     isLoading: isLoadingList,
     refetch: refetchList,
-  } = useGetAddonTieredPricingWithoutPaginationQuery();
+  } = useGetAddonTieredPricingWithPaginationQuery(
+    { page: currentPage, page_size: rowsPerPage },
+    { skip: Boolean(searchQuery.trim()) }
+  );
+  const apiData = apiPage?.results;
   const {
     data: searchData,
     isFetching: isSearching,
@@ -292,11 +296,16 @@ export function TieredPricingScreen() {
     });
   }, [schedules, searchQuery]);
 
-  const totalPages = Math.ceil(filteredSchedules.length / rowsPerPage) || 1;
+  const isServerPaginated = !searchQuery.trim();
+  const totalSchedulesCount = isServerPaginated ? (apiPage?.count ?? filteredSchedules.length) : filteredSchedules.length;
+  const totalPages = isServerPaginated
+    ? Math.max(1, Math.ceil(totalSchedulesCount / 10))
+    : Math.ceil(filteredSchedules.length / rowsPerPage) || 1;
   const paginatedSchedules = useMemo(() => {
+    if (isServerPaginated) return filteredSchedules;
     const start = (currentPage - 1) * rowsPerPage;
     return filteredSchedules.slice(start, start + rowsPerPage);
-  }, [filteredSchedules, currentPage, rowsPerPage]);
+  }, [isServerPaginated, filteredSchedules, currentPage, rowsPerPage]);
 
   const totalCount = schedules.length;
 

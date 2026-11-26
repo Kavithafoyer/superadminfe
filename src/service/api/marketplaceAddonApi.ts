@@ -49,10 +49,36 @@ export interface MarketplaceAddon {
   Is_Deleted?: boolean | null;
 }
 
+export interface MarketplaceAddonFilterParams {
+  Product?: string;
+  Category?: string;
+  Addon_Category?: number;
+  Status?: string;
+}
+
+export interface PaginatedMarketplaceAddons {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: MarketplaceAddon[];
+}
+
 const crudUrl = 'superadmin/Addon/';
 const listUrl = 'superadmin/AddonAdditional/';
 const extraOptions = { skipHostFallback: true };
 const tags = ['AddonMaster'] as const;
+
+const toPaginated = (response: any): PaginatedMarketplaceAddons => {
+  if (Array.isArray(response)) {
+    return { count: response.length, next: null, previous: null, results: response };
+  }
+  return {
+    count: response?.count ?? 0,
+    next: response?.next ?? null,
+    previous: response?.previous ?? null,
+    results: response?.results ?? [],
+  };
+};
 
 export const marketplaceAddonApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -60,6 +86,15 @@ export const marketplaceAddonApi = baseApi.injectEndpoints({
       queryFn: (_arg, { signal }, _options, baseQuery) => loadResultPages<MarketplaceAddon>(
         (page) => baseQuery({ url: listUrl, params: { Is_Deleted: 'False', page } }), signal,
       ),
+      providesTags: tags,
+      extraOptions,
+    }),
+    getMarketplaceAddonsPaginated: builder.query<PaginatedMarketplaceAddons, { page?: number; page_size?: number }>({
+      query: ({ page = 1, page_size } = {}) => ({
+        url: listUrl,
+        params: { Is_Deleted: 'False', page, ...(page_size ? { page_size } : {}) },
+      }),
+      transformResponse: toPaginated,
       providesTags: tags,
       extraOptions,
     }),
@@ -71,6 +106,26 @@ export const marketplaceAddonApi = baseApi.injectEndpoints({
         if (result.error) return { error: result.error };
         return { data: [...new Map(result.data.map((item) => [item.id, item])).values()] };
       },
+      providesTags: tags,
+      extraOptions,
+    }),
+    searchMarketplaceAddonsPaginated: builder.query<PaginatedMarketplaceAddons, { search: string; page?: number }>({
+      query: ({ search, page = 1 }) => ({
+        url: listUrl,
+        method: 'PUT',
+        body: { search, page },
+      }),
+      transformResponse: toPaginated,
+      providesTags: tags,
+      extraOptions,
+    }),
+    filterMarketplaceAddons: builder.query<PaginatedMarketplaceAddons, MarketplaceAddonFilterParams & { page?: number }>({
+      query: ({ page = 1, ...body }) => ({
+        url: listUrl,
+        method: 'POST',
+        body: { ...body, page },
+      }),
+      transformResponse: toPaginated,
       providesTags: tags,
       extraOptions,
     }),
@@ -105,7 +160,9 @@ export const marketplaceAddonApi = baseApi.injectEndpoints({
 });
 
 export const {
-  useGetMarketplaceAddonsQuery, useSearchMarketplaceAddonsQuery, useGetMarketplaceAddonQuery,
-  useGetMarketplaceAddonCardsQuery, useGetMarketplaceAddonProductsQuery,
+  useGetMarketplaceAddonsQuery, useGetMarketplaceAddonsPaginatedQuery,
+  useSearchMarketplaceAddonsQuery, useSearchMarketplaceAddonsPaginatedQuery,
+  useFilterMarketplaceAddonsQuery,
+  useGetMarketplaceAddonQuery, useGetMarketplaceAddonCardsQuery, useGetMarketplaceAddonProductsQuery,
   useSaveMarketplaceAddonMutation, useDeleteMarketplaceAddonMutation,
 } = marketplaceAddonApi;

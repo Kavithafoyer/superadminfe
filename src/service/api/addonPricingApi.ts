@@ -69,12 +69,28 @@ export const addonPricingApi = baseApi.injectEndpoints({
     }),
 
     // 3. List With Pagination Endpoint
-    getAddonPricingWithPagination: builder.query<AddonPricingDto[], { page?: number } | void>({
+    getAddonPricingWithPagination: builder.query<
+      { count: number; next: string | null; previous: string | null; results: AddonPricingDto[] },
+      { page?: number; page_size?: number } | void
+    >({
       query: (arg) => ({
         url: prefix + 'ListwithPagination/',
-        params: { page: arg && typeof arg === 'object' && arg.page ? arg.page : 1 },
+        params: {
+          page: arg && typeof arg === 'object' && arg.page ? arg.page : 1,
+          ...(arg && typeof arg === 'object' && arg.page_size ? { page_size: arg.page_size } : {}),
+        },
       }),
-      transformResponse: (response: any) => (Array.isArray(response) ? response : response?.results || []),
+      transformResponse: (response: any) => {
+        if (Array.isArray(response)) {
+          return { count: response.length, next: null, previous: null, results: response };
+        }
+        return {
+          count: response?.count ?? 0,
+          next: response?.next ?? null,
+          previous: response?.previous ?? null,
+          results: response?.results ?? [],
+        };
+      },
       providesTags: tags,
       extraOptions,
     }),

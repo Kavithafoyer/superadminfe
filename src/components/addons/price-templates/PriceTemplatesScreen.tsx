@@ -43,7 +43,7 @@ import { INITIAL_PRICE_TEMPLATES } from '../mockData';
 import { PriceTemplateRecord, TemplateTier } from '../types';
 import {
   useGetAddonPriceTemplateKPIQuery,
-  useGetAddonPriceTemplatesWithoutPaginationQuery,
+  useGetAddonPriceTemplatesWithPaginationQuery,
   useSearchAddonPriceTemplatesQuery,
   useFilterAddonPriceTemplatesMutationMutation,
   useCreateAddonPriceTemplateMutation,
@@ -81,6 +81,17 @@ const mapDtoToPriceTemplate = (dto: any): PriceTemplateRecord => {
 export function PriceTemplatesScreen() {
   const router = useRouter();
 
+  // Filters & Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [typeFilter, setTypeFilter] = useState('All Types');
+  const [cycleFilter, setCycleFilter] = useState('All Cycles');
+  const [statusFilter, setStatusFilter] = useState('All Status');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [filteredResults, setFilteredResults] = useState<any[] | null>(null);
+  const [isFilterActive, setIsFilterActive] = useState(false);
+
   // 1. Live KPI API Query
   const {
     data: kpiData,
@@ -90,22 +101,20 @@ export function PriceTemplatesScreen() {
     refetchOnMountOrArgChange: true,
   });
 
-  // 2. Live Price Templates List API Query
+  // 2. Live Price Templates List With Pagination API Query
   const {
-    data: liveTemplatesData,
+    data: liveTemplatesPage,
     isLoading: isTemplatesLoading,
     isFetching: isTemplatesFetching,
     refetch: refetchTemplates,
-  } = useGetAddonPriceTemplatesWithoutPaginationQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-  });
-
-  // Filters from Screenshot 1
-  const [typeFilter, setTypeFilter] = useState('All Types');
-  const [cycleFilter, setCycleFilter] = useState('All Cycles');
-  const [statusFilter, setStatusFilter] = useState('All Status');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  } = useGetAddonPriceTemplatesWithPaginationQuery(
+    { page: currentPage, page_size: rowsPerPage },
+    {
+      skip: Boolean(debouncedSearch || isFilterActive),
+      refetchOnMountOrArgChange: true,
+    }
+  );
+  const liveTemplatesData = liveTemplatesPage?.results;
 
   // Debounce search query to trigger Search API
   useEffect(() => {
@@ -126,8 +135,6 @@ export function PriceTemplatesScreen() {
 
   // 4. Filter API Mutation (Live POST superadmin/AddonPriceTemplateFilter/)
   const [filterTemplatesApi, { isLoading: isFiltering }] = useFilterAddonPriceTemplatesMutationMutation();
-  const [filteredResults, setFilteredResults] = useState<any[] | null>(null);
-  const [isFilterActive, setIsFilterActive] = useState(false);
 
   // 5. CRUD Mutations
   const [createTemplateApi, { isLoading: isCreating }] = useCreateAddonPriceTemplateMutation();
@@ -173,9 +180,7 @@ export function PriceTemplatesScreen() {
     }
   }, [templates, selectedTemplateId, isCreatingNew]);
 
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  // Selection
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([INITIAL_PRICE_TEMPLATES[0]?.id || '']);
   const [activeMenuRowId, setActiveMenuRowId] = useState<string | null>(null);
 
@@ -358,11 +363,16 @@ export function PriceTemplatesScreen() {
     setItemToDelete(null);
   };
 
-  const totalPages = Math.ceil(templates.length / rowsPerPage) || 1;
+  const isServerPaginated = !debouncedSearch && !isFilterActive;
+  const totalTemplatesCount = isServerPaginated ? (liveTemplatesPage?.count ?? templates.length) : templates.length;
+  const totalPages = isServerPaginated
+    ? Math.max(1, Math.ceil(totalTemplatesCount / 10))
+    : Math.ceil(templates.length / rowsPerPage) || 1;
   const paginatedTemplates = useMemo(() => {
+    if (isServerPaginated) return templates;
     const start = (currentPage - 1) * rowsPerPage;
     return templates.slice(start, start + rowsPerPage);
-  }, [templates, currentPage, rowsPerPage]);
+  }, [isServerPaginated, templates, currentPage, rowsPerPage]);
 
   const handleToggleSelectAll = () => {
     if (selectedRowIds.length === paginatedTemplates.length) {
@@ -388,10 +398,6 @@ export function PriceTemplatesScreen() {
         Billing_Type: typeFilter !== 'All Types' ? typeFilter : undefined,
         Billing_Cycle: cycleFilter !== 'All Cycles' ? cycleFilter : undefined,
         Status: statusFilter !== 'All Status' ? statusFilter : undefined,
-        ids:
-          selectedRowIds.length > 0 && selectedRowIds.length < templates.length
-            ? selectedRowIds
-            : undefined,
       });
 
       if (success) {

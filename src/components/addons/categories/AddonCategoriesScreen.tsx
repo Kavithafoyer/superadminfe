@@ -35,7 +35,7 @@ import { toast } from 'sonner';
 import { useDebounce } from '@/hooks/use-debounce';
 import {
   addonCategoryStatuses,
-  useGetAddonCategoriesQuery,
+  useGetAddonCategoriesPaginatedQuery,
   useSearchAddonCategoriesQuery,
   useFilterAddonCategoriesQuery,
   useGetAddonCategoryCardsQuery,
@@ -206,7 +206,17 @@ function CategoryEditorSkeleton() {
 }
 
 export function AddonCategoriesScreen() {
-  const list = useGetAddonCategoriesQuery();
+  const [requestedPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<AddonCategoryStatus | ''>('');
+  const searchTerm = searchQuery.trim();
+  const debouncedSearch = useDebounce(searchTerm, 300);
+  const waitingForSearch = Boolean(searchTerm && searchTerm !== debouncedSearch);
+  const list = useGetAddonCategoriesPaginatedQuery(
+    !searchTerm && !statusFilter ? { page: requestedPage, page_size: rowsPerPage } : skipToken
+  );
+  const listRows = list.currentData?.results ?? emptyCategories;
   const cards = useGetAddonCategoryCardsQuery();
   const [overview, setOverview] = useState({ id: '', open: false });
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
@@ -220,7 +230,7 @@ export function AddonCategoriesScreen() {
     description: '',
     status: 'Active',
     icon: '',
-    displayOrder: (list.data ?? emptyCategories).reduce((max, category) => Math.max(max, category.Display_Order ?? 0), 0) + 1,
+    displayOrder: listRows.reduce((max, category) => Math.max(max, category.Display_Order ?? 0), 0) + 1,
     showInMarketplace: true,
   };
   const formData = draft ?? (isCreatingNew ? blankCategory : detail.currentData ? toCategory(detail.currentData) : null);
@@ -231,21 +241,14 @@ export function AddonCategoriesScreen() {
   const mutationLock = useRef(false);
   const addons = useGetMarketplaceAddonsQuery();
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<AddonCategoryStatus | ''>('');
-  const searchTerm = searchQuery.trim();
-  const debouncedSearch = useDebounce(searchTerm, 300);
-  const waitingForSearch = Boolean(searchTerm && searchTerm !== debouncedSearch);
   const search = useSearchAddonCategoriesQuery(searchTerm && !waitingForSearch ? searchTerm : skipToken);
   const statusResults = useFilterAddonCategoriesQuery(statusFilter || skipToken);
-  const overviewCategory = (list.data ?? search.currentData ?? statusResults.currentData)?.find(
+  const overviewCategory = (listRows.length ? listRows : search.currentData ?? statusResults.currentData)?.find(
     (category) => String(category.id) === overview.id,
   );
   const availableStatuses = addonCategoryStatuses.filter((status) =>
-    list.data?.some((category) => category.Status?.trim().toLowerCase() === status.toLowerCase())
+    listRows.some((category) => category.Status?.trim().toLowerCase() === status.toLowerCase())
   );
-  const [requestedPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<Category | null>(null);
@@ -345,29 +348,32 @@ export function AddonCategoriesScreen() {
 
   const filteredCategories = useMemo(() => {
     if (waitingForSearch) return [];
-    const codeMatches = searchTerm ? (list.data ?? emptyCategories).filter((category) =>
+    const codeMatches = searchTerm ? listRows.filter((category) =>
       category.AddonCategory_Id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       category.Category_Code?.toLowerCase().includes(searchTerm.toLowerCase())
     ) : [];
     const rows = searchTerm ? [...new Map([...codeMatches, ...(search.currentData ?? [])].map((category) => [category.id, category])).values()]
-      : statusFilter ? statusResults.currentData : list.data;
+      : statusFilter ? statusResults.currentData : listRows;
     if (searchTerm && statusFilter) {
       const matchingIds = new Set(statusResults.currentData?.map((category) => category.id));
       return (rows ?? emptyCategories).filter((category) => matchingIds.has(category.id)).map(toCategory);
     }
     return (rows ?? emptyCategories).map(toCategory);
-  }, [waitingForSearch, searchTerm, statusFilter, search.currentData, statusResults.currentData, list.data]);
+  }, [waitingForSearch, searchTerm, statusFilter, search.currentData, statusResults.currentData, listRows]);
   const tableQueries = searchTerm ? (statusFilter ? [search, statusResults] : [search]) :
     statusFilter ? [statusResults] : [list];
   const tableError = tableQueries.find((query) => query.isError);
   const tableLoading = waitingForSearch || tableQueries.some((query) => query.isFetching);
 
-  const totalPages = Math.ceil(filteredCategories.length / rowsPerPage) || 1;
+  const isServerPaginated = !searchTerm && !statusFilter;
+  const totalApiCount = isServerPaginated ? (list.currentData?.count ?? filteredCategories.length) : filteredCategories.length;
+  const totalPages = isServerPaginated ? Math.max(1, Math.ceil(totalApiCount / 10)) : (Math.ceil(filteredCategories.length / rowsPerPage) || 1);
   const currentPage = Math.min(requestedPage, totalPages);
   const paginatedCategories = useMemo(() => {
+    if (isServerPaginated) return filteredCategories;
     const start = (currentPage - 1) * rowsPerPage;
     return filteredCategories.slice(start, start + rowsPerPage);
-  }, [filteredCategories, currentPage, rowsPerPage]);
+  }, [isServerPaginated, filteredCategories, currentPage, rowsPerPage]);
 
   const addonCounts = new Map<string, number>();
   for (const addon of addons.currentData ?? []) {
@@ -691,8 +697,10 @@ export function AddonCategoriesScreen() {
           {/* Table Footer / Pagination */}
           <div className="p-3 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-slate-500">
             <div>
-              Showing {filteredCategories.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}-
-              {Math.min(currentPage * rowsPerPage, filteredCategories.length)} of {filteredCategories.length} categories
+              Showing {totalApiCount > 0 ? (currentPage - 1) * (isServerPaginated ? 10 : rowsPerPage) + 1 : 0}-
+              {isServerPaginated
+                ? Math.min((currentPage - 1) * 10 + paginatedCategories.length, totalApiCount)
+                : Math.min(currentPage * rowsPerPage, totalApiCount)} of {totalApiCount} categories
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-1.5">

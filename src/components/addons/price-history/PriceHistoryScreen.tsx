@@ -37,7 +37,7 @@ import { INITIAL_PRICE_HISTORY } from '../mockData';
 import { PriceHistoryItem, PriceChangeRecord } from '../types';
 import {
   useGetAddonPriceHistoryKPIQuery,
-  useGetAddonPriceHistoryWithoutPaginationQuery,
+  useGetAddonPriceHistoryWithPaginationQuery,
   useFilterAddonPriceHistoryMutationMutation,
   useCreateAddonPriceHistoryMutation,
   downloadAddonPriceHistoryExportCsv,
@@ -56,10 +56,11 @@ export function PriceHistoryScreen() {
   // RTK Query API Integrations
   const { data: kpiData } = useGetAddonPriceHistoryKPIQuery();
   const {
-    data: apiHistoryList,
+    data: apiHistoryPage,
     isLoading: isLoadingList,
     refetch: refetchHistory,
-  } = useGetAddonPriceHistoryWithoutPaginationQuery();
+  } = useGetAddonPriceHistoryWithPaginationQuery({ page: 1 });
+  const apiHistoryList = apiHistoryPage?.results;
   const [filterPriceHistory, { isLoading: isFiltering }] = useFilterAddonPriceHistoryMutationMutation();
   const [createPriceHistory, { isLoading: isCreating }] = useCreateAddonPriceHistoryMutation();
   const [isExporting, setIsExporting] = useState<boolean>(false);
@@ -203,10 +204,7 @@ export function PriceHistoryScreen() {
   const handleExportCSV = async () => {
     try {
       setIsExporting(true);
-      await downloadAddonPriceHistoryExportCsv({
-        pricing_id: selectedItem?.addonPricingId,
-        addon_name: addonFilter !== 'All Add-ons' ? addonFilter : undefined,
-      });
+      await downloadAddonPriceHistoryExportCsv();
     } catch (err) {
       console.error('Failed to export CSV:', err);
     } finally {

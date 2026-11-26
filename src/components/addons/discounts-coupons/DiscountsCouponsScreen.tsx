@@ -26,7 +26,7 @@ import { INITIAL_DISCOUNTS } from '../mockData';
 import { DiscountRecord } from '../types';
 import {
   useGetAddonDiscountCouponKPIQuery,
-  useGetAddonDiscountCouponWithoutPaginationQuery,
+  useGetAddonDiscountCouponWithPaginationQuery,
   useSearchAddonDiscountCouponQuery,
   useCreateAddonDiscountCouponMutation,
   useUpdateAddonDiscountCouponMutation,
@@ -51,10 +51,14 @@ export function DiscountsCouponsScreen() {
   // RTK Query API Integrations
   const { data: kpiData } = useGetAddonDiscountCouponKPIQuery();
   const {
-    data: apiData,
+    data: apiPage,
     isLoading: isLoadingList,
     refetch: refetchList,
-  } = useGetAddonDiscountCouponWithoutPaginationQuery();
+  } = useGetAddonDiscountCouponWithPaginationQuery(
+    { page: currentPage, page_size: rowsPerPage },
+    { skip: Boolean(searchQuery.trim()) }
+  );
+  const apiData = apiPage?.results;
   const {
     data: searchData,
     isFetching: isSearching,
@@ -289,11 +293,16 @@ export function DiscountsCouponsScreen() {
     });
   }, [discounts, searchQuery]);
 
-  const totalPages = Math.ceil(filteredDiscounts.length / rowsPerPage) || 1;
+  const isServerPaginated = !searchQuery.trim();
+  const totalDiscountsCount = isServerPaginated ? (apiPage?.count ?? filteredDiscounts.length) : filteredDiscounts.length;
+  const totalPages = isServerPaginated
+    ? Math.max(1, Math.ceil(totalDiscountsCount / 10))
+    : Math.ceil(filteredDiscounts.length / rowsPerPage) || 1;
   const paginatedDiscounts = useMemo(() => {
+    if (isServerPaginated) return filteredDiscounts;
     const start = (currentPage - 1) * rowsPerPage;
     return filteredDiscounts.slice(start, start + rowsPerPage);
-  }, [filteredDiscounts, currentPage, rowsPerPage]);
+  }, [isServerPaginated, filteredDiscounts, currentPage, rowsPerPage]);
 
   const totalCount = discounts.length;
   const activeCount = discounts.filter((d) => d.status === 'Active').length;

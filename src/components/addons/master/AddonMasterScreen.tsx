@@ -44,8 +44,8 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { useGetAddonCategoriesQuery } from '@/service/api/addonCategoryApi';
 import {
   billingCycles, licenseModels, type InitialCompatibility, type MarketplaceAddon,
-  useGetMarketplaceAddonsQuery, useSearchMarketplaceAddonsQuery, useGetMarketplaceAddonQuery,
-  useGetMarketplaceAddonCardsQuery, useGetMarketplaceAddonProductsQuery,
+  useGetMarketplaceAddonsPaginatedQuery, useSearchMarketplaceAddonsPaginatedQuery, useFilterMarketplaceAddonsQuery,
+  useGetMarketplaceAddonQuery, useGetMarketplaceAddonCardsQuery, useGetMarketplaceAddonProductsQuery,
   useSaveMarketplaceAddonMutation, useDeleteMarketplaceAddonMutation,
 } from '@/service/api/marketplaceAddonApi';
 import { AddonRecord } from '../types';
@@ -63,7 +63,8 @@ const purpleOutline = 'border-purple-200 bg-white text-[#6d19e8] hover:border-pu
 
 type RightPanelTab = 'basic' | 'features' | 'pricing' | 'compatibility' | 'versions';
 
-type MasterForm = Omit<AddonRecord, 'shortDescription' | 'displayOrder' | 'licenseModel'> & {
+type MasterForm = Omit<AddonRecord, 'shortDescription' | 'displayOrder' | 'licenseModel' | 'status'> & {
+  status: string;
   licenseModel: typeof licenseModels[number];
   categoryId: string;
   cycle: keyof typeof billingCycles;
@@ -76,7 +77,7 @@ type MasterForm = Omit<AddonRecord, 'shortDescription' | 'displayOrder' | 'licen
 };
 
 function toForm(record?: MarketplaceAddon): MasterForm {
-  const status = record?.Status?.trim().toLowerCase();
+  const apiStatus = record?.Status?.trim();
   return {
     id: record ? String(record.id) : '',
     code: record?.AddonMaster_Id ?? '',
@@ -86,7 +87,7 @@ function toForm(record?: MarketplaceAddon): MasterForm {
     supportedProducts: (record?.Products ?? record?.products_details?.map(({ id }) => id) ?? []).map(String),
     licenseModel: record?.License_Model ?? 'Per Tenant',
     startingPrice: String(record?.Price ?? 0),
-    status: status === 'draft' ? 'Draft' : status === 'inactive' || (record && !status && record.Is_Active === false) ? 'Inactive' : 'Published',
+    status: record ? (apiStatus || '') : 'Published',
     fullDescription: record?.Description ?? '',
     trialAvailable: record?.Trial_Available ?? false,
     trialDays: record?.Trial_Days ?? 0,
@@ -150,10 +151,48 @@ function OverviewSection({ title, fields }: {
 const emptyRecords: MarketplaceAddon[] = [];
 
 export function AddonMasterScreen() {
-  const list = useGetMarketplaceAddonsQuery();
+  const [requestedPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
+  const term = searchQuery.trim();
+  const debounced = useDebounce(term, 300);
+  const waiting = Boolean(term && debounced !== term);
+  const [filters, setFilters] = useState(emptyFilters);
+  const [appliedFilters, setAppliedFilters] = useState(emptyFilters);
+  const { category: categoryFilter, product: productFilter, status: statusFilter } = appliedFilters;
+  const hasAppliedFilters = Boolean(categoryFilter || productFilter || statusFilter);
   const cards = useGetMarketplaceAddonCardsQuery();
   const categoryOptions = useGetAddonCategoriesQuery();
   const productOptions = useGetMarketplaceAddonProductsQuery();
+  const categories = categoryOptions.data ?? [];
+  const selectedCategory = categories.find(({ id }) => String(id) === categoryFilter);
+  const list = useGetMarketplaceAddonsPaginatedQuery(
+    !term && !hasAppliedFilters ? { page: requestedPage, page_size: rowsPerPage } : skipToken
+  );
+  const search = useSearchMarketplaceAddonsPaginatedQuery(
+    term && !waiting ? { search: term, page: requestedPage } : skipToken
+  );
+  const filterQuery = useFilterMarketplaceAddonsQuery(
+    !term && hasAppliedFilters
+      ? {
+          page: requestedPage,
+          ...(productFilter ? { Product: productFilter } : {}),
+          ...(categoryFilter
+            ? selectedCategory?.Category_Name
+              ? { Category: selectedCategory.Category_Name }
+              : { Addon_Category: Number(categoryFilter) }
+            : {}),
+          ...(statusFilter ? { Status: statusFilter } : {}),
+        }
+      : skipToken
+  );
+  const currentQuery = term ? search : hasAppliedFilters ? filterQuery : list;
+  const records = waiting
+    ? emptyRecords
+    : (term ? search.currentData?.results : hasAppliedFilters ? filterQuery.currentData?.results : list.currentData?.results) ?? emptyRecords;
+  const totalApiCount = waiting
+    ? 0
+    : (term ? search.currentData?.count : hasAppliedFilters ? filterQuery.currentData?.count : list.currentData?.count) ?? records.length;
   const [selectedAddonId, setSelectedAddonId] = useState('');
   const isCreatingNew = !selectedAddonId;
   const detail = useGetMarketplaceAddonQuery(selectedAddonId ? Number(selectedAddonId) : skipToken);
@@ -171,26 +210,13 @@ export function AddonMasterScreen() {
   const overviewRecord = overview && { ...overview, ...overviewDetail.currentData };
   const [initialCompatibility, setInitialCompatibility] = useState<InitialCompatibility>('compatible');
   const [activeRightTab, setActiveRightTab] = useState<RightPanelTab>('basic');
-  const [searchQuery, setSearchQuery] = useState('');
-  const term = searchQuery.trim();
-  const debounced = useDebounce(term, 300);
-  const waiting = Boolean(term && debounced !== term);
-  const search = useSearchMarketplaceAddonsQuery(term && !waiting ? term : skipToken);
-  const currentQuery = term ? search : list;
-  const records = waiting ? emptyRecords : (term ? search.currentData : list.currentData) ?? emptyRecords;
   const [listTab, setListTab] = useState<ListTab>('Add-ons');
-  const [filters, setFilters] = useState(emptyFilters);
-  const [appliedFilters, setAppliedFilters] = useState(emptyFilters);
   const [hiddenColumns, setHiddenColumns] = useState<Partial<Record<ListTab, string[]>>>({});
   const visibleColumns = listColumns[listTab].filter((column) => !hiddenColumns[listTab]?.includes(column));
-  const { category: categoryFilter, product: productFilter, status: statusFilter } = appliedFilters;
-  const [requestedPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<MasterForm | null>(null);
   const [newFeatureTag, setNewFeatureTag] = useState('');
-  const categories = categoryOptions.data ?? [];
   const products = productOptions.data ?? [];
   const productName = (id: string, record?: MarketplaceAddon) => {
     const saved = record?.products_details?.find((item) => String(item.id) === id);
@@ -223,7 +249,6 @@ export function AddonMasterScreen() {
     if (!mutationLock.current) resetEditor();
   };
 
-  const selectedCategory = categories.find(({ id }) => String(id) === categoryFilter);
   const filteredAddons = records.filter((record) =>
     (!categoryFilter || (record.Addon_Category
       ? String(record.Addon_Category) === categoryFilter
@@ -273,9 +298,9 @@ export function AddonMasterScreen() {
     }
   };
 
-  const totalPages = Math.max(1, Math.ceil(filteredAddons.length / rowsPerPage));
+  const totalPages = Math.max(1, Math.ceil(totalApiCount / 10));
   const currentPage = Math.min(requestedPage, totalPages);
-  const paginatedAddons = filteredAddons.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+  const paginatedAddons = filteredAddons;
 
   const totalCount = cards.data?.Total_Addons ?? '—';
   const publishedCount = cards.data?.Published ?? '—';
@@ -302,6 +327,10 @@ export function AddonMasterScreen() {
       return;
     }
     const status = asDraft ? 'Draft' : formData.status;
+    if (!status) {
+      toast.error('Select a status before saving.');
+      return;
+    }
     if (formData.trialAvailable && (!Number.isInteger(formData.trialDays) ||
       formData.trialDays < 1 || formData.trialDays > 2147483647)) {
       toast.error('Enter a positive whole number for trial days.');
@@ -654,11 +683,15 @@ export function AddonMasterScreen() {
                         {visibleColumns.map((column) => (
                           <td key={column} className="max-w-64 whitespace-pre-wrap break-words px-3 py-3 text-muted-foreground">
                             {column === 'Status' ? (
-                              <Badge variant="secondary" className={
-                                addon.status === 'Published' ? 'bg-[#bbf7b0] text-green-950 dark:bg-green-950 dark:text-green-300'
-                                  : addon.status === 'Draft' ? 'bg-[#ffe27a] text-amber-950 dark:bg-amber-950 dark:text-amber-300'
-                                  : 'bg-[#fecdd3] text-red-900 dark:bg-rose-950 dark:text-rose-300'
-                              }>{addon.status}</Badge>
+                              addon.status ? (
+                                <Badge variant="secondary" className={
+                                  addon.status.toLowerCase() === 'published' || addon.status.toLowerCase() === 'active'
+                                    ? 'bg-[#bbf7b0] text-green-950 dark:bg-green-950 dark:text-green-300'
+                                    : addon.status.toLowerCase() === 'draft'
+                                    ? 'bg-[#ffe27a] text-amber-950 dark:bg-amber-950 dark:text-amber-300'
+                                    : 'bg-[#fecdd3] text-red-900 dark:bg-rose-950 dark:text-rose-300'
+                                }>{addon.status}</Badge>
+                              ) : '—'
                             ) : column === 'Category' && values.Category ? (
                               <Badge variant="secondary" className="h-auto max-w-full whitespace-normal break-words bg-[#eee5ff] text-[#34205e] dark:bg-purple-900/70 dark:text-purple-100">
                                 {values.Category}
@@ -702,8 +735,8 @@ export function AddonMasterScreen() {
             {/* Table Footer / Pagination */}
             <div className="p-3 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-slate-500">
               <div>
-                Showing {filteredAddons.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}-
-                {Math.min(currentPage * rowsPerPage, filteredAddons.length)} of {filteredAddons.length} add-ons
+                Showing {totalApiCount > 0 ? (currentPage - 1) * 10 + 1 : 0}-
+                {Math.min((currentPage - 1) * 10 + paginatedAddons.length, totalApiCount)} of {totalApiCount} add-ons
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5">
@@ -787,17 +820,19 @@ export function AddonMasterScreen() {
                 {isCreatingNew ? 'Fill in details to register new add-on' : `Editing: ${formData.code}`}
               </p>
             </div>
-            <span
-              className={`px-2.5 py-0.5 rounded-full text-sm font-semibold ${
-                formData.status === 'Published'
-                  ? 'bg-[#008019] text-white dark:bg-green-800 dark:text-white'
-                  : formData.status === 'Draft'
-                  ? 'bg-[#ffe27a] text-amber-950 dark:bg-amber-950 dark:text-amber-300'
-                  : 'bg-[#fecdd3] text-red-900 dark:bg-rose-950 dark:text-rose-300'
-              }`}
-            >
-              {formData.status}
-            </span>
+            {formData.status && (
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-sm font-semibold ${
+                  formData.status.toLowerCase() === 'published' || formData.status.toLowerCase() === 'active'
+                    ? 'bg-[#008019] text-white dark:bg-green-800 dark:text-white'
+                    : formData.status.toLowerCase() === 'draft'
+                    ? 'bg-[#ffe27a] text-amber-950 dark:bg-amber-950 dark:text-amber-300'
+                    : 'bg-[#fecdd3] text-red-900 dark:bg-rose-950 dark:text-rose-300'
+                }`}
+              >
+                {formData.status}
+              </span>
+            )}
           </div>
 
           {/* Card Sub-tabs */}
@@ -1075,14 +1110,18 @@ export function AddonMasterScreen() {
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          status: e.target.value as 'Published' | 'Draft' | 'Inactive',
+                          status: e.target.value,
                         })
                       }
                       className="w-full h-10 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-base focus:ring-1 focus:ring-[#6d19e8]"
                     >
-                      <option>Published</option>
-                      <option>Draft</option>
-                      <option>Inactive</option>
+                      <option value="">Select status</option>
+                      <option value="Published">Published</option>
+                      <option value="Draft">Draft</option>
+                      <option value="Inactive">Inactive</option>
+                      {formData.status && !['Published', 'Draft', 'Inactive'].includes(formData.status) && (
+                        <option value={formData.status}>{formData.status}</option>
+                      )}
                     </select>
                   </div>
                 </div>
@@ -1301,8 +1340,8 @@ export function AddonMasterScreen() {
             <div className="min-w-0 space-y-4" aria-busy={overviewDetail.isFetching}>
               <div className="space-y-3 rounded-xl border border-purple-200 bg-purple-50/60 p-4 dark:border-purple-900 dark:bg-purple-950/30">
                 <div className="flex flex-wrap items-center gap-2">
-                  {(overviewRecord.Status || overviewRecord.Is_Active != null) && (
-                    <Badge variant="secondary">{toForm(overviewRecord).status}</Badge>
+                  {overviewRecord.Status && (
+                    <Badge variant="secondary">{overviewRecord.Status}</Badge>
                   )}
                   {overviewRecord.Trial_Available && (
                     <Badge variant="outline">
