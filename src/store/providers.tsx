@@ -4,17 +4,20 @@ import React, { useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { store } from '@/store/store';
 import { baseApi } from '@/service/baseApi';
-import { compatibilityChangeKey, compatibilityTags } from '@/service/compatibilitySync';
+import { compatibilityChangeKey, compatibilityTags, pricingChangeKey, pricingTags } from '@/service/compatibilitySync';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    const refreshCompatibility = (event: StorageEvent) => {
+    const refreshMarketplace = (event: StorageEvent) => {
       if (event.key === compatibilityChangeKey && event.newValue) {
         store.dispatch(baseApi.util.invalidateTags([...compatibilityTags]));
       }
+      if (event.key === pricingChangeKey && event.newValue) {
+        store.dispatch(baseApi.util.invalidateTags([...pricingTags]));
+      }
     };
-    window.addEventListener('storage', refreshCompatibility);
-    return () => window.removeEventListener('storage', refreshCompatibility);
+    window.addEventListener('storage', refreshMarketplace);
+    return () => window.removeEventListener('storage', refreshMarketplace);
   }, []);
 
   return (

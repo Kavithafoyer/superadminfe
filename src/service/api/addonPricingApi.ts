@@ -1,4 +1,25 @@
+import type { PricingTier } from './addonPriceTemplateApi';
 import { baseApi } from '../baseApi';
+import { broadcastPricingChange, pricingTags } from '../compatibilitySync';
+
+export interface TierScheduleDetails {
+  Code: string;
+  Name: string;
+  Billing_Cycle: string;
+  Method: string;
+  Usage_Metric: string;
+}
+
+export interface PricingOptions {
+  Model?: string;
+  Billing_Cycle?: string;
+  Allow_Annual_Billing?: boolean;
+  Require_Approval?: boolean;
+  Marketplace_Visible?: boolean;
+  Allow_Trial?: boolean;
+  Annual_Discount?: string | null;
+  Edition_Rates?: { Plan: number; Rate: string; Trial_Days: number; Active: boolean }[];
+}
 
 export interface AddonPricingDto {
   id: number;
@@ -7,6 +28,9 @@ export interface AddonPricingDto {
   Price_Template: number;
   Addon_Name: string | null;
   Price_Template_Name: string | null;
+  Pricing_Options?: PricingOptions;
+  Tier_Schedule?: Partial<TierScheduleDetails> & { Customized?: boolean };
+  Tiers?: (PricingTier & { id?: number; Is_Active?: boolean })[];
   Base_Price: string | number;
   Effective_From: string;
   Effective_To: string | null;
@@ -62,18 +86,7 @@ export const addonPricingApi = baseApi.injectEndpoints({
 
     // 2. List Without Pagination Endpoint
     getAddonPricingWithoutPagination: builder.query<AddonPricingDto[], void>({
-      query: () => prefix + 'listwithoutpaginaton/',
-      transformResponse: (response: any) => (Array.isArray(response) ? response : response?.results || []),
-      providesTags: tags,
-      extraOptions,
-    }),
-
-    // 3. List With Pagination Endpoint
-    getAddonPricingWithPagination: builder.query<AddonPricingDto[], { page?: number } | void>({
-      query: (arg) => ({
-        url: prefix + 'ListwithPagination/',
-        params: { page: arg && typeof arg === 'object' && arg.page ? arg.page : 1 },
-      }),
+      query: () => ({ url: prefix + 'listwithoutpaginaton/', method: 'GET' }),
       transformResponse: (response: any) => (Array.isArray(response) ? response : response?.results || []),
       providesTags: tags,
       extraOptions,
@@ -125,7 +138,8 @@ export const addonPricingApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      invalidatesTags: tags,
+      invalidatesTags: (_result, error) => error ? [] : [...pricingTags],
+      onQueryStarted: broadcastPricingChange,
       extraOptions,
     }),
 
@@ -135,7 +149,8 @@ export const addonPricingApi = baseApi.injectEndpoints({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: tags,
+      invalidatesTags: (_result, error) => error ? [] : [...pricingTags],
+      onQueryStarted: broadcastPricingChange,
       extraOptions,
     }),
 
@@ -144,7 +159,8 @@ export const addonPricingApi = baseApi.injectEndpoints({
         url: `${crud}?id=${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: tags,
+      invalidatesTags: (_result, error) => error ? [] : [...pricingTags],
+      onQueryStarted: broadcastPricingChange,
       extraOptions,
     }),
   }),
@@ -153,7 +169,6 @@ export const addonPricingApi = baseApi.injectEndpoints({
 export const {
   useGetAddonPricingKPIQuery,
   useGetAddonPricingWithoutPaginationQuery,
-  useGetAddonPricingWithPaginationQuery,
   useSearchAddonPricingQuery,
   useLazySearchAddonPricingQuery,
   useFilterAddonPricingQuery,

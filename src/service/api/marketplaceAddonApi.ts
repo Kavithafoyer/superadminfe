@@ -13,6 +13,7 @@ export type InitialCompatibility = 'compatible' | 'incompatible';
 export interface MarketplaceAddon {
   id: number;
   AddonMaster_Id?: string | null;
+  Addon_Code?: string | null;
   License_Model?: typeof licenseModels[number];
   Trial_Available?: boolean;
   Trial_Days?: number;

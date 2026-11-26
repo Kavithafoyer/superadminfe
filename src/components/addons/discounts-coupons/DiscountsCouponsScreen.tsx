@@ -1,881 +1,308 @@
-'use client';
+﻿'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
-import {
-  Tag,
-  Plus,
-  Search,
-  CheckCircle2,
-  Clock,
-  Coins,
-  FileDown,
-  ChevronLeft,
-  ChevronRight,
-  MoreVertical,
-  Pencil,
-  Trash2,
-  Columns,
-  Percent,
-  X,
-  Loader2,
-} from 'lucide-react';
+import { useState, type FormEvent, type ReactNode } from 'react';
+import { Coins, Download, Grid2X2, MoreVertical, Pencil, Plus, Search, Tag, Ticket, Trash2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog';
-import { INITIAL_DISCOUNTS } from '../mockData';
-import { DiscountRecord } from '../types';
+import { apiError, Field } from '../PricingWorkspace';
 import {
-  useGetAddonDiscountCouponKPIQuery,
-  useGetAddonDiscountCouponWithoutPaginationQuery,
-  useSearchAddonDiscountCouponQuery,
-  useCreateAddonDiscountCouponMutation,
-  useUpdateAddonDiscountCouponMutation,
-  useDeleteAddonDiscountCouponMutation,
-  downloadAddonDiscountCouponExportCsv,
-} from '@/service/api/superAdminService';
+  useCreateAddonDiscountCouponMutation, useDeleteAddonDiscountCouponMutation, useGetAddonDiscountCouponKPIQuery,
+  useGetAddonDiscountCouponOptionsQuery, useGetAddonDiscountCouponWithoutPaginationQuery, useUpdateAddonDiscountCouponMutation,
+  type AddonDiscountCouponDto as Offer,
+} from '@/service/api/addonDiscountCouponApi';
+
+const panel = 'min-w-0 rounded-xl border border-slate-200 bg-card shadow-sm dark:border-border';
+const selectStyle = 'h-9 w-full rounded-md border border-input bg-background px-2 text-sm';
+const primary = 'bg-violet-700 text-white hover:bg-violet-800';
+const columns = ['Name', 'Type', 'Applicability', 'Discount Value', 'Validity Period', 'Status'];
+const types = ['Percentage', 'Flat Amount'];
+const statuses = ['Active', 'Draft', 'Scheduled', 'Expired'];
+const filtersEmpty = { product: '', type: '', status: '' };
+const formatNumber = new Intl.NumberFormat('en-IN');
+const money = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
+const displayDate = (value?: string) => value ? new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value)) : '—';
+const dateInput = (value?: string) => {
+  if (!value) return '';
+  const date = new Date(value);
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+};
+const offerName = (item: Offer) => item.Name || (item.Kind === 'Coupon' ? item.Coupon_Code : '');
+const formattedValue = (item: Offer) => item.Discount_Type === 'Percentage'
+  ? formatNumber.format(Number(item.Discount_Value)) + '%'
+  : item.Discount_Type === 'Flat Amount' ? money.format(Number(item.Discount_Value)) : String(item.Discount_Value);
+
+type Draft = {
+  id?: number; name: string; code: string; type: string; amount: string; applies: Offer['Applicability'] | '';
+  products: number[]; addons: number[]; plans: number[]; from: string; to: string; scope: Offer['Scope'];
+  limit: string | null; customerLimit: string | null;
+};
+const empty: Draft = { name: '', code: '', type: '', amount: '', applies: '', products: [], addons: [], plans: [], from: '', to: '', scope: 'All', limit: null, customerLimit: null };
+const toggle = (values: number[], id: number) => values.includes(id) ? values.filter(value => value !== id) : [...values, id];
+
+function StatusPill({ value }: { value?: string }) {
+  const colors: Record<string, string> = {
+    Active: 'bg-green-100 text-green-900', Draft: 'bg-amber-100 text-amber-900',
+    Scheduled: 'bg-blue-100 text-blue-900', Expired: 'bg-slate-100 text-slate-700',
+  };
+  return <span className={'inline-block rounded-full px-2 py-1 text-xs font-semibold ' + (colors[value ?? ''] ?? '')}>{value || '—'}</span>;
+}
 
 export function DiscountsCouponsScreen() {
-  const [discounts, setDiscounts] = useState<DiscountRecord[]>(INITIAL_DISCOUNTS);
-  const [selectedDiscountId, setSelectedDiscountId] = useState<string>(INITIAL_DISCOUNTS[0]?.id || '');
-  const [isCreatingNew, setIsCreatingNew] = useState<boolean>(false);
-  const [activeSubTab, setActiveSubTab] = useState<'discounts' | 'coupons'>('discounts');
+  const list = useGetAddonDiscountCouponWithoutPaginationQuery(undefined, { refetchOnMountOrArgChange: true, pollingInterval: 60_000 });
+  const cards = useGetAddonDiscountCouponKPIQuery(undefined, { refetchOnMountOrArgChange: true, pollingInterval: 60_000 });
+  const options = useGetAddonDiscountCouponOptionsQuery(undefined, { refetchOnMountOrArgChange: true });
+  const [create, creating] = useCreateAddonDiscountCouponMutation();
+  const [update, updating] = useUpdateAddonDiscountCouponMutation();
+  const [remove, deleting] = useDeleteAddonDiscountCouponMutation();
+  const [kind, setKind] = useState<Offer['Kind']>('Discount');
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [filters, setFilters] = useState(filtersEmpty);
+  const [applied, setApplied] = useState(filtersEmpty);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+  const [selected, setSelected] = useState<number[]>([]);
+  const [hidden, setHidden] = useState<string[]>([]);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const busy = creating.isLoading || updating.isLoading || deleting.isLoading;
+  const products = options.data?.products ?? [];
+  const addons = options.data?.addons ?? [];
+  const plans = (options.data?.plans ?? []).filter(plan => !draft?.products.length || (plan.Product_id != null && draft.products.includes(plan.Product_id)));
+  const offers = list.data ?? [];
+  const current = offers.find(item => item.id === draft?.id);
+  const visible = offers.filter(item => item.Kind === kind &&
+    (!applied.type || item.Discount_Type === applied.type) &&
+    (!applied.status || item.Status === applied.status) &&
+    (!applied.product || item.Applicable_Products.includes(Number(applied.product)) ||
+      addons.some(addon => item.Applicable_Addons?.includes(addon.id) && addon.Products.includes(Number(applied.product)))) &&
+    [offerName(item), item.Kind === 'Coupon' ? item.Coupon_Code : ''].join(' ').toLowerCase().includes(search.trim().toLowerCase()));
+  const activePage = Math.min(page, Math.max(0, Math.ceil(visible.length / size) - 1));
+  const slice = visible.slice(activePage * size, (activePage + 1) * size);
 
-  // Filters & State
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([INITIAL_DISCOUNTS[0]?.id || '']);
-  const [activeMenuRowId, setActiveMenuRowId] = useState<string | null>(null);
-  const [isExporting, setIsExporting] = useState<boolean>(false);
+  function open(item?: Offer) {
+    setMessage('');
+    setError('');
+    setDraft(item ? {
+      id: item.id, name: item.Name, code: item.Coupon_Code, type: item.Discount_Type ?? '', amount: String(item.Discount_Value),
+      applies: item.Applicability, products: item.Applicable_Products, addons: item.Applicable_Addons ?? [], plans: item.Applicable_Plans,
+      from: dateInput(item.Valid_From), to: dateInput(item.Valid_To), scope: item.Scope,
+      limit: item.Usage_Limit == null ? null : String(item.Usage_Limit),
+      customerLimit: item.Per_Customer_Limit == null ? null : String(item.Per_Customer_Limit),
+    } : empty);
+  }
 
-  // RTK Query API Integrations
-  const { data: kpiData } = useGetAddonDiscountCouponKPIQuery();
-  const {
-    data: apiData,
-    isLoading: isLoadingList,
-    refetch: refetchList,
-  } = useGetAddonDiscountCouponWithoutPaginationQuery();
-  const {
-    data: searchData,
-    isFetching: isSearching,
-  } = useSearchAddonDiscountCouponQuery(searchQuery.trim(), {
-    skip: !searchQuery.trim(),
-  });
-  const [createCoupon, { isLoading: isCreating }] = useCreateAddonDiscountCouponMutation();
-  const [updateCoupon, { isLoading: isUpdating }] = useUpdateAddonDiscountCouponMutation();
-  const [deleteCoupon, { isLoading: isDeleting }] = useDeleteAddonDiscountCouponMutation();
-
-  // Delete dialog
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<DiscountRecord | null>(null);
-
-  // Toast
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
-  // Map Backend Data
-  const mappedDiscounts = useMemo<DiscountRecord[]>(() => {
-    const rawList = searchQuery.trim() ? searchData : apiData;
-    if (!rawList || rawList.length === 0) {
-      if (searchQuery.trim()) return [];
-      return INITIAL_DISCOUNTS;
-    }
-    return rawList.map((item) => ({
-      id: String(item.id),
-      backendId: item.id,
-      AddonDiscountCoupon_Id: item.AddonDiscountCoupon_Id,
-      name: item.Coupon_Code || 'Discount',
-      couponCode: item.Coupon_Code,
-      type: (item.Discount_Type === 'Flat Amount' ? 'Flat Amount' : 'Percentage') as 'Percentage' | 'Flat Amount',
-      applicability: 'Subscription',
-      discountValue:
-        item.Formatted_Value ||
-        (item.Discount_Type === 'Percentage' ? `${item.Discount_Value}%` : `₹${item.Discount_Value}`),
-      validityPeriod:
-        item.Valid_From && item.Valid_To ? `${item.Valid_From} – ${item.Valid_To}` : 'Lifetime',
-      startDate: item.Valid_From || '2026-11-01',
-      endDate: item.Valid_To || '2026-12-31',
-      status: (item.Status || (item.Is_Active ? 'Active' : 'Draft')) as
-        | 'Active'
-        | 'Draft'
-        | 'Scheduled'
-        | 'Expired',
-      supportedProducts:
-        item.Applicable_Addon_Names && item.Applicable_Addon_Names.length > 0
-          ? item.Applicable_Addon_Names
-          : ['Pegatto CRM'],
-      applicablePlans: ['All Plans'],
-      scope: 'All Customers',
-      limitTotalRedemptions: item.Usage_Limit || 1000,
-      limitPerCustomer: 1,
-    }));
-  }, [searchQuery, searchData, apiData]);
-
-  // Synchronize discounts
-  useEffect(() => {
-    if (mappedDiscounts && mappedDiscounts.length > 0) {
-      setDiscounts(mappedDiscounts);
-      if (!selectedDiscountId || !mappedDiscounts.some((d) => d.id === selectedDiscountId)) {
-        setSelectedDiscountId(mappedDiscounts[0].id);
-        setSelectedRowIds([mappedDiscounts[0].id]);
-        setFormData(mappedDiscounts[0]);
-      }
-    }
-  }, [mappedDiscounts]);
-
-  const selectedDiscount = useMemo(() => {
-    return discounts.find((d) => d.id === selectedDiscountId) || discounts[0];
-  }, [discounts, selectedDiscountId]);
-
-  const [formData, setFormData] = useState<DiscountRecord>(
-    selectedDiscount || {
-      id: 'disc-1',
-      name: 'New Customer Offer',
-      type: 'Percentage',
-      applicability: 'Subscription',
-      discountValue: '20%',
-      validityPeriod: '01 Nov 2026 – 31 Dec 2026',
-      startDate: '2026-11-01',
-      endDate: '2026-12-31',
-      status: 'Active',
-      supportedProducts: ['Pegatto CRM', 'Pegatto Education'],
-      applicablePlans: ['All Plans'],
-      scope: 'All Customers',
-      limitTotalRedemptions: 1000,
-      limitPerCustomer: 1,
-    }
-  );
-
-  const handleSelectDiscount = (item: DiscountRecord) => {
-    setIsCreatingNew(false);
-    setSelectedDiscountId(item.id);
-    setSelectedRowIds([item.id]);
-    setFormData({ ...item });
-    setActiveMenuRowId(null);
-  };
-
-  const handleStartCreateNew = () => {
-    setIsCreatingNew(true);
-    const newId = `disc-${Date.now()}`;
-    const blank: DiscountRecord = {
-      id: newId,
-      name: 'New Promotional Offer',
-      type: 'Percentage',
-      applicability: 'Subscription',
-      discountValue: '15%',
-      validityPeriod: 'Today – 30 Days Later',
-      startDate: '2026-11-20',
-      endDate: '2026-12-20',
-      status: 'Active',
-      supportedProducts: ['Pegatto CRM'],
-      applicablePlans: ['Professional'],
-      scope: 'All Customers',
-      limitTotalRedemptions: 500,
-      limitPerCustomer: 1,
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!draft || !draft.applies || busy) return;
+    setError('');
+    const button = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const payload = {
+      Kind: kind, Name: draft.name.trim(), Coupon_Code: kind === 'Coupon' ? draft.code.trim() : undefined,
+      Discount_Type: draft.type, Discount_Value: draft.amount, Applicability: draft.applies, Scope: draft.scope,
+      Applicable_Products: draft.products, Applicable_Addons: draft.addons, Applicable_Plans: draft.plans,
+      Valid_From: new Date(draft.from + 'T00:00:00').toISOString(), Valid_To: new Date(draft.to + 'T23:59:59.999').toISOString(),
+      Usage_Limit: draft.limit === null ? null : Number(draft.limit),
+      Per_Customer_Limit: draft.customerLimit === null ? null : Number(draft.customerLimit),
+      Is_Active: button?.value !== 'draft',
     };
-    setFormData(blank);
-  };
-
-  const handleSaveForm = async (asDraft = false) => {
-    const targetStatus = asDraft ? 'Draft' : formData.status || 'Active';
-    const cleanValue = parseFloat(String(formData.discountValue).replace(/[^0-9.]/g, '')) || 10;
-    const recordToSave: DiscountRecord = {
-      ...formData,
-      status: targetStatus,
-      name: formData.name.trim() || 'Untitled Discount',
-    };
-
     try {
-      if (isCreatingNew || !formData.backendId) {
-        await createCoupon({
-          Coupon_Code: formData.name.trim() || `COUPON${Date.now().toString().slice(-4)}`,
-          Discount_Type: formData.type || 'Percentage',
-          Discount_Value: cleanValue,
-          Valid_From: formData.startDate || undefined,
-          Valid_To: formData.endDate || undefined,
-          Usage_Limit: formData.limitTotalRedemptions || 1000,
-          Is_Active: targetStatus === 'Active',
-        }).unwrap();
-        showToast(`Discount "${recordToSave.name}" created!`);
-        setIsCreatingNew(false);
-      } else {
-        await updateCoupon({
-          id: formData.backendId,
-          Coupon_Code: formData.name.trim(),
-          Discount_Type: formData.type || 'Percentage',
-          Discount_Value: cleanValue,
-          Valid_From: formData.startDate || undefined,
-          Valid_To: formData.endDate || undefined,
-          Usage_Limit: formData.limitTotalRedemptions || 1000,
-          Is_Active: targetStatus === 'Active',
-        }).unwrap();
-        showToast(`Discount "${recordToSave.name}" updated!`);
-      }
-      refetchList();
-    } catch (err) {
-      console.error('Failed to persist discount to backend:', err);
-      // Fallback local persistence
-      if (isCreatingNew) {
-        setDiscounts((prev) => [recordToSave, ...prev]);
-        setIsCreatingNew(false);
-        setSelectedDiscountId(recordToSave.id);
-        setSelectedRowIds([recordToSave.id]);
-        showToast(`Discount "${recordToSave.name}" created locally!`);
-      } else {
-        setDiscounts((prev) =>
-          prev.map((item) => (item.id === recordToSave.id ? recordToSave : item))
-        );
-        showToast(`Discount "${recordToSave.name}" updated locally!`);
-      }
+      await (draft.id ? update({ ...payload, id: draft.id }) : create(payload)).unwrap();
+      setDraft(null);
+      setMessage(kind + ' saved.');
+    } catch (failure) {
+      setError(apiError(failure));
     }
-  };
+  }
 
-  const handleDeletePrompt = (item: DiscountRecord) => {
-    setItemToDelete(item);
-    setDeleteDialogOpen(true);
-    setActiveMenuRowId(null);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!itemToDelete) return;
+  async function deleteOffer(item: Offer) {
+    if (!window.confirm('Delete ' + offerName(item) + '?')) return;
     try {
-      if (itemToDelete.backendId) {
-        await deleteCoupon(itemToDelete.backendId).unwrap();
-        refetchList();
-      }
-      showToast(`Discount deleted.`);
-    } catch (err) {
-      console.error('Failed to delete on backend:', err);
-      showToast(`Discount deleted locally.`);
+      await remove(item.id).unwrap();
+      if (draft?.id === item.id) setDraft(null);
+      setSelected(previous => previous.filter(id => id !== item.id));
+      setMessage(item.Kind + ' deleted.');
+    } catch (failure) {
+      setError(apiError(failure));
     }
+  }
 
-    const remaining = discounts.filter((item) => item.id !== itemToDelete.id);
-    setDiscounts(remaining);
-    if (selectedDiscountId === itemToDelete.id) {
-      if (remaining.length > 0) {
-        setSelectedDiscountId(remaining[0].id);
-        setSelectedRowIds([remaining[0].id]);
-        setFormData({ ...remaining[0] });
-      }
-    }
-    setDeleteDialogOpen(false);
-    setItemToDelete(null);
-  };
+  function exportCsv() {
+    const records = visible.filter(item => selected.includes(item.id));
+    const escape = (value: string) => '"' + (/^[=+\-@\t\r\n]/.test(value) ? "'" + value : value).replaceAll('"', '""') + '"';
+    const rows = (records.length ? records : visible).map(item => [
+      offerName(item), item.Discount_Type ?? '', item.Applicability, formattedValue(item),
+      displayDate(item.Valid_From) + ' – ' + displayDate(item.Valid_To), item.Status ?? '',
+    ]);
+    const url = URL.createObjectURL(new Blob([[columns, ...rows].map(row => row.map(escape).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = kind.toLowerCase() + 's.csv';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 
-  const handleExportCSV = async () => {
-    try {
-      setIsExporting(true);
-      showToast('Exporting Discounts CSV...');
-      await downloadAddonDiscountCouponExportCsv();
-      showToast('Discounts exported successfully!');
-    } catch (err) {
-      console.error('Failed to export CSV:', err);
-      showToast('Failed to export CSV');
-    } finally {
-      setIsExporting(false);
-    }
-  };
+  const metrics = [
+    { label: 'Active Discounts', value: cards.data?.active_discounts, icon: Tag, color: 'bg-violet-100 text-violet-700' },
+    { label: 'Active Coupons', value: cards.data?.active_coupons, icon: Ticket, color: 'bg-green-100 text-green-700' },
+    { label: 'Total Redemptions', value: cards.data?.total_redeemed, icon: Users, color: 'bg-orange-100 text-orange-700' },
+    { label: 'Total Discount Value', value: cards.data?.total_discount_value, icon: Coins, color: 'bg-violet-100 text-violet-700' },
+  ];
 
-  const filteredDiscounts = useMemo(() => {
-    return discounts.filter((item) => {
-      const q = searchQuery.toLowerCase();
-      return (
-        item.name.toLowerCase().includes(q) ||
-        item.discountValue.toLowerCase().includes(q)
-      );
-    });
-  }, [discounts, searchQuery]);
-
-  const totalPages = Math.ceil(filteredDiscounts.length / rowsPerPage) || 1;
-  const paginatedDiscounts = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage;
-    return filteredDiscounts.slice(start, start + rowsPerPage);
-  }, [filteredDiscounts, currentPage, rowsPerPage]);
-
-  const totalCount = discounts.length;
-  const activeCount = discounts.filter((d) => d.status === 'Active').length;
-
-  const handleToggleSelectAll = () => {
-    if (selectedRowIds.length === paginatedDiscounts.length) {
-      setSelectedRowIds([]);
-    } else {
-      setSelectedRowIds(paginatedDiscounts.map((d) => d.id));
-    }
-  };
-
-  const handleToggleRow = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedRowIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
-
-  return (
-    <div className="w-full space-y-5 pb-12">
-      {/* Toast */}
-      {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 flex items-center gap-2 bg-[#6222cc] text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium animate-in fade-in slide-in-from-top-2">
-          <CheckCircle2 className="h-4 w-4 text-white" />
-          <span>{toastMessage}</span>
+  return <section className="space-y-4">
+    <header className="flex flex-wrap justify-between gap-3">
+      <div><h1 className="text-3xl font-bold tracking-tight">Discounts &amp; Coupons</h1><p className="text-sm text-muted-foreground">Manage automatic discounts and coupon codes for subscriptions and add-on purchases.</p></div>
+      <Button className={primary} onClick={() => open()}><Plus />Create Discount / Coupon</Button>
+    </header>
+    <dl className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-busy={cards.isFetching}>
+      {metrics.map(({ label, value, icon: Icon, color }) => <div key={label} className={panel + ' flex items-center gap-4 px-4 py-3'}>
+        <span className={'rounded-full p-3 ' + color}><Icon aria-hidden className="size-6" /></span>
+        <div><dt className="text-sm font-medium">{label}</dt><dd className="text-2xl font-bold" title={value == null && !cards.isFetching ? 'Metric unavailable' : undefined}>
+          {cards.isError || value == null ? '—' : typeof value === 'string' ? money.format(Number(value)) : formatNumber.format(value)}
+        </dd></div>
+      </div>)}
+    </dl>
+    {cards.isError && <p role="alert" className="text-sm text-destructive">Could not load discount totals. <button className="underline" onClick={() => void cards.refetch()}>Retry</button></p>}
+    {message && <p role="status" className="text-sm text-emerald-700">{message}</p>}
+    {error && !draft && <p role="alert" className="text-sm text-destructive">{error}</p>}
+    <nav aria-label="Offer type" className="flex gap-3 border-b">
+      {(['Discount', 'Coupon'] as const).map(value => <button key={value} type="button" aria-pressed={kind === value}
+        className={'px-5 py-2 text-sm font-semibold ' + (value === kind ? 'border-b-2 border-violet-700 text-violet-700' : '')}
+        onClick={() => { setKind(value); setDraft(null); setPage(0); setSelected([]); setMessage(''); setError(''); }}>{value}s</button>)}
+    </nav>
+    <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <section className={panel}>
+        <form className="flex flex-wrap items-end gap-3 border-b p-3" onSubmit={event => { event.preventDefault(); setApplied(filters); setPage(0); }}>
+          <div className="min-w-28 flex-1"><Field label="Product"><select className={selectStyle} value={filters.product} onChange={event => setFilters({ ...filters, product: event.target.value })}>
+            <option value="">All Products</option>{products.map(item => <option key={item.id} value={item.id}>{item.Product_Name}</option>)}
+          </select></Field></div>
+          <div className="min-w-28 flex-1"><Field label="Discount Type"><select className={selectStyle} value={filters.type} onChange={event => setFilters({ ...filters, type: event.target.value })}>
+            <option value="">All Types</option>{types.map(type => <option key={type}>{type}</option>)}
+          </select></Field></div>
+          <div className="min-w-24 flex-1"><Field label="Status"><select className={selectStyle} value={filters.status} onChange={event => setFilters({ ...filters, status: event.target.value })}>
+            <option value="">All Status</option>{statuses.map(status => <option key={status}>{status}</option>)}
+          </select></Field></div>
+          <Button type="button" variant="ghost" className="text-violet-700" onClick={() => { setApplied(filtersEmpty); setFilters(filtersEmpty); setSearch(''); setPage(0); }}>Reset</Button>
+          <Button type="submit" className={primary}>Apply</Button>
+        </form>
+        <div className="flex flex-wrap items-center gap-2 border-b p-3">
+          <div className="relative min-w-36 flex-1"><Search aria-hidden className="absolute left-2 top-2.5 size-4 text-muted-foreground" /><Input className="h-9 pl-8" aria-label="Search by discount name or code" placeholder="Search by discount name or code…" value={search} onChange={event => { setSearch(event.target.value); setPage(0); }} /></div>
+          <Button variant="outline" className="text-violet-700" disabled={!visible.length || list.isError} onClick={exportCsv}><Download />Export</Button>
+          <details className="relative"><summary className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm text-violet-700"><Grid2X2 className="size-4" />Columns</summary>
+            <div className="absolute right-0 z-10 w-44 space-y-2 rounded border bg-card p-3 text-sm shadow-md">{columns.map(column => <label key={column} className="flex gap-2"><input type="checkbox" checked={!hidden.includes(column)} onChange={() => setHidden(previous => previous.includes(column) ? previous.filter(value => value !== column) : [...previous, column])} />{column}</label>)}</div>
+          </details>
         </div>
-      )}
-
-      {/* Top Header & Breadcrumbs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
-            <span>Add-on Marketplace</span>
-            <span>&gt;</span>
-            <span className="text-[#6222cc] dark:text-purple-300 font-medium">Discounts & Coupons</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            Discounts & Coupons
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Manage promotional codes, percentage discounts, and voucher rules for add-on activations.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={handleStartCreateNew}
-            className="h-9 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Create Discount</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 4 KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Discounts</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
-              {kpiData?.active_discounts ?? activeCount ?? 8}
-            </p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-[#6222cc] dark:text-purple-300">
-            <Tag className="h-5 w-5" />
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Redeemed</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
-              {kpiData?.total_redeemed ? kpiData.total_redeemed.toLocaleString() : '1,420'}
-            </p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-            <CheckCircle2 className="h-5 w-5" />
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Discounts Value</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
-              {kpiData?.avg_discount || '₹2.4L'}
-            </p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
-            <Coins className="h-5 w-5" />
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Expiring Soon</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
-              {kpiData?.inactive_coupons ?? 2}
-            </p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 flex items-center justify-center text-rose-600 dark:text-rose-400">
-            <Clock className="h-5 w-5" />
-          </div>
-        </div>
-      </div>
-
-      {/* Subtabs */}
-      <div className="flex items-center gap-6 border-b border-slate-200 dark:border-slate-800 text-xs font-medium">
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('discounts')}
-          className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'discounts' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
-          }`}
-        >
-          Discounts
-          {activeSubTab === 'discounts' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('coupons')}
-          className={`pb-2.5 transition-colors relative ${
-            activeSubTab === 'coupons' ? 'text-[#6222cc] font-semibold' : 'text-slate-500'
-          }`}
-        >
-          Coupons
-          {activeSubTab === 'coupons' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#6222cc] rounded-full" />
-          )}
-        </button>
-      </div>
-
-      {/* 2-COLUMN SPLIT GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* LEFT COLUMN: Table List */}
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
-          {/* Table Header toolbar */}
-          <div className="p-4 border-b border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Discounts ({filteredDiscounts.length})
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="relative w-48 sm:w-56">
-                {isSearching ? (
-                  <Loader2 className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-purple-600 animate-spin" />
-                ) : (
-                  <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                )}
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  placeholder="Search discounts..."
-                  className="h-8 pl-8 text-xs bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg"
-                />
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportCSV}
-                disabled={isExporting}
-                className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 dark:border-slate-700"
-              >
-                {isExporting ? (
-                  <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
-                ) : (
-                  <FileDown className="h-3.5 w-3.5 mr-1" />
-                )}
-                Export
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 dark:border-slate-700"
-              >
-                <Columns className="h-3.5 w-3.5 mr-1" />
-                Columns
-              </Button>
-            </div>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/80 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 border-b border-slate-200/80 dark:border-slate-800 font-medium">
-                <tr>
-                  <th className="py-2.5 px-3 w-8">
-                    <input
-                      type="checkbox"
-                      checked={
-                        paginatedDiscounts.length > 0 &&
-                        selectedRowIds.length === paginatedDiscounts.length
-                      }
-                      onChange={handleToggleSelectAll}
-                      className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
-                    />
-                  </th>
-                  <th className="py-2.5 px-3 font-semibold">Discount Name</th>
-                  <th className="py-2.5 px-3 font-semibold">Type</th>
-                  <th className="py-2.5 px-3 font-semibold">Value</th>
-                  <th className="py-2.5 px-3 font-semibold">Supported Products</th>
-                  <th className="py-2.5 px-3 font-semibold">Validity</th>
-                  <th className="py-2.5 px-3 font-semibold">Status</th>
-                  <th className="py-2.5 px-3 text-right font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {paginatedDiscounts.map((item) => {
-                  const isSelected = selectedDiscountId === item.id && !isCreatingNew;
-                  const isChecked = selectedRowIds.includes(item.id);
-
-                  return (
-                    <tr
-                      key={item.id}
-                      onClick={() => handleSelectDiscount(item)}
-                      className={`cursor-pointer transition-colors ${
-                        isSelected
-                          ? 'bg-purple-50/60 dark:bg-purple-950/30'
-                          : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40'
-                      }`}
-                    >
-                      <td className="py-3 px-3" onClick={(e) => handleToggleRow(item.id, e)}>
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {}}
-                          className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] focus:border-[#6222cc] cursor-pointer"
-                        />
-                      </td>
-                      <td className="py-3 px-3 font-semibold text-[#6222cc] dark:text-purple-300 hover:underline">
-                        {item.name}
-                      </td>
-                      <td className="py-3 px-3 text-slate-600 dark:text-slate-400">
-                        {item.type}
-                      </td>
-                      <td className="py-3 px-3 font-semibold text-slate-800 dark:text-slate-200">
-                        {item.discountValue}
-                      </td>
-                      <td className="py-3 px-3">
-                        <div className="flex flex-wrap gap-1">
-                          {item.supportedProducts?.map((p) => (
-                            <span
-                              key={p}
-                              className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px]"
-                            >
-                              {p.replace('Pegatto ', '')}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="py-3 px-3 text-slate-500 dark:text-slate-400 text-[11px]">
-                        {item.validityPeriod}
-                      </td>
-                      <td className="py-3 px-3">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                            item.status === 'Active'
-                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                              : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-right">
-                        <div
-                          className="flex items-center justify-end gap-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => handleSelectDiscount(item)}
-                            className="p-1 rounded text-slate-400 hover:text-[#6222cc] hover:bg-slate-100 dark:hover:bg-slate-800"
-                            title="Edit Discount"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <div className="relative">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setActiveMenuRowId(
-                                  activeMenuRowId === item.id ? null : item.id
-                                )
-                              }
-                              className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
-                            >
-                              <MoreVertical className="h-3.5 w-3.5" />
-                            </button>
-                            {activeMenuRowId === item.id && (
-                              <div className="absolute right-0 top-full mt-1 w-32 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg z-30 py-1 text-xs">
-                                <button
-                                  type="button"
-                                  onClick={() => handleSelectDiscount(item)}
-                                  className="w-full text-left px-3 py-1.5 hover:bg-purple-50 dark:hover:bg-purple-950/50 text-slate-700 dark:text-slate-300 flex items-center gap-1.5"
-                                >
-                                  <Pencil className="h-3 w-3 text-[#6222cc]" />
-                                  Edit Record
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeletePrompt(item)}
-                                  className="w-full text-left px-3 py-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-600 flex items-center gap-1.5"
-                                >
-                                  <Trash2 className="h-3 w-3 text-rose-500" />
-                                  Delete
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="p-3 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
-            <div>
-              Showing {filteredDiscounts.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}-
-              {Math.min(currentPage * rowsPerPage, filteredDiscounts.length)} of {filteredDiscounts.length} discounts
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(1)}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  &laquo;
-                </button>
-                <button
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </button>
-                {Array.from({ length: totalPages }).map((_, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setCurrentPage(idx + 1)}
-                    className={`h-6 w-6 rounded text-xs font-medium flex items-center justify-center ${
-                      currentPage === idx + 1
-                        ? 'bg-[#6222cc] text-white'
-                        : 'text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(totalPages)}
-                  className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40"
-                >
-                  &raquo;
-                </button>
+        {list.isError ? <p role="alert" className="p-4 text-sm text-destructive">Could not load offers. <button className="underline" onClick={() => void list.refetch()}>Retry</button></p>
+          : list.isLoading ? <p role="status" className="p-4 text-sm text-muted-foreground">Loading offers…</p>
+          : <div className="overflow-x-auto"><table className="w-full text-left text-xs">
+            <thead className="bg-muted/50"><tr>
+              <th className="p-2"><input type="checkbox" aria-label="Select visible offers" checked={!!slice.length && slice.every(item => selected.includes(item.id))} onChange={event => {
+                const ids = slice.map(item => item.id);
+                setSelected(previous => event.target.checked ? [...new Set([...previous, ...ids])] : previous.filter(id => !ids.includes(id)));
+              }} /></th>
+              {columns.filter(column => !hidden.includes(column)).map(column => <th key={column} className="p-2">{column === 'Name' ? kind + ' Name' : column}</th>)}
+              <th className="p-2">Actions</th>
+            </tr></thead>
+            <tbody className="divide-y">
+              {!slice.length && <tr><td colSpan={columns.length - hidden.length + 2} className="p-6 text-sm text-muted-foreground">No {kind.toLowerCase()}s match the current filters.</td></tr>}
+              {slice.map(item => {
+                const cells: ReactNode[] = [
+                  <button onClick={() => open(item)} className="text-left font-semibold text-violet-700 underline">{offerName(item)}{item.Kind === 'Coupon' && item.Name && <span className="block text-xs font-normal">{item.Coupon_Code}</span>}</button>,
+                  item.Discount_Type || '—', <span className="rounded-full bg-violet-100 px-2 py-1 text-violet-900">{item.Applicability}</span>,
+                  formattedValue(item), <>{displayDate(item.Valid_From)}<br />{displayDate(item.Valid_To)}</>, <StatusPill value={item.Status} />,
+                ];
+                return <tr key={item.id} className={draft?.id === item.id ? 'bg-violet-50 dark:bg-violet-950/40' : 'hover:bg-muted/50'}>
+                  <td className="p-2"><input type="checkbox" aria-label={'Select ' + offerName(item)} checked={selected.includes(item.id)} onChange={() => setSelected(previous => toggle(previous, item.id))} /></td>
+                  {cells.map((cell, index) => !hidden.includes(columns[index]) && <td key={columns[index]} className="p-2">{cell}</td>)}
+                  <td className="p-2"><div className="flex items-center gap-1">
+                    <Button size="icon" variant="ghost" className="size-7 text-violet-700" aria-label={'Edit ' + offerName(item)} onClick={() => open(item)}><Pencil className="size-4" /></Button>
+                    <DropdownMenu modal={false}>
+                      <DropdownMenuTrigger type="button" disabled={busy} aria-label={'Actions for ' + offerName(item)}
+                        className="grid size-7 shrink-0 place-items-center rounded-md text-violet-700 hover:bg-violet-100 dark:text-violet-300 dark:hover:bg-violet-950">
+                        <MoreVertical aria-hidden className="size-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => open(item)}><Pencil /> Edit</DropdownMenuItem>
+                        <DropdownMenuItem variant="destructive" onClick={() => void deleteOffer(item)}><Trash2 /> Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div></td>
+                </tr>;
+              })}
+            </tbody>
+          </table></div>}
+        {!list.isError && !!visible.length && <footer className="flex flex-wrap items-center justify-between gap-2 border-t p-3 text-xs">
+          <span>Showing {activePage * size + 1}–{activePage * size + slice.length} of {visible.length}</span>
+          <div className="flex items-center gap-2"><label className="flex items-center gap-1">Rows per page <select className="rounded border bg-background p-1" value={size} onChange={event => { setSize(Number(event.target.value)); setPage(0); }}>{[10, 25, 50].map(value => <option key={value}>{value}</option>)}</select></label>
+            <Button variant="outline" size="sm" disabled={!activePage} onClick={() => setPage(activePage - 1)}>‹</Button>
+            <span className="rounded bg-violet-700 px-2 py-1 text-white">{activePage + 1}</span>
+            <Button variant="outline" size="sm" disabled={(activePage + 1) * size >= visible.length} onClick={() => setPage(activePage + 1)}>›</Button></div>
+        </footer>}
+      </section>
+      <aside className={panel}>
+        <h2 className="flex items-center justify-between gap-2 rounded-t-xl bg-violet-50 px-4 py-3 text-base font-bold dark:bg-violet-950/40">{draft ? (draft.id ? 'Edit ' : 'Create ') + kind : kind + ' Details'}{current && <StatusPill value={current.Status} />}</h2>
+        {!draft ? <p className="p-4 text-sm text-muted-foreground">Select an offer to edit or create a new one.</p> : <form className="p-4" onSubmit={save}>
+          <fieldset className="min-w-0 space-y-3" disabled={busy}>
+            <Field label={kind + ' Name'}><Input className="h-9" required={kind === 'Discount'} maxLength={150} value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })} /></Field>
+            {kind === 'Coupon' && <Field label="Coupon Code"><Input className="h-9" required maxLength={50} value={draft.code} onChange={event => setDraft({ ...draft, code: event.target.value })} /></Field>}
+            <div className="grid items-start gap-3 sm:grid-cols-2">
+              <Field label="Discount Type"><select className={selectStyle} required value={draft.type} onChange={event => setDraft({ ...draft, type: event.target.value })}><option value="">Select type</option>{types.map(type => <option key={type}>{type}</option>)}</select></Field>
+              <Field label="Discount Value"><div className="flex items-center gap-2"><Input className="h-9" type="number" required min="0.01" max={draft.type === 'Percentage' ? 100 : undefined} step="0.01" value={draft.amount} onChange={event => setDraft({ ...draft, amount: event.target.value })} /><span>{draft.type === 'Percentage' ? '%' : draft.type === 'Flat Amount' ? '₹' : ''}</span></div></Field>
+              <Field label="Applicability"><select className={selectStyle} required value={draft.applies} onChange={event => {
+                const applies = event.target.value as Draft['applies'];
+                setDraft({ ...draft, applies, products: applies === 'Add-on' ? [] : draft.products, addons: applies === 'Subscription' ? [] : draft.addons });
+              }}><option value="">Select applicability</option><option>Subscription</option><option>Add-on</option><option>All</option></select></Field>
+              <div className="grid min-w-0 gap-1.5">
+                <span id="discount-targets-label" className="text-sm font-medium">Products / Add-ons</span>
+                <details className="min-w-0 space-y-2 text-sm">
+                <summary aria-labelledby="discount-targets-label discount-targets-value" className="h-9 cursor-pointer truncate rounded-md border border-input bg-background px-2 leading-9">
+                  <span id="discount-targets-value">{draft.products.length + draft.addons.length > 0 ? (draft.products.length + draft.addons.length) + ' selected' : 'Select products or add-ons'}</span>
+                </summary>
+                <div className="flex flex-wrap gap-1">
+                  {[...products.filter(item => draft.products.includes(item.id)).map(item => ({ key: 'p' + item.id, name: item.Product_Name })),
+                    ...addons.filter(item => draft.addons.includes(item.id)).map(item => ({ key: 'a' + item.id, name: item.Addon_Name }))]
+                    .map(item => <span key={item.key} className="rounded-full bg-violet-100 px-2 text-xs text-violet-900">{item.name}</span>)}
+                </div>
+                <div className="max-h-36 space-y-1 overflow-y-auto rounded border p-2">
+                  {draft.applies && draft.applies !== 'Add-on' && products.map(item => <label key={'p' + item.id} className="flex gap-2"><input type="checkbox" checked={draft.products.includes(item.id)} onChange={() => {
+                    const ids = toggle(draft.products, item.id);
+                    const allowed = new Set(options.data?.plans.filter(plan => !ids.length || (plan.Product_id != null && ids.includes(plan.Product_id))).map(plan => plan.id));
+                    setDraft({ ...draft, products: ids, plans: draft.plans.filter(id => allowed.has(id)) });
+                  }} />{item.Product_Name}</label>)}
+                  {draft.applies && draft.applies !== 'Subscription' && addons.map(item => <label key={'a' + item.id} className="flex gap-2"><input type="checkbox" checked={draft.addons.includes(item.id)} onChange={() => setDraft({ ...draft, addons: toggle(draft.addons, item.id) })} />{item.Addon_Name}</label>)}
+                  <p className="text-xs text-muted-foreground">{draft.applies ? 'Leave empty to include all eligible items.' : 'Select applicability first.'}</p>
+                </div>
+                </details>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN: Create / Edit Discount Card */}
-        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
-          {/* Card Top Title & Status */}
-          <div className="p-4 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                {isCreatingNew ? 'Create Discount' : 'Create / Edit Discount'}
-              </h2>
+            {options.isError && <p role="alert" className="text-sm text-destructive">Could not load targeting options. <button className="underline" type="button" onClick={() => void options.refetch()}>Retry</button></p>}
+            <fieldset><legend className="mb-1 text-sm font-medium">Applicable Plans</legend><div className="flex max-h-28 flex-wrap gap-3 overflow-y-auto text-xs">
+              <label className="flex items-center gap-1"><input type="checkbox" checked={!draft.plans.length} onChange={() => setDraft({ ...draft, plans: [] })} />All Plans</label>
+              {plans.map(plan => <label key={plan.id} className="flex items-center gap-1"><input type="checkbox" checked={draft.plans.includes(plan.id)} onChange={() => setDraft({ ...draft, plans: toggle(draft.plans, plan.id) })} />{plan.Plan_Name || plan.Plan_Id}</label>)}
+            </div></fieldset>
+            <fieldset><legend className="mb-1 text-sm font-medium">Validity Period</legend><div className="grid grid-cols-2 gap-2">
+              <Input aria-label="Valid from" className="h-9" type="date" required value={draft.from} onChange={event => setDraft({ ...draft, from: event.target.value })} />
+              <Input aria-label="Valid to" className="h-9" type="date" min={draft.from || undefined} required value={draft.to} onChange={event => setDraft({ ...draft, to: event.target.value })} />
+            </div></fieldset>
+            <fieldset className="border-b pb-3"><legend className="mb-1 text-sm font-medium">Scope</legend><div className="flex flex-wrap gap-3 text-xs">
+              {([{ value: 'All', label: 'All Customers' }, { value: 'New', label: 'New Customers Only' }, { value: 'Existing', label: 'Existing Customers Only' }] as const).map(({ value, label }) => <label key={value} className="flex items-center gap-1"><input type="radio" name="scope" checked={draft.scope === value} onChange={() => setDraft({ ...draft, scope: value })} />{label}</label>)}
+            </div></fieldset>
+            <fieldset className="space-y-2"><legend className="mb-1 text-sm font-medium">Usage Limit</legend>
+              {([['limit', 'Limit total redemptions'], ['customerLimit', 'Limit per customer']] as const).map(([key, label]) => <div key={key} className="grid grid-cols-2 items-center gap-2">
+                <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={draft[key] !== null} onChange={event => setDraft({ ...draft, [key]: event.target.checked ? '' : null })} />{label}</label>
+                <Input aria-label={label + ' amount'} className="h-9" type="number" min="1" max="2147483647" step="1" disabled={draft[key] === null} required={draft[key] !== null} value={draft[key] ?? ''} onChange={event => setDraft({ ...draft, [key]: event.target.value })} />
+              </div>)}
+            </fieldset>
+            {error && <p role="alert" className="break-words text-sm text-destructive">{error}</p>}
+            <div className="flex flex-wrap justify-end gap-2 border-t pt-3">
+              <Button type="button" variant="outline" onClick={() => { setDraft(null); setError(''); }}>Cancel</Button>
+              <Button type="submit" variant="outline" value="draft" className="border-violet-400 text-violet-700" disabled={options.isLoading || options.isError}>Save as Draft</Button>
+              <Button type="submit" className={primary} disabled={options.isLoading || options.isError}>{busy ? 'Saving…' : (draft.id ? 'Update ' : 'Save ') + kind}</Button>
             </div>
-            <span
-              className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                formData.status === 'Active'
-                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                  : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
-              }`}
-            >
-              {formData.status}
-            </span>
-          </div>
-
-          {/* Form Content */}
-          <div className="p-4 space-y-4 text-xs">
-            <div>
-              <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                Discount Name <span className="text-rose-500">*</span>
-              </label>
-              <Input
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="h-8 text-xs"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  Type <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value as 'Percentage' | 'Flat Amount' })}
-                  className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white dark:bg-slate-900"
-                >
-                  <option>Percentage</option>
-                  <option>Flat Amount</option>
-                </select>
-              </div>
-              <div>
-                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  Discount Value <span className="text-rose-500">*</span>
-                </label>
-                <Input
-                  value={formData.discountValue}
-                  onChange={(e) => setFormData({ ...formData, discountValue: e.target.value })}
-                  className="h-8 text-xs font-semibold"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                Applicable Products
-              </label>
-              <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-lg border border-slate-200 bg-slate-50/50">
-                {formData.supportedProducts?.map((prod) => (
-                  <span
-                    key={prod}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[11px] font-medium"
-                  >
-                    {prod}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormData({
-                          ...formData,
-                          supportedProducts: formData.supportedProducts?.filter((p) => p !== prod),
-                        });
-                      }}
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  Start Date
-                </label>
-                <Input
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div>
-                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  End Date
-                </label>
-                <Input
-                  value={formData.endDate}
-                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  className="h-8 text-xs"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  Max Redemptions
-                </label>
-                <Input
-                  type="number"
-                  value={formData.limitTotalRedemptions || 1000}
-                  onChange={(e) => setFormData({ ...formData, limitTotalRedemptions: Number(e.target.value) })}
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div>
-                <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  Status
-                </label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value as 'Active' | 'Draft' | 'Scheduled' | 'Expired' })}
-                  className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white dark:bg-slate-900"
-                >
-                  <option>Active</option>
-                  <option>Draft</option>
-                  <option>Scheduled</option>
-                  <option>Expired</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Card Footer Actions */}
-          <div className="p-4 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-800/20">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => {
-                if (selectedDiscount) {
-                  setFormData({ ...selectedDiscount });
-                  setIsCreatingNew(false);
-                }
-              }}
-              className="h-8 px-3 text-xs border-slate-200"
-            >
-              Cancel
-            </Button>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                type="button"
-                disabled={isCreating || isUpdating}
-                onClick={() => handleSaveForm(true)}
-                className="h-8 px-3 text-xs border-slate-200 hover:bg-slate-100 text-slate-700"
-              >
-                Save as Draft
-              </Button>
-              <Button
-                type="button"
-                disabled={isCreating || isUpdating}
-                onClick={() => handleSaveForm(false)}
-                className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs flex items-center gap-1.5"
-              >
-                {(isCreating || isUpdating) && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                <span>
-                  {isCreating
-                    ? 'Creating...'
-                    : isUpdating
-                    ? 'Updating...'
-                    : isCreatingNew
-                    ? 'Create Discount'
-                    : 'Update Discount'}
-                </span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDeleteDialog
-        isOpen={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        onConfirm={handleConfirmDelete}
-        title="Delete Discount"
-        description={`Are you sure you want to delete discount "${itemToDelete?.name}"?`}
-      />
+          </fieldset>
+        </form>}
+      </aside>
     </div>
-  );
+  </section>;
 }

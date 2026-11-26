@@ -1,11 +1,29 @@
 import { baseApi } from '../baseApi';
+import { broadcastPricingChange, pricingTags } from '../compatibilitySync';
 import { loadResultPages } from './loadResultPages';
+
+export interface PricingTier {
+  Name: string;
+  Min_Employees: number;
+  Max_Employees: number;
+  Tier_Price: string | number;
+  Storage?: string;
+  Features?: string;
+  Unit_Price?: string | null;
+  Discount?: string | null;
+}
 
 export interface AddonPriceTemplateDto {
   id: number;
   AddonPriceTemplate_Id: string;
   Template_Code: string;
   Template_Name: string;
+  Description?: string;
+  Discount_Percentage?: string | null;
+  Tiers?: PricingTier[];
+  Applied_Addons?: number[];
+  Show_For_New_Addons?: boolean;
+  Allow_Customization?: boolean;
   Billing_Type: string | null;
   Billing_Cycle: string | null;
   Currency: string;
@@ -54,9 +72,29 @@ export const addonPriceTemplateApi = baseApi.injectEndpoints({
     }),
 
     // 2. List Without Pagination Endpoint
-    getAddonPriceTemplatesWithoutPagination: builder.query<AddonPriceTemplateDto[], void>({
-      query: () => prefix + 'listwithoutpaginaton/',
+    getAddonPriceTemplatesWithoutPagination: builder.query<AddonPriceTemplateDto[], void | { includeTiers: false }>({
+      query: (options) => ({ url: prefix + 'listwithoutpaginaton/', params: options && { include_tiers: options.includeTiers } }),
       transformResponse: (response: any) => (Array.isArray(response) ? response : response?.results || []),
+      providesTags: tags,
+      extraOptions,
+    }),
+
+    getPriceTemplateList: builder.query<AddonPriceTemplateDto[], void>({
+      queryFn: async (_arg, { signal }, _options, baseQuery) => loadResultPages<AddonPriceTemplateDto>(async (page) => {
+        const response = await baseQuery({
+          url: 'superadmin/AddonPriceHistoryListwithPagination/',
+          method: 'GET',
+          params: { view: 'templates', page },
+        });
+        if (response.error) return { error: response.error };
+        const results = (response.data as { results?: unknown } | null)?.results;
+        if (!Array.isArray(results) || !results.every(row =>
+          row && typeof row.id === 'number' && typeof row.Template_Code === 'string' && typeof row.Template_Name === 'string'
+        )) {
+          return { error: { status: 'CUSTOM_ERROR' as const, error: 'Expected paginated price template records.' } };
+        }
+        return { data: response.data };
+      }, signal),
       providesTags: tags,
       extraOptions,
     }),
@@ -118,7 +156,8 @@ export const addonPriceTemplateApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      invalidatesTags: tags,
+      invalidatesTags: (_result, error) => error ? [] : [...pricingTags],
+      onQueryStarted: broadcastPricingChange,
       extraOptions,
     }),
 
@@ -128,7 +167,8 @@ export const addonPriceTemplateApi = baseApi.injectEndpoints({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: tags,
+      invalidatesTags: (_result, error) => error ? [] : [...pricingTags],
+      onQueryStarted: broadcastPricingChange,
       extraOptions,
     }),
 
@@ -137,7 +177,8 @@ export const addonPriceTemplateApi = baseApi.injectEndpoints({
         url: `${crud}?id=${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: tags,
+      invalidatesTags: (_result, error) => error ? [] : [...pricingTags],
+      onQueryStarted: broadcastPricingChange,
       extraOptions,
     }),
   }),
@@ -147,6 +188,7 @@ export const {
   useGetAddonPriceTemplateKPIQuery,
   useGetAddonPriceTemplatesWithoutPaginationQuery,
   useGetAddonPriceTemplatesWithPaginationQuery,
+  useGetPriceTemplateListQuery,
   useSearchAddonPriceTemplatesQuery,
   useLazySearchAddonPriceTemplatesQuery,
   useFilterAddonPriceTemplatesQuery,
