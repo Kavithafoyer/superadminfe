@@ -4,11 +4,18 @@ export interface AddonDiscountCouponDto {
   id: number;
   AddonDiscountCoupon_Id?: string;
   Coupon_Code: string;
+  Name: string;
+  Kind: 'Discount' | 'Coupon';
+  Applicability: 'Subscription' | 'Add-on' | 'All';
+  Scope: 'All' | 'New' | 'Existing';
+  Applicable_Products: number[];
+  Applicable_Plans: number[];
+  Per_Customer_Limit: number | null;
   Discount_Type?: string;
   Discount_Value: number | string;
   Valid_From?: string;
   Valid_To?: string;
-  Usage_Limit?: number;
+  Usage_Limit?: number | null;
   Is_Active?: boolean;
   Is_Deleted?: boolean;
   Created_Date?: string;
@@ -25,7 +32,8 @@ export interface AddonDiscountCouponDto {
 
 export interface AddonDiscountCouponKPIDto {
   active_discounts?: number;
-  total_redeemed?: number;
+  total_redeemed?: number | null;
+  total_discount_value?: string | null;
   total_coupons?: number;
   active_coupons?: number;
   inactive_coupons?: number;
@@ -33,8 +41,19 @@ export interface AddonDiscountCouponKPIDto {
   [key: string]: any;
 }
 
+export interface DiscountCouponOptions {
+  products: { id: number; Product_Name: string | null }[];
+  addons: { id: number; Addon_Name: string | null; Products: number[] }[];
+  plans: { id: number; Plan_Name: string | null; Plan_Id: string; Product_id: number | null }[];
+}
+
 export const addonDiscountCouponApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getAddonDiscountCouponOptions: builder.query<DiscountCouponOptions, void>({
+      query: () => 'superadmin/AddonDiscountCouponOptions/',
+      extraOptions: { skipHostFallback: true },
+      providesTags: ['AddonMaster', 'ProductMasters'],
+    }),
     getAddonDiscountCouponKPI: builder.query<AddonDiscountCouponKPIDto, void>({
       query: () => ({
         url: 'superadmin/AddonDiscountCouponKPI/',
@@ -44,16 +63,11 @@ export const addonDiscountCouponApi = baseApi.injectEndpoints({
     }),
 
     getAddonDiscountCouponWithoutPagination: builder.query<AddonDiscountCouponDto[], void>({
+      extraOptions: { skipHostFallback: true },
       query: () => ({
         url: 'superadmin/AddonDiscountCouponlistwithoutpaginaton/',
         method: 'GET',
       }),
-      transformResponse: (response: any) => {
-        if (Array.isArray(response)) return response;
-        if (response && Array.isArray(response.results)) return response.results;
-        if (response && Array.isArray(response.data)) return response.data;
-        return [];
-      },
       providesTags: (result) =>
         result
           ? [
@@ -173,6 +187,7 @@ export const addonDiscountCouponApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetAddonDiscountCouponOptionsQuery,
   useGetAddonDiscountCouponKPIQuery,
   useGetAddonDiscountCouponWithoutPaginationQuery,
   useGetAddonDiscountCouponWithPaginationQuery,

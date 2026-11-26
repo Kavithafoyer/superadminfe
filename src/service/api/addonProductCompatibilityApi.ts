@@ -67,11 +67,6 @@ export const addonProductCompatibilityApi = baseApi.injectEndpoints({
       providesTags: tags,
       extraOptions,
     }),
-    getCompatibilityEditions: builder.query<{ id: number; Product_Id: number; Edition_Name: string | null; Edition_Code: string | null }[], void>({
-      query: () => 'superadmin/ProductEditionlistwithoutpaginaton/',
-      providesTags: ['ProductMasters'],
-      extraOptions,
-    }),
     saveCompatibilityProducts: builder.mutation<CompatibilityRule[], Omit<CompatibilityInput, 'Product'> & {
       Products: number[];
       Removed_Products?: number[];
@@ -101,5 +96,5 @@ export const addonProductCompatibilityApi = baseApi.injectEndpoints({
 export const {
   useGetCompatibilityMatrixQuery, useListCompatibilityRulesQuery, useSearchCompatibilityRulesQuery,
   useFilterCompatibilityRulesQuery, useGetCompatibilityRuleQuery, useSaveCompatibilityRuleMutation,
-  useDeleteCompatibilityRuleMutation, useGetCompatibilityEditionsQuery, useSaveCompatibilityProductsMutation,
+  useDeleteCompatibilityRuleMutation, useSaveCompatibilityProductsMutation,
 } = addonProductCompatibilityApi;

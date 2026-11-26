@@ -1,4 +1,7 @@
 import { baseApi } from '../baseApi';
+import { broadcastPricingChange } from '../compatibilitySync';
+import type { TierScheduleDetails } from './addonPricingApi';
+import type { PricingTier } from './addonPriceTemplateApi';
 
 export interface AddonTieredPricingDto {
   id: number;
@@ -11,6 +14,8 @@ export interface AddonTieredPricingDto {
   Billing_Cycle?: string;
   Currency?: string;
   Template_Code?: string;
+  Name?: string;
+  Rate_Details?: Pick<PricingTier, 'Storage' | 'Features' | 'Unit_Price' | 'Discount'>;
   Min_Employees: number;
   Max_Employees: number;
   Tier_Price: number | string;
@@ -35,6 +40,18 @@ export interface AddonTieredPricingKPIDto {
 
 export const addonTieredPricingApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    saveAddonTierSchedule: builder.mutation<AddonTieredPricingDto[], {
+      Addon_Pricing: number;
+      Price_Template: number;
+      Is_Active: boolean;
+      Tiers: PricingTier[];
+      Schedule?: TierScheduleDetails;
+    }>({
+      query: (body) => ({ url: 'superadmin/AddonTieredPricingCRUD/', method: 'POST', body }),
+      extraOptions: { skipHostFallback: true },
+      invalidatesTags: (_result, error) => error ? [] : ['AddonTieredPricing', 'AddonPricing'],
+      onQueryStarted: broadcastPricingChange,
+    }),
     getAddonTieredPricingKPI: builder.query<AddonTieredPricingKPIDto, void>({
       query: () => ({
         url: 'superadmin/AddonTieredPricingKPI/',
@@ -173,6 +190,7 @@ export const addonTieredPricingApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useSaveAddonTierScheduleMutation,
   useGetAddonTieredPricingKPIQuery,
   useGetAddonTieredPricingWithoutPaginationQuery,
   useGetAddonTieredPricingWithPaginationQuery,
