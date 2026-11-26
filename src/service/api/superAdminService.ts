@@ -1,4 +1,4 @@
-import { baseApi } from "../baseApi";
+import { baseApi, getTenantName, normalizeApiUrl } from "../baseApi";
 import { fetchFromApi } from "../apiClient";
 
 // ----------------------------------------------------------------------
@@ -2459,12 +2459,87 @@ export const superAdminApi = baseApi.injectEndpoints({
       providesTags: ["Accounts"],
     }),
 
+    getAccountsPaginatedList: builder.query<
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: AccountRecord[];
+      },
+      { page?: number; product?: string; search?: string } | void
+    >({
+      query: (params) => {
+        const queryParams = new URLSearchParams();
+        queryParams.append("Is_Deleted", "False");
+        queryParams.append("page", String(params?.page && params.page > 0 ? params.page : 1));
+        if (params?.product && params.product !== "All Products") {
+          queryParams.append("Primary_Product", params.product);
+          queryParams.append("Product", params.product);
+        }
+        if (params?.search && params.search.trim()) {
+          queryParams.append("search", params.search.trim());
+        }
+        return `superadmin/AccountAdditional/?${queryParams.toString()}`;
+      },
+      transformResponse: (res: any) => {
+        if (Array.isArray(res)) {
+          return { count: res.length, next: null, previous: null, results: res };
+        }
+        const results = Array.isArray(res?.results)
+          ? res.results
+          : Array.isArray(res?.data)
+          ? res.data
+          : [];
+        return {
+          count: typeof res?.count === "number" ? res.count : results.length,
+          next: res?.next ?? null,
+          previous: res?.previous ?? null,
+          results,
+        };
+      },
+      providesTags: ["Accounts"],
+    }),
+
     searchAccounts: builder.query<AccountRecord[], string>({
       query: (search) =>
-        `superadmin/AccountSearch/?search=${encodeURIComponent(search)}`,
+        `superadmin/CustomerAccountSearch/?search=${encodeURIComponent(search)}`,
       transformResponse: (res: any) => {
         const raw = res?.data || res?.results || res;
         return Array.isArray(raw) ? raw : raw?.results ? raw.results : [];
+      },
+      providesTags: ["Accounts"],
+    }),
+
+    searchCustomerAccountsPaginated: builder.query<
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: AccountRecord[];
+      },
+      { search: string; page?: number }
+    >({
+      query: ({ search, page = 1 }) => {
+        const queryParams = new URLSearchParams();
+        queryParams.append("search", search.trim());
+        queryParams.append("page", String(page > 0 ? page : 1));
+        return `superadmin/CustomerAccountSearch/?${queryParams.toString()}`;
+      },
+      transformResponse: (res: any) => {
+        if (Array.isArray(res)) {
+          return { count: res.length, next: null, previous: null, results: res };
+        }
+        const results = Array.isArray(res?.results)
+          ? res.results
+          : Array.isArray(res?.data)
+          ? res.data
+          : [];
+        return {
+          count: typeof res?.count === "number" ? res.count : results.length,
+          next: res?.next ?? null,
+          previous: res?.previous ?? null,
+          results,
+        };
       },
       providesTags: ["Accounts"],
     }),
@@ -3802,6 +3877,10 @@ export const {
   useGetTopPlansDistributionAnalyticsQuery,
   useGetRequestOperationsDashboardQuery,
   useGetAccountsListQuery,
+  useGetAccountsPaginatedListQuery,
+  useLazyGetAccountsPaginatedListQuery,
+  useSearchCustomerAccountsPaginatedQuery,
+  useLazySearchCustomerAccountsPaginatedQuery,
   useSearchAccountsQuery,
   useLazySearchAccountsQuery,
   useFilterAccountsQuery,
@@ -3944,10 +4023,8 @@ export const downloadAccountsExportCsv = async (params?: {
   customerId?: string;
 }): Promise<boolean> => {
   try {
-    const primaryHost = (
-      process.env.NEXT_PUBLIC_API_URL || "https://backend.crmfarm.in"
-    ).replace(/\/$/, "");
-    const tenantName = "crmfarmsa";
+    const primaryHost = normalizeApiUrl();
+    const tenantName = getTenantName();
     const query = new URLSearchParams();
     if (params?.customerId && params.customerId !== "ALL")
       query.set("customer_id", params.customerId);
@@ -4021,4 +4098,5 @@ export * from "./addonPricingApi";
 export * from "./addonDiscountCouponApi";
 export * from "./addonTieredPricingApi";
 export * from "./addonPriceHistoryApi";
+export * from "./dashboardApi";
 

@@ -1,20 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
-  TrendingUp,
   Activity,
   Layers,
   Users,
-  Building2,
   Store,
   Coins,
   Sparkles,
   Calendar,
   Filter,
   RefreshCw,
-  Server,
   ChevronDown,
   Info,
   GraduationCap,
@@ -22,6 +18,7 @@ import {
   UserCheck,
   ShoppingCart,
   Building,
+  AlertCircle,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,11 +39,18 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts';
+import {
+  useGetProductPerformanceDashboardQuery,
+  useGetProductDropdownQuery,
+  mapUiFiltersToApiParams,
+  buildUniqueProductLabels,
+} from '@/service/api/superAdminService';
 
-// --- DATA DEFINITIONS ---
+// --- TYPES & CONFIG ---
 
 interface FilterState {
   dateRange: string;
+  product: string;
   region: string;
   customerType: string;
   partner: string;
@@ -54,257 +58,304 @@ interface FilterState {
 
 const DEFAULT_FILTERS: FilterState = {
   dateRange: 'Last 12 Months',
+  product: 'All Products',
   region: 'All Regions',
   customerType: 'All',
   partner: 'All Partners',
 };
 
-// 5 Colored Top KPI Cards
-const PRODUCT_KPIS = [
-  {
-    id: 'total_tenants',
-    title: 'Total Tenants',
-    value: '12,840',
-    change: '+18%',
-    icon: Users,
-    iconColor: 'text-blue-600 dark:text-blue-400',
-    iconBg: 'bg-white dark:bg-slate-900 border-blue-200/80 dark:border-blue-800/80 shadow-2xs',
-    cardBg: 'bg-sky-50/90 dark:bg-sky-950/40 border-sky-200 dark:border-sky-800/70',
-  },
-  {
-    id: 'active_tenants',
-    title: 'Active Tenants',
-    value: '9,420',
-    change: '+16%',
-    icon: Store,
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
-    iconBg: 'bg-white dark:bg-slate-900 border-emerald-200/80 dark:border-emerald-800/80 shadow-2xs',
-    cardBg: 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/70',
-  },
-  {
-    id: 'mrr',
-    title: 'MRR',
-    value: '₹ 66.8 L',
-    change: '+24%',
-    icon: Layers,
-    iconColor: 'text-purple-600 dark:text-purple-400',
-    iconBg: 'bg-white dark:bg-slate-900 border-purple-200/80 dark:border-purple-800/80 shadow-2xs',
-    cardBg: 'bg-purple-50/90 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800/70',
-  },
-  {
-    id: 'arr',
-    title: 'ARR',
-    value: '₹ 8.02 Cr',
-    change: '+26%',
-    icon: Coins,
-    iconColor: 'text-rose-600 dark:text-rose-400',
-    iconBg: 'bg-white dark:bg-slate-900 border-rose-200/80 dark:border-rose-800/80 shadow-2xs',
-    cardBg: 'bg-rose-50/90 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/70',
-  },
-  {
-    id: 'addon_rev',
-    title: 'Add-on Revenue',
-    value: '₹ 1.24 Cr',
-    change: '+32%',
-    icon: Sparkles,
-    iconColor: 'text-amber-600 dark:text-amber-400',
-    iconBg: 'bg-white dark:bg-slate-900 border-amber-200/80 dark:border-amber-800/80 shadow-2xs',
-    cardBg: 'bg-amber-50/90 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/70',
-  },
+const CHART_PALETTE = [
+  '#2563eb',
+  '#1574fe',
+  '#06b6d4',
+  '#f59e0b',
+  '#ec4899',
+  '#0d9488',
+  '#8b5cf6',
+  '#10b981',
+  '#f97316',
+  '#6366f1',
+  '#14b8a6',
+  '#e11d48',
 ];
 
-// Product-wise Performance Table Data
-const PRODUCT_TABLE_DATA = [
-  {
-    id: 'edu',
-    name: 'Education',
-    icon: GraduationCap,
-    iconColor: 'text-blue-600',
-    totalTenants: '3,860',
-    activeTenants: '2,980',
-    payingTenants: '520',
-    trialTenants: '360',
-    mrr: '20.0',
-    arr: '2.40',
-    addonRev: '38.5',
-    conversion: '18.1%',
-    churn: '3.1%',
-    growth: '+28%',
-    usageHealth: 92,
-  },
-  {
-    id: 'crm',
-    name: 'CRM (Generic)',
-    icon: Users,
-    iconColor: 'text-purple-600',
-    totalTenants: '2,840',
-    activeTenants: '2,060',
-    payingTenants: '410',
-    trialTenants: '370',
-    mrr: '12.6',
-    arr: '1.51',
-    addonRev: '24.8',
-    conversion: '16.9%',
-    churn: '3.5%',
-    growth: '+22%',
-    usageHealth: 88,
-  },
-  {
-    id: 'it',
-    name: 'IT',
-    icon: Laptop,
-    iconColor: 'text-cyan-600',
-    totalTenants: '1,720',
-    activeTenants: '1,340',
-    payingTenants: '220',
-    trialTenants: '160',
-    mrr: '8.4',
-    arr: '1.01',
-    addonRev: '15.6',
-    conversion: '16.4%',
-    churn: '2.9%',
-    growth: '+20%',
-    usageHealth: 90,
-  },
-  {
-    id: 'hrms',
-    name: 'People (HRMS)',
-    icon: UserCheck,
-    iconColor: 'text-amber-600',
-    totalTenants: '1,340',
-    activeTenants: '1,020',
-    payingTenants: '170',
-    trialTenants: '110',
-    mrr: '5.1',
-    arr: '0.61',
-    addonRev: '9.8',
-    conversion: '16.7%',
-    churn: '3.2%',
-    growth: '+18%',
-    usageHealth: 87,
-  },
-  {
-    id: 'retail',
-    name: 'Retail',
-    icon: ShoppingCart,
-    iconColor: 'text-pink-600',
-    totalTenants: '1,150',
-    activeTenants: '860',
-    payingTenants: '140',
-    trialTenants: '90',
-    mrr: '4.6',
-    arr: '0.55',
-    addonRev: '8.9',
-    conversion: '16.3%',
-    churn: '3.8%',
-    growth: '+24%',
-    usageHealth: 86,
-  },
-  {
-    id: 'realestate',
-    name: 'Real Estate',
-    icon: Building,
-    iconColor: 'text-teal-600',
-    totalTenants: '1,930',
-    activeTenants: '1,160',
-    payingTenants: '260',
-    trialTenants: '170',
-    mrr: '16.1',
-    arr: '1.94',
-    addonRev: '26.8',
-    conversion: '18.6%',
-    churn: '3.4%',
-    growth: '+30%',
-    usageHealth: 91,
-  },
+const BAR_SOFT_PALETTE = [
+  '#2563eb',
+  '#a855f7',
+  '#2dd4bf',
+  '#fba558',
+  '#f9a8d4',
+  '#c084fc',
+  '#38bdf8',
+  '#4ade80',
+  '#facc15',
+  '#fb7185',
+  '#60a5fa',
+  '#34d399',
 ];
 
-// Product Adoption Donut
-const PRODUCT_ADOPTION_DONUT = [
-  { name: 'Education', value: 32, color: '#2563eb' },
-  { name: 'CRM (Generic)', value: 22, color: '#1574fe' },
-  { name: 'IT', value: 14, color: '#06b6d4' },
-  { name: 'People (HRMS)', value: 11, color: '#f59e0b' },
-  { name: 'Retail', value: 9, color: '#ec4899' },
-  { name: 'Real Estate', value: 12, color: '#0d9488' },
-];
+function getProductVisual(name: string): { icon: React.ElementType; iconColor: string } {
+  const n = name.toLowerCase();
+  if (n.includes('edu')) return { icon: GraduationCap, iconColor: 'text-blue-600' };
+  if (n.includes('crm')) return { icon: Users, iconColor: 'text-purple-600' };
+  if (n.includes('it')) return { icon: Laptop, iconColor: 'text-cyan-600' };
+  if (n.includes('hrm') || n.includes('people') || n.includes('hr'))
+    return { icon: UserCheck, iconColor: 'text-amber-600' };
+  if (n.includes('retail') || n.includes('commerce') || n.includes('pos'))
+    return { icon: ShoppingCart, iconColor: 'text-pink-600' };
+  if (n.includes('estate') || n.includes('prop'))
+    return { icon: Building, iconColor: 'text-teal-600' };
+  return { icon: Layers, iconColor: 'text-indigo-600' };
+}
 
-// Revenue by Product (ARR in Cr) - Horizontal
-const REVENUE_BY_PRODUCT = [
-  { name: 'Retail', value: 0.55, display: '₹ 0.55 Cr', color: '#f9a8d4' },
-  { name: 'People', value: 0.61, display: '₹ 0.61 Cr', color: '#fba558' },
-  { name: 'IT', value: 1.01, display: '₹ 1.01 Cr', color: '#2dd4bf' },
-  { name: 'CRM', value: 1.51, display: '₹ 1.51 Cr', color: '#c084fc' },
-  { name: 'Real Estate', value: 1.94, display: '₹ 1.94 Cr', color: '#a855f7' },
-  { name: 'Education', value: 2.40, display: '₹ 2.40 Cr', color: '#2563eb' },
-];
+function truncateAxisLabel(label: string, maxLen = 12): string {
+  return label.length > maxLen ? `${label.slice(0, maxLen - 1)}…` : label;
+}
 
-// Free-to-Paid Conversion by Product
-const CONVERSION_BY_PRODUCT = [
-  { name: 'Education', rate: 18.1, color: '#2563eb' },
-  { name: 'CRM', rate: 16.9, color: '#8b5cf6' },
-  { name: 'IT', rate: 16.4, color: '#06b6d4' },
-  { name: 'People', rate: 16.7, color: '#f59e0b' },
-  { name: 'Retail', rate: 16.3, color: '#ec4899' },
-  { name: 'Real Estate', rate: 18.6, color: '#1574fe' },
-];
-
-// Monthly Active Tenants by Product (Stacked Area)
-const MONTHLY_ACTIVE_BY_PRODUCT = [
-  { month: 'Jan', Education: 1200, CRM: 800, IT: 500, People: 400, Retail: 300, RealEstate: 400 },
-  { month: 'Feb', Education: 1400, CRM: 950, IT: 600, People: 450, Retail: 350, RealEstate: 500 },
-  { month: 'Mar', Education: 1600, CRM: 1100, IT: 700, People: 500, Retail: 420, RealEstate: 600 },
-  { month: 'Apr', Education: 1850, CRM: 1250, IT: 800, People: 600, Retail: 500, RealEstate: 700 },
-  { month: 'May', Education: 2100, CRM: 1400, IT: 900, People: 700, Retail: 580, RealEstate: 800 },
-  { month: 'Jun', Education: 2300, CRM: 1550, IT: 1000, People: 780, Retail: 650, RealEstate: 900 },
-  { month: 'Jul', Education: 2500, CRM: 1700, IT: 1100, People: 850, Retail: 720, RealEstate: 980 },
-  { month: 'Aug', Education: 2650, CRM: 1800, IT: 1180, People: 900, Retail: 770, RealEstate: 1040 },
-  { month: 'Sep', Education: 2800, CRM: 1920, IT: 1250, People: 950, Retail: 810, RealEstate: 1100 },
-  { month: 'Oct', Education: 2900, CRM: 2000, IT: 1300, People: 990, Retail: 840, RealEstate: 1130 },
-  { month: 'Nov', Education: 2980, CRM: 2060, IT: 1340, People: 1020, Retail: 860, RealEstate: 1160 },
-];
-
-// Product Growth YoY
-const PRODUCT_GROWTH_YOY = [
-  { name: 'Education', growth: 28, label: '+28%' },
-  { name: 'CRM', growth: 22, label: '+22%' },
-  { name: 'IT', growth: 20, label: '+20%' },
-  { name: 'People', growth: 18, label: '+18%' },
-  { name: 'Retail', growth: 24, label: '+24%' },
-  { name: 'Real Estate', growth: 30, label: '+30%' },
-];
-
-// Customer Churn by Product
-const CHURN_BY_PRODUCT = [
-  { name: 'Education', churn: 3.1 },
-  { name: 'CRM', churn: 3.5 },
-  { name: 'IT', churn: 2.9 },
-  { name: 'People', churn: 3.2 },
-  { name: 'Retail', churn: 3.8 },
-  { name: 'Real Estate', churn: 3.4 },
-];
+function formatTrend(trend?: { growth_label?: string; growth_pct?: number; direction?: string }) {
+  if (!trend) return undefined;
+  if (trend.growth_label) return trend.growth_label;
+  if (typeof trend.growth_pct === 'number') {
+    const sign = trend.growth_pct > 0 ? '+' : '';
+    return `${sign}${trend.growth_pct}%`;
+  }
+  return undefined;
+}
 
 export default function ProductWisePerformancePage() {
-  const router = useRouter();
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
-  const [isApplying, setIsApplying] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  const pendingFilterToastRef = useRef(false);
+
+  const { data: productOptions = [] } = useGetProductDropdownQuery();
+
+  const apiParams = useMemo(
+    () => mapUiFiltersToApiParams(appliedFilters, productOptions),
+    [appliedFilters, productOptions]
+  );
+
+  const {
+    data: perfData,
+    isLoading,
+    isFetching,
+    isSuccess,
+    isError,
+    error,
+    refetch,
+  } = useGetProductPerformanceDashboardQuery(apiParams);
+
+  useEffect(() => {
+    if (!pendingFilterToastRef.current || isFetching) return;
+    pendingFilterToastRef.current = false;
+    if (isError) {
+      toast.error('Failed to load product performance data');
+    } else if (isSuccess) {
+      toast.success('Product performance data updated');
+    }
+  }, [isFetching, isError, isSuccess]);
 
   const handleFilterChange = (key: keyof FilterState, val: string) => {
     setFilters((prev) => ({ ...prev, [key]: val }));
   };
 
-  const handleApply = () => {
-    setIsApplying(true);
-    setTimeout(() => {
-      setIsApplying(false);
-      toast.success('Filters applied');
-    }, 400);
+  const handleApply = async () => {
+    const isSame = JSON.stringify(filters) === JSON.stringify(appliedFilters);
+    if (isSame) {
+      try {
+        await refetch().unwrap();
+        toast.success('Product performance data refreshed');
+      } catch {
+        toast.error('Failed to refresh data');
+      }
+    } else {
+      pendingFilterToastRef.current = true;
+      setAppliedFilters(filters);
+    }
   };
 
   const handleReset = () => {
+    const wasDefault = JSON.stringify(appliedFilters) === JSON.stringify(DEFAULT_FILTERS);
     setFilters(DEFAULT_FILTERS);
-    toast.info('Filters reset to default view');
+    if (!wasDefault) {
+      pendingFilterToastRef.current = true;
+      setAppliedFilters(DEFAULT_FILTERS);
+    } else {
+      toast.info('Filters reset to default view');
+    }
   };
+
+  const handleRefresh = async () => {
+    try {
+      await refetch().unwrap();
+      toast.success('Product performance data refreshed');
+    } catch {
+      toast.error('Failed to refresh product performance data');
+    }
+  };
+
+  const uniqueProductOptions = useMemo(
+    () =>
+      buildUniqueProductLabels(
+        productOptions.map((p) => ({
+          product_id: p.id,
+          product_name: (p as { product_name?: string; name?: string }).product_name || p.name || `Product #${p.id}`,
+          raw: p,
+        }))
+      ),
+    [productOptions]
+  );
+
+  const kpiCards = useMemo(() => {
+    const k = perfData?.kpis;
+    const fmtNum = (n?: number) => (typeof n === 'number' ? n.toLocaleString('en-IN') : isLoading ? '...' : '—');
+    const fmtMoney = (m?: { value?: number; formatted?: string }) =>
+      m?.formatted ? m.formatted : typeof m?.value === 'number' ? `₹ ${m.value.toLocaleString('en-IN')}` : isLoading ? '...' : '—';
+
+    return [
+      {
+        id: 'total_tenants',
+        title: 'Total Tenants',
+        value: fmtNum(k?.total_tenants?.value),
+        change: formatTrend(k?.total_tenants),
+        direction: k?.total_tenants?.direction,
+        icon: Users,
+        iconColor: 'text-blue-600 dark:text-blue-400',
+        iconBg: 'bg-white dark:bg-slate-900 border-blue-200/80 dark:border-blue-800/80 shadow-2xs',
+        cardBg: 'bg-sky-50/90 dark:bg-sky-950/40 border-sky-200 dark:border-sky-800/70',
+      },
+      {
+        id: 'active_tenants',
+        title: 'Active Tenants',
+        value: fmtNum(k?.active_tenants?.value),
+        change: formatTrend(k?.active_tenants),
+        direction: k?.active_tenants?.direction,
+        icon: Store,
+        iconColor: 'text-emerald-600 dark:text-emerald-400',
+        iconBg: 'bg-white dark:bg-slate-900 border-emerald-200/80 dark:border-emerald-800/80 shadow-2xs',
+        cardBg: 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/70',
+      },
+      {
+        id: 'mrr',
+        title: 'MRR',
+        value: fmtMoney(k?.mrr),
+        change: formatTrend(k?.mrr),
+        direction: k?.mrr?.direction,
+        icon: Layers,
+        iconColor: 'text-purple-600 dark:text-purple-400',
+        iconBg: 'bg-white dark:bg-slate-900 border-purple-200/80 dark:border-purple-800/80 shadow-2xs',
+        cardBg: 'bg-purple-50/90 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800/70',
+      },
+      {
+        id: 'arr',
+        title: 'ARR',
+        value: fmtMoney(k?.arr),
+        change: formatTrend(k?.arr),
+        direction: k?.arr?.direction,
+        icon: Coins,
+        iconColor: 'text-rose-600 dark:text-rose-400',
+        iconBg: 'bg-white dark:bg-slate-900 border-rose-200/80 dark:border-rose-800/80 shadow-2xs',
+        cardBg: 'bg-rose-50/90 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/70',
+      },
+      {
+        id: 'addon_rev',
+        title: 'Add-on Revenue',
+        value: fmtMoney(k?.addon_revenue),
+        change: formatTrend(k?.addon_revenue),
+        direction: k?.addon_revenue?.direction,
+        icon: Sparkles,
+        iconColor: 'text-amber-600 dark:text-amber-400',
+        iconBg: 'bg-white dark:bg-slate-900 border-amber-200/80 dark:border-amber-800/80 shadow-2xs',
+        cardBg: 'bg-amber-50/90 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/70',
+      },
+    ];
+  }, [perfData, isLoading]);
+
+  const summaryRows = useMemo(
+    () => buildUniqueProductLabels(perfData?.product_summary_table?.rows ?? []),
+    [perfData]
+  );
+  const summaryTotals = perfData?.product_summary_table?.totals;
+
+  const adoptionDonutData = useMemo(() => {
+    const segs = buildUniqueProductLabels(perfData?.charts?.product_adoption?.segments ?? []);
+    return segs.map((seg, idx) => ({
+      uniqueKey: seg.uniqueKey,
+      name: seg.displayName,
+      value: seg.pct,
+      activeTenants: seg.active_tenants,
+      color: CHART_PALETTE[idx % CHART_PALETTE.length],
+    }));
+  }, [perfData]);
+
+  const revenueByProductData = useMemo(() => {
+    const items = buildUniqueProductLabels(perfData?.charts?.revenue_by_product_arr ?? []);
+    return [...items]
+      .sort((a, b) => a.arr_crores - b.arr_crores)
+      .map((item, idx) => ({
+        uniqueKey: item.uniqueKey,
+        name: item.displayName,
+        value: item.arr_crores,
+        color: BAR_SOFT_PALETTE[idx % BAR_SOFT_PALETTE.length],
+      }));
+  }, [perfData]);
+
+  const conversionByProductData = useMemo(() => {
+    const items = buildUniqueProductLabels(perfData?.charts?.free_to_paid_conversion_by_product ?? []);
+    return items.map((item, idx) => ({
+      uniqueKey: item.uniqueKey,
+      name: item.displayName,
+      shortName: truncateAxisLabel(item.displayName),
+      rate: item.conversion_pct,
+      color: CHART_PALETTE[idx % CHART_PALETTE.length],
+    }));
+  }, [perfData]);
+
+  const { stackedMonthlyData, stackedSeries } = useMemo(() => {
+    const rawMonths = perfData?.charts?.monthly_active_tenants_by_product ?? [];
+    const baseProducts = rawMonths.find((m) => (m.products || []).length > 0)?.products ?? [];
+    const labeledProducts = buildUniqueProductLabels(baseProducts);
+
+    const seriesMeta = labeledProducts.map((p, idx) => ({
+      seriesKey: `p_${p.product_id}`,
+      name: p.displayName,
+      color: CHART_PALETTE[idx % CHART_PALETTE.length],
+    }));
+
+    const rows = rawMonths.map((m) => {
+      const point: Record<string, string | number> = { month: m.month };
+      for (const p of m.products || []) {
+        point[`p_${p.product_id}`] = p.active_tenants;
+      }
+      return point;
+    });
+
+    return { stackedMonthlyData: rows, stackedSeries: seriesMeta };
+  }, [perfData]);
+
+  const growthYoYData = useMemo(() => {
+    const items = buildUniqueProductLabels(perfData?.charts?.product_growth_yoy ?? []);
+    return items.map((item) => ({
+      uniqueKey: item.uniqueKey,
+      name: item.displayName,
+      shortName: truncateAxisLabel(item.displayName),
+      growth: item.growth_yoy_pct,
+    }));
+  }, [perfData]);
+
+  const churnByProductData = useMemo(() => {
+    const items = buildUniqueProductLabels(perfData?.charts?.customer_churn_by_product ?? []);
+    return items.map((item) => ({
+      uniqueKey: item.uniqueKey,
+      name: item.displayName,
+      shortName: truncateAxisLabel(item.displayName),
+      churn: item.churn_pct,
+    }));
+  }, [perfData]);
+
+  const errorMessage =
+    (error as { data?: { message?: string; detail?: string } })?.data?.message ||
+    (error as { data?: { detail?: string } })?.data?.detail ||
+    'Unable to load data from ProductPerformanceDashboardAPI.';
 
   return (
     <div className="space-y-5 pb-10">
@@ -325,6 +376,19 @@ export default function ProductWisePerformancePage() {
             </p>
           </div>
         </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isFetching}
+            className="h-9 px-3 gap-1.5 cursor-pointer text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 shadow-2xs"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin text-[#1574fe]' : 'text-slate-500'}`} />
+            <span>Refresh</span>
+          </Button>
+        </div>
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
@@ -334,7 +398,7 @@ export default function ProductWisePerformancePage() {
         <CardContent className="p-3.5 md:p-4">
           <div className="flex flex-wrap items-end gap-3 lg:gap-4">
             {/* Date Range */}
-            <div className="flex-1 min-w-[170px]">
+            <div className="flex-1 min-w-[160px]">
               <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
                 Date Range
               </label>
@@ -355,6 +419,28 @@ export default function ProductWisePerformancePage() {
               </div>
             </div>
 
+            {/* Product */}
+            <div className="flex-1 min-w-[150px]">
+              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
+                Product
+              </label>
+              <div className="relative">
+                <select
+                  value={filters.product}
+                  onChange={(e) => handleFilterChange('product', e.target.value)}
+                  className="w-full appearance-none rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/60 px-3 pr-8 py-1.5 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors cursor-pointer"
+                >
+                  <option value="All Products">All Products</option>
+                  {uniqueProductOptions.map((prod) => (
+                    <option key={prod.uniqueKey} value={String(prod.product_id)}>
+                      {prod.displayName}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
+
             {/* Country / Region */}
             <div className="flex-1 min-w-[140px]">
               <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
@@ -368,10 +454,11 @@ export default function ProductWisePerformancePage() {
                 >
                   <option value="All Regions">All Regions</option>
                   <option value="India">India</option>
-                  <option value="North America">North America</option>
-                  <option value="EMEA">EMEA</option>
-                  <option value="APAC">APAC</option>
-                  <option value="LATAM">LATAM</option>
+                  <option value="United States">United States</option>
+                  <option value="UK">UK</option>
+                  <option value="UAE">UAE</option>
+                  <option value="Singapore">Singapore</option>
+                  <option value="Algeria">Algeria</option>
                 </select>
                 <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
               </div>
@@ -410,9 +497,9 @@ export default function ProductWisePerformancePage() {
                   className="w-full appearance-none rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/60 px-3 pr-8 py-1.5 text-xs font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors cursor-pointer"
                 >
                   <option value="All Partners">All Partners</option>
-                  <option value="Certified Partners">Certified Partners</option>
-                  <option value="Channel Partners">Channel Partners</option>
-                  <option value="Strategic Partners">Strategic Partners</option>
+                  <option value="Certified">Certified Partners</option>
+                  <option value="Channel">Channel Partners</option>
+                  <option value="Strategic">Strategic Partners</option>
                   <option value="Direct">Direct</option>
                 </select>
                 <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
@@ -423,10 +510,10 @@ export default function ProductWisePerformancePage() {
             <div className="flex items-center gap-2 pt-1 sm:pt-0">
               <Button
                 onClick={handleApply}
-                disabled={isApplying}
+                disabled={isFetching}
                 className="bg-[#1574fe] hover:bg-[#0d62e0] text-white font-semibold text-xs h-8 px-4 rounded-lg shadow-xs cursor-pointer gap-1.5"
               >
-                <Filter className={`h-3.5 w-3.5 ${isApplying ? 'animate-spin' : ''}`} />
+                <Filter className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`} />
                 Apply
               </Button>
               <button
@@ -441,12 +528,39 @@ export default function ProductWisePerformancePage() {
         </CardContent>
       </Card>
 
+      {isFetching && (
+        <div className="flex items-center gap-2.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/80 dark:bg-blue-950/30 px-4 py-2.5 text-xs text-blue-800 dark:text-blue-200">
+          <RefreshCw className="h-3.5 w-3.5 animate-spin text-[#1574fe] shrink-0" />
+          <span className="font-medium">
+            Loading live product performance metrics from ProductPerformanceDashboardAPI...
+          </span>
+        </div>
+      )}
+
+      {isError && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/80 dark:bg-rose-950/30 px-4 py-3 text-xs text-rose-800 dark:text-rose-200">
+          <div className="flex items-center gap-2 min-w-0">
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />
+            <span className="truncate font-medium">{errorMessage}</span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            className="h-7 text-xs border-rose-300 dark:border-rose-800 shrink-0 cursor-pointer"
+          >
+            Retry
+          </Button>
+        </div>
+      )}
+
       {/* ══════════════════════════════════════════════════════════════════════
           3. 5 COLORED TOP KPI CARDS
       ══════════════════════════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {PRODUCT_KPIS.map((kpi) => {
+      <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 transition-opacity ${isFetching ? 'opacity-70' : ''}`}>
+        {kpiCards.map((kpi) => {
           const Icon = kpi.icon;
+          const isDown = kpi.direction === 'down' || (kpi.change && kpi.change.startsWith('-'));
           return (
             <Card
               key={kpi.id}
@@ -467,9 +581,17 @@ export default function ProductWisePerformancePage() {
                       <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 truncate">
                         {kpi.value}
                       </span>
-                      <span className="inline-flex items-center text-[11px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
-                        ▲ {kpi.change}
-                      </span>
+                      {kpi.change && (
+                        <span
+                          className={`inline-flex items-center text-[11px] font-bold shrink-0 ${
+                            isDown
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : 'text-emerald-600 dark:text-emerald-400'
+                          }`}
+                        >
+                          {isDown ? '▼' : '▲'} {kpi.change}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -512,91 +634,122 @@ export default function ProductWisePerformancePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
-                {PRODUCT_TABLE_DATA.map((p) => {
-                  const ProductIcon = p.icon;
-                  return (
-                    <tr
-                      key={p.id}
-                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
-                    >
-                      <td className="py-3 px-4 md:px-5 font-semibold text-slate-900 dark:text-slate-100">
-                        <div className="flex items-center gap-2">
-                          <ProductIcon className={`h-4 w-4 ${p.iconColor} shrink-0`} />
-                          <span>{p.name}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">
-                        {p.totalTenants}
-                      </td>
-                      <td className="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">
-                        {p.activeTenants}
-                      </td>
-                      <td className="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">
-                        {p.payingTenants}
-                      </td>
-                      <td className="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">
-                        {p.trialTenants}
-                      </td>
-                      <td className="py-3 px-3 font-mono font-medium text-slate-800 dark:text-slate-200">
-                        {p.mrr}
-                      </td>
-                      <td className="py-3 px-3 font-mono font-medium text-slate-800 dark:text-slate-200">
-                        {p.arr}
-                      </td>
-                      <td className="py-3 px-3 font-mono font-medium text-slate-800 dark:text-slate-200">
-                        {p.addonRev}
-                      </td>
-                      <td className="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">
-                        {p.conversion}
-                      </td>
-                      <td className="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">
-                        {p.churn}
-                      </td>
-                      <td className="py-3 px-3 font-semibold text-emerald-600 dark:text-emerald-400">
-                        ▲ {p.growth}
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <div className="w-16 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-emerald-500"
-                              style={{ width: `${p.usageHealth}%` }}
-                            />
+                {summaryRows.length === 0 ? (
+                  <tr>
+                    <td colSpan={12} className="py-8 text-center text-slate-400 text-xs">
+                      {isLoading || isFetching
+                        ? 'Loading product summary...'
+                        : 'No product performance records returned.'}
+                    </td>
+                  </tr>
+                ) : (
+                  summaryRows.map((p) => {
+                    const { icon: ProductIcon, iconColor } = getProductVisual(p.product_name);
+                    const isGrowthNeg = p.growth_yoy_pct < 0;
+                    return (
+                      <tr
+                        key={p.uniqueKey}
+                        className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+                      >
+                        <td className="py-3 px-4 md:px-5 font-semibold text-slate-900 dark:text-slate-100">
+                          <div className="flex items-center gap-2">
+                            <ProductIcon className={`h-4 w-4 ${iconColor} shrink-0`} />
+                            <span>{p.displayName}</span>
                           </div>
-                          <span className="font-mono font-medium text-slate-700 dark:text-slate-300 w-8 text-right">
-                            {p.usageHealth}%
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                        <td className="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">
+                          {p.total_tenants.toLocaleString('en-IN')}
+                        </td>
+                        <td className="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">
+                          {p.active_tenants.toLocaleString('en-IN')}
+                        </td>
+                        <td className="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">
+                          {p.paying_tenants.toLocaleString('en-IN')}
+                        </td>
+                        <td className="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">
+                          {p.trial_tenants.toLocaleString('en-IN')}
+                        </td>
+                        <td className="py-3 px-3 font-mono font-medium text-slate-800 dark:text-slate-200">
+                          {p.mrr_lakhs}
+                        </td>
+                        <td className="py-3 px-3 font-mono font-medium text-slate-800 dark:text-slate-200">
+                          {p.arr_crores}
+                        </td>
+                        <td className="py-3 px-3 font-mono font-medium text-slate-800 dark:text-slate-200">
+                          {p.addon_revenue_lakhs}
+                        </td>
+                        <td className="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">
+                          {p.free_to_paid_conversion_pct}%
+                        </td>
+                        <td className="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">
+                          {p.churn_pct}%
+                        </td>
+                        <td
+                          className={`py-3 px-3 font-semibold ${
+                            isGrowthNeg
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : 'text-emerald-600 dark:text-emerald-400'
+                          }`}
+                        >
+                          {isGrowthNeg ? '▼' : '▲'} {p.growth_yoy_pct > 0 ? `+${p.growth_yoy_pct}` : p.growth_yoy_pct}%
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <div className="w-16 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-emerald-500"
+                                style={{ width: `${Math.max(0, Math.min(100, p.usage_health_pct))}%` }}
+                              />
+                            </div>
+                            <span className="font-mono font-medium text-slate-700 dark:text-slate-300 w-8 text-right">
+                              {p.usage_health_pct}%
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
-              <tfoot>
-                <tr className="border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/50 font-bold text-xs text-slate-900 dark:text-slate-100">
-                  <td className="py-3 px-4 md:px-5">Total</td>
-                  <td className="py-3 px-3">12,840</td>
-                  <td className="py-3 px-3">9,420</td>
-                  <td className="py-3 px-3">1,720</td>
-                  <td className="py-3 px-3">1,260</td>
-                  <td className="py-3 px-3 font-mono">66.8</td>
-                  <td className="py-3 px-3 font-mono">8.02</td>
-                  <td className="py-3 px-3 font-mono">124.4</td>
-                  <td className="py-3 px-3">17.3%</td>
-                  <td className="py-3 px-3">3.2%</td>
-                  <td className="py-3 px-3 text-emerald-600 dark:text-emerald-400">▲ +26%</td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <div className="w-16 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                        <div className="h-full rounded-full bg-emerald-500" style={{ width: `89%` }} />
+              {summaryTotals && (
+                <tfoot>
+                  <tr className="border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/50 font-bold text-xs text-slate-900 dark:text-slate-100">
+                    <td className="py-3 px-4 md:px-5">Total</td>
+                    <td className="py-3 px-3">{summaryTotals.total_tenants.toLocaleString('en-IN')}</td>
+                    <td className="py-3 px-3">{summaryTotals.active_tenants.toLocaleString('en-IN')}</td>
+                    <td className="py-3 px-3">{summaryTotals.paying_tenants.toLocaleString('en-IN')}</td>
+                    <td className="py-3 px-3">{summaryTotals.trial_tenants.toLocaleString('en-IN')}</td>
+                    <td className="py-3 px-3 font-mono">{summaryTotals.mrr_lakhs}</td>
+                    <td className="py-3 px-3 font-mono">{summaryTotals.arr_crores}</td>
+                    <td className="py-3 px-3 font-mono">{summaryTotals.addon_revenue_lakhs}</td>
+                    <td className="py-3 px-3">{summaryTotals.free_to_paid_conversion_pct}%</td>
+                    <td className="py-3 px-3">{summaryTotals.churn_pct}%</td>
+                    <td
+                      className={`py-3 px-3 ${
+                        summaryTotals.growth_yoy_pct < 0
+                          ? 'text-rose-600 dark:text-rose-400'
+                          : 'text-emerald-600 dark:text-emerald-400'
+                      }`}
+                    >
+                      {summaryTotals.growth_yoy_pct < 0 ? '▼' : '▲'}{' '}
+                      {summaryTotals.growth_yoy_pct > 0 ? `+${summaryTotals.growth_yoy_pct}` : summaryTotals.growth_yoy_pct}%
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <div className="w-16 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-emerald-500"
+                            style={{ width: `${Math.max(0, Math.min(100, summaryTotals.usage_health_pct))}%` }}
+                          />
+                        </div>
+                        <span className="font-mono text-slate-700 dark:text-slate-300 w-8 text-right">
+                          {summaryTotals.usage_health_pct}%
+                        </span>
                       </div>
-                      <span className="font-mono text-slate-700 dark:text-slate-300 w-8 text-right">
-                        89%
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              </tfoot>
+                    </td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
         </CardContent>
@@ -626,10 +779,10 @@ export default function ProductWisePerformancePage() {
                         color: '#fff',
                         fontSize: '11px',
                       }}
-                      formatter={(val: any, name: any) => [`${val}%`, name]}
+                      formatter={(val: unknown, name: unknown) => [`${val}%`, String(name)]}
                     />
                     <Pie
-                      data={PRODUCT_ADOPTION_DONUT}
+                      data={adoptionDonutData}
                       cx="50%"
                       cy="50%"
                       innerRadius={48}
@@ -637,24 +790,24 @@ export default function ProductWisePerformancePage() {
                       paddingAngle={2}
                       dataKey="value"
                     >
-                      {PRODUCT_ADOPTION_DONUT.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      {adoptionDonutData.map((entry) => (
+                        <Cell key={`cell-${entry.uniqueKey}`} fill={entry.color} />
                       ))}
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="text-base font-extrabold text-slate-900 dark:text-white leading-tight">
-                    9,420
+                    {(perfData?.charts?.product_adoption?.total_active_tenants ?? 0).toLocaleString('en-IN')}
                   </span>
                   <span className="text-[10px] text-slate-500 font-medium">Active Tenants</span>
                 </div>
               </div>
 
-              <div className="flex-1 space-y-1.5 pr-1">
-                {PRODUCT_ADOPTION_DONUT.map((item) => (
+              <div className="flex-1 space-y-1.5 pr-1 max-h-[200px] overflow-y-auto">
+                {adoptionDonutData.map((item) => (
                   <div
-                    key={item.name}
+                    key={item.uniqueKey}
                     className="flex items-center justify-between text-xs hover:bg-slate-50 dark:hover:bg-slate-800/50 px-1.5 py-0.5 rounded transition-colors"
                   >
                     <div className="flex items-center gap-1.5 truncate">
@@ -663,7 +816,7 @@ export default function ProductWisePerformancePage() {
                         {item.name}
                       </span>
                     </div>
-                    <span className="font-bold text-slate-900 dark:text-slate-100 text-[11px]">
+                    <span className="font-bold text-slate-900 dark:text-slate-100 text-[11px] shrink-0 pl-1">
                       {item.value}%
                     </span>
                   </div>
@@ -681,49 +834,50 @@ export default function ProductWisePerformancePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-3 px-2 pb-2">
-            <div className="h-[210px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={REVENUE_BY_PRODUCT}
-                  margin={{ top: 5, right: 45, left: 10, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                  <XAxis
-                    type="number"
-                    domain={[0, 2.5]}
-                    ticks={[0.0, 0.5, 1.0, 1.5, 2.0, 2.5]}
-                    tick={{ fontSize: 10, fill: '#64748b' }}
-                    tickFormatter={(v) => (v === 0 ? '0' : v.toFixed(1))}
-                  />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    tick={{ fontSize: 10, fill: '#64748b' }}
-                    tickLine={false}
-                    axisLine={false}
-                    width={70}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                      borderRadius: '8px',
-                      border: 'none',
-                      color: '#fff',
-                      fontSize: '11px',
-                    }}
-                    formatter={(val: any) => [`₹ ${val} Cr`, 'ARR']}
-                  />
-                  <Bar dataKey="value" radius={[0, 3, 3, 0]}>
-                    {REVENUE_BY_PRODUCT.map((entry, index) => (
-                      <Cell key={`bar-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="h-[210px] w-full overflow-y-auto pr-1">
+              <div style={{ height: Math.max(200, revenueByProductData.length * 24) }} className="w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={revenueByProductData}
+                    margin={{ top: 5, right: 35, left: 6, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                    <XAxis
+                      type="number"
+                      domain={[0, 'auto']}
+                      tick={{ fontSize: 10, fill: '#64748b' }}
+                    />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      interval={0}
+                      tick={{ fontSize: 10, fill: '#64748b' }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={115}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        borderRadius: '8px',
+                        border: 'none',
+                        color: '#fff',
+                        fontSize: '11px',
+                      }}
+                      formatter={(val: unknown) => [`₹ ${val} Cr`, 'ARR']}
+                    />
+                    <Bar dataKey="value" radius={[0, 3, 3, 0]}>
+                      {revenueByProductData.map((entry) => (
+                        <Cell key={`bar-${entry.uniqueKey}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-            <div className="text-right pr-4 -mt-2 text-[10px] text-slate-400 font-medium">
-              2.5 (₹ Cr)
+            <div className="text-right pr-4 pt-1 text-[10px] text-slate-400 font-medium">
+              (₹ Cr)
             </div>
           </CardContent>
         </Card>
@@ -736,19 +890,22 @@ export default function ProductWisePerformancePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-3 px-2 pb-2">
-            <div className="h-[210px] w-full">
+            <div className="h-[225px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={CONVERSION_BY_PRODUCT} margin={{ top: 15, right: 10, left: -20, bottom: 5 }}>
+                <BarChart data={conversionByProductData} margin={{ top: 15, right: 10, left: -20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis
-                    dataKey="name"
+                    dataKey="shortName"
+                    interval={0}
+                    angle={-28}
+                    textAnchor="end"
+                    height={52}
                     tickLine={false}
                     axisLine={{ stroke: '#e2e8f0' }}
-                    tick={{ fontSize: 10, fill: '#64748b' }}
+                    tick={{ fontSize: 9, fill: '#64748b' }}
                   />
                   <YAxis
-                    domain={[0, 25]}
-                    ticks={[0, 5, 10, 15, 20, 25]}
+                    domain={[0, 'auto']}
                     tick={{ fontSize: 10, fill: '#64748b' }}
                     tickFormatter={(v) => `${v}%`}
                   />
@@ -760,11 +917,12 @@ export default function ProductWisePerformancePage() {
                       color: '#fff',
                       fontSize: '11px',
                     }}
-                    formatter={(val: any) => [`${val}%`, 'Conversion Rate']}
+                    labelFormatter={(_label, payload) => payload?.[0]?.payload?.name ?? String(_label)}
+                    formatter={(val: unknown) => [`${val}%`, 'Conversion Rate']}
                   />
                   <Bar dataKey="rate" radius={[3, 3, 0, 0]}>
-                    {CONVERSION_BY_PRODUCT.map((entry, index) => (
-                      <Cell key={`conv-${index}`} fill={entry.color} />
+                    {conversionByProductData.map((entry) => (
+                      <Cell key={`conv-${entry.uniqueKey}`} fill={entry.color} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -787,9 +945,9 @@ export default function ProductWisePerformancePage() {
           </CardHeader>
           <CardContent className="pt-3 px-3 pb-3">
             <div className="flex items-center gap-2">
-              <div className="h-[210px] flex-1">
+              <div className="h-[220px] flex-1">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={MONTHLY_ACTIVE_BY_PRODUCT} margin={{ top: 10, right: 10, left: -22, bottom: 0 }}>
+                  <AreaChart data={stackedMonthlyData} margin={{ top: 10, right: 10, left: -22, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis
                       dataKey="month"
@@ -798,10 +956,9 @@ export default function ProductWisePerformancePage() {
                       tick={{ fontSize: 9, fill: '#64748b' }}
                     />
                     <YAxis
-                      domain={[0, 10000]}
-                      ticks={[0, 2000, 4000, 6000, 8000, 10000]}
+                      domain={[0, 'auto']}
                       tick={{ fontSize: 9, fill: '#64748b' }}
-                      tickFormatter={(v) => (v === 0 ? '0' : `${v / 1000}K`)}
+                      tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}K` : String(v))}
                     />
                     <Tooltip
                       contentStyle={{
@@ -812,27 +969,27 @@ export default function ProductWisePerformancePage() {
                         fontSize: '11px',
                       }}
                     />
-                    <Area type="monotone" dataKey="RealEstate" stackId="1" stroke="#0047AB" fill="#2563EB" fillOpacity={0.95} strokeWidth={1.5} />
-                    <Area type="monotone" dataKey="Retail" stackId="1" stroke="#0284C7" fill="#0EA5E9" fillOpacity={0.95} strokeWidth={1.5} />
-                    <Area type="monotone" dataKey="People" stackId="1" stroke="#059669" fill="#10B981" fillOpacity={0.95} strokeWidth={1.5} />
-                    <Area type="monotone" dataKey="IT" stackId="1" stroke="#1574fe" fill="#8B5CF6" fillOpacity={0.95} strokeWidth={1.5} />
-                    <Area type="monotone" dataKey="CRM" stackId="1" stroke="#DB2777" fill="#EC4899" fillOpacity={0.95} strokeWidth={1.5} />
-                    <Area type="monotone" dataKey="Education" stackId="1" stroke="#EA580C" fill="#F97316" fillOpacity={0.95} strokeWidth={1.5} />
+                    {stackedSeries.map((s) => (
+                      <Area
+                        key={s.seriesKey}
+                        name={s.name}
+                        type="monotone"
+                        dataKey={s.seriesKey}
+                        stackId="1"
+                        stroke={s.color}
+                        fill={s.color}
+                        fillOpacity={0.85}
+                        strokeWidth={1.5}
+                      />
+                    ))}
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
 
-              {/* Legend on the right */}
-              <div className="w-24 shrink-0 space-y-1.5 pl-1">
-                {[
-                  { name: 'Education', color: '#F97316' },
-                  { name: 'CRM', color: '#EC4899' },
-                  { name: 'IT', color: '#8B5CF6' },
-                  { name: 'People', color: '#10B981' },
-                  { name: 'Retail', color: '#0EA5E9' },
-                  { name: 'Real Estate', color: '#2563EB' },
-                ].map((item) => (
-                  <div key={item.name} className="flex items-center gap-1.5 text-[11px]">
+              {/* Dynamic Legend */}
+              <div className="w-28 shrink-0 space-y-1.5 pl-1 max-h-[210px] overflow-y-auto">
+                {stackedSeries.map((item) => (
+                  <div key={item.seriesKey} className="flex items-center gap-1.5 text-[11px]">
                     <span className="h-2.5 w-2.5 rounded-full shrink-0 shadow-2xs" style={{ backgroundColor: item.color }} />
                     <span className="text-slate-700 dark:text-slate-300 font-medium truncate">{item.name}</span>
                   </div>
@@ -850,19 +1007,22 @@ export default function ProductWisePerformancePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-3 px-2 pb-2">
-            <div className="h-[210px] w-full">
+            <div className="h-[225px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={PRODUCT_GROWTH_YOY} margin={{ top: 20, right: 10, left: -20, bottom: 5 }}>
+                <BarChart data={growthYoYData} margin={{ top: 20, right: 10, left: -20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis
-                    dataKey="name"
+                    dataKey="shortName"
+                    interval={0}
+                    angle={-28}
+                    textAnchor="end"
+                    height={52}
                     tickLine={false}
                     axisLine={{ stroke: '#e2e8f0' }}
-                    tick={{ fontSize: 10, fill: '#64748b' }}
+                    tick={{ fontSize: 9, fill: '#64748b' }}
                   />
                   <YAxis
-                    domain={[0, 35]}
-                    ticks={[0, 5, 10, 15, 20, 25, 30, 35]}
+                    domain={[0, 'auto']}
                     tick={{ fontSize: 10, fill: '#64748b' }}
                     tickFormatter={(v) => `${v}%`}
                   />
@@ -874,7 +1034,11 @@ export default function ProductWisePerformancePage() {
                       color: '#fff',
                       fontSize: '11px',
                     }}
-                    formatter={(val: any) => [`+${val}%`, 'Growth (YoY)']}
+                    labelFormatter={(_label, payload) => payload?.[0]?.payload?.name ?? String(_label)}
+                    formatter={(val: unknown) => [
+                      `${Number(val) > 0 ? `+${val}` : val}%`,
+                      'Growth (YoY)',
+                    ]}
                   />
                   <Bar dataKey="growth" fill="#4ade80" radius={[3, 3, 0, 0]} />
                 </BarChart>
@@ -891,19 +1055,22 @@ export default function ProductWisePerformancePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-3 px-2 pb-2">
-            <div className="h-[210px] w-full">
+            <div className="h-[225px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={CHURN_BY_PRODUCT} margin={{ top: 20, right: 15, left: -20, bottom: 5 }}>
+                <LineChart data={churnByProductData} margin={{ top: 20, right: 15, left: -20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis
-                    dataKey="name"
+                    dataKey="shortName"
+                    interval={0}
+                    angle={-28}
+                    textAnchor="end"
+                    height={52}
                     tickLine={false}
                     axisLine={{ stroke: '#e2e8f0' }}
-                    tick={{ fontSize: 10, fill: '#64748b' }}
+                    tick={{ fontSize: 9, fill: '#64748b' }}
                   />
                   <YAxis
-                    domain={[0, 5]}
-                    ticks={[0, 1, 2, 3, 4, 5]}
+                    domain={[0, 'auto']}
                     tick={{ fontSize: 10, fill: '#64748b' }}
                     tickFormatter={(v) => `${v}%`}
                   />
@@ -915,7 +1082,8 @@ export default function ProductWisePerformancePage() {
                       color: '#fff',
                       fontSize: '11px',
                     }}
-                    formatter={(val: any) => [`${val}%`, 'Churn Rate']}
+                    labelFormatter={(_label, payload) => payload?.[0]?.payload?.name ?? String(_label)}
+                    formatter={(val: unknown) => [`${val}%`, 'Churn Rate']}
                   />
                   <Line
                     type="monotone"

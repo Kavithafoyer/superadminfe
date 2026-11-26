@@ -26,6 +26,8 @@ import {
   User,
   History,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   X,
   Sparkles,
   ShieldCheck,
@@ -56,8 +58,10 @@ import {
 } from '@/components/ui/dialog';
 import { INITIAL_CUSTOMERS, CustomerRecord } from './customerData';
 import {
-  useGetAccountsListQuery,
+  useGetAccountsPaginatedListQuery,
+  useSearchCustomerAccountsPaginatedQuery,
   useGetAccountFullListQuery,
+  useGetProductDropdownQuery,
   useGetCustomerKpiAnalyticsQuery,
   useGetCustomerAuditHistoryQuery,
   useGetCustomerDocumentListQuery,
@@ -105,7 +109,10 @@ const formatToIsoDate = (dateStr?: string): string => {
   return fallback.toISOString().split('T')[0];
 };
 
-const mapAccountToCustomer = (acc: any): CustomerRecord => {
+const mapAccountToCustomer = (
+  acc: any,
+  productLookupMap?: Map<number, string>
+): CustomerRecord => {
   const industryStr = String(acc.Industry || 'IT Services').toLowerCase();
   let industryIcon: CustomerRecord['industryIcon'] = 'it';
   if (industryStr.includes('edu')) industryIcon = 'education';
@@ -113,8 +120,29 @@ const mapAccountToCustomer = (acc: any): CustomerRecord => {
   else if (industryStr.includes('real')) industryIcon = 'real-estate';
   else if (industryStr.includes('people') || industryStr.includes('hrm')) industryIcon = 'people';
 
-  const rawArr = acc.Annual_Contract_ARR || acc.arr || '12,00,000';
-  const numericArr = Number(String(rawArr).replace(/[^0-9]/g, '')) || 1200000;
+  const rawArr = acc.Annual_Contract_ARR ?? acc.arr ?? 0;
+  const cleanedArr = String(rawArr).replace(/[^0-9.]/g, '');
+  const numericArr = cleanedArr ? Number(cleanedArr) : 0;
+
+  const productPk =
+    acc.Product_Id && typeof acc.Product_Id === 'object'
+      ? Number(acc.Product_Id.id)
+      : Number(acc.Product_Id);
+  const resolvedProduct =
+    (acc.Product_Id && typeof acc.Product_Id === 'object' && acc.Product_Id.Product_Name) ||
+    (!Number.isNaN(productPk) && productLookupMap?.get(productPk)) ||
+    acc.Product_Name ||
+    acc.Primary_Product ||
+    acc.product ||
+    acc.Industry ||
+    '—';
+  const resolvedPlan = acc.Subscribed_Plan || acc.plan || '—';
+  const rawStatus = String(
+    acc.Client_Status ||
+      acc.Status_Flag ||
+      acc.Account_Status ||
+      (acc.Active_Flag !== false ? 'Active' : 'Expiring')
+  );
 
   return {
     id: String(acc.id || acc.Account_Id || ''),
@@ -122,38 +150,38 @@ const mapAccountToCustomer = (acc: any): CustomerRecord => {
     customerId: acc.Account_Id || (acc.id ? `ACC-${acc.id}` : 'CUST-0001'),
     industry: acc.Industry || 'Information Technology',
     industryIcon,
-    product: acc.Primary_Product || acc.product || 'Pegatto CRM',
-    plan: acc.Subscribed_Plan || acc.plan || 'Professional',
-    startDate: acc.Created_Date || '01 Jan 2026',
-    nextRenewal: acc.Next_Renewal || '31 Dec 2026',
-    status: (acc.Account_Status || (acc.Active_Flag !== false ? 'Active' : 'Expiring')) as any,
-    arr: typeof rawArr === 'number' ? rawArr.toLocaleString('en-IN') : String(rawArr),
+    product: String(resolvedProduct),
+    plan: String(resolvedPlan),
+    startDate: acc.Created_Date || '—',
+    nextRenewal: acc.Next_Renewal || '—',
+    status: rawStatus as any,
+    arr: numericArr > 0 ? numericArr.toLocaleString('en-IN') : '0',
     arrValue: numericArr,
     location: acc.Location || acc.City || 'India',
     contactPerson: acc.Contact_Name || acc.contactPerson || 'Contact Person',
     phone: acc.Phone_Number || acc.phone || '',
     email: acc.Mail || acc.email || '',
-    customerSince: acc.Created_Date ? String(acc.Created_Date).slice(0, 7) : '2026',
-    users: Number(acc.Licensed_User_Seats || acc.users || 25),
-    activeUsers: Number(acc.activeUsers || acc.Licensed_User_Seats || 20),
+    customerSince: acc.Created_Date ? String(acc.Created_Date).slice(0, 7) : '—',
+    users: Number(acc.Licensed_User_Seats || acc.users || 0),
+    activeUsers: Number(acc.activeUsers || acc.Licensed_User_Seats || 0),
     students: Number(acc.students || 0),
     studentLogins: Number(acc.studentLogins || 0),
-    keyModules: Number(acc.keyModules || 6),
-    totalModules: Number(acc.totalModules || 10),
+    keyModules: Number(acc.keyModules || 0),
+    totalModules: Number(acc.totalModules || 0),
     tenantsCount: Number(acc.tenantsCount || 1),
-    healthScore: Number(acc.healthScore || 90),
-    healthStatus: acc.healthStatus || 'Healthy',
+    healthScore: Number(acc.healthScore || 0),
+    healthStatus: acc.healthStatus || rawStatus,
     subscribedProducts: acc.subscribedProducts || [
       {
-        name: acc.Primary_Product || 'Pegatto CRM',
-        edition: acc.Subscribed_Plan || 'Professional',
-        status: 'Active',
+        name: String(resolvedProduct),
+        edition: String(resolvedPlan),
+        status: rawStatus,
         icon: 'laptop',
       },
     ],
-    addonsList: acc.addonsList || ['AI Lead Scoring'],
-    accountOwner: acc.Account_Owner || 'Ananya Sharma (VP Accounts)',
-    slaTier: acc.SLA_Tier || '24/7 Mission-Critical Gold',
+    addonsList: acc.addonsList || [],
+    accountOwner: acc.Account_Owner || '—',
+    slaTier: acc.SLA_Tier || '—',
     notes: acc.Description || '',
   };
 };
@@ -175,10 +203,12 @@ export function CustomerMasterScreen({
     }
   }, [initialSubTab]);
 
-  // Server-side filter & search state
+  // Server-side filter, search & pagination state
   const [selectedProductFilter, setSelectedProductFilter] = useState('All Products');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   // Debounce search query to prevent excessive backend API calls while typing
   useEffect(() => {
@@ -188,8 +218,32 @@ export function CustomerMasterScreen({
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Global full accounts list for overall KPI metrics (Customer Overview Donut & Product Adoption bars)
-  const { data: fullAccountsData = [] } = useGetAccountFullListQuery(undefined, {
+  // Reset to page 1 when search, product filter, or page size changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, selectedProductFilter, rowsPerPage]);
+
+  // Product lookup map to resolve Account.Product_Id integer FK -> Product_Name
+  const { data: productDropdownList = [] } = useGetProductDropdownQuery();
+  const productLookupMap = useMemo(() => {
+    const map = new Map<number, string>();
+    if (Array.isArray(productDropdownList)) {
+      for (const p of productDropdownList as Array<Record<string, any>>) {
+        const pid = Number(p?.id);
+        const pname = String(p?.product_name || p?.name || '').trim();
+        if (!Number.isNaN(pid) && pname) {
+          map.set(pid, pname);
+        }
+      }
+    }
+    return map;
+  }, [productDropdownList]);
+
+  // Global full accounts list for overall KPI metrics & cross-page filtering
+  const {
+    data: fullAccountsData = [],
+    refetch: refetchFullAccounts,
+  } = useGetAccountFullListQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
 
@@ -203,44 +257,61 @@ export function CustomerMasterScreen({
     { refetchOnMountOrArgChange: true }
   );
 
-  // Server-side filtered query for the customer table list
+  const isSearchActive = Boolean(debouncedSearch.trim());
+
+  // Server-side paginated query for the customer table list (?page=N)
   const {
-    data: accountsData = [],
+    data: paginatedAccountsResponse,
     isLoading,
     isFetching,
     refetch,
-  } = useGetAccountsListQuery(
-    {
-      product: selectedProductFilter !== 'All Products' ? selectedProductFilter : undefined,
-      search: debouncedSearch.trim() || undefined,
-    },
-    { refetchOnMountOrArgChange: true }
+  } = useGetAccountsPaginatedListQuery(
+    { page: currentPage },
+    { skip: isSearchActive, refetchOnMountOrArgChange: true }
   );
+
+  // Server-side search API (superadmin/CustomerAccountSearch/?search=...&page=N)
+  const {
+    data: searchAccountsResponse,
+    isLoading: isSearchLoading,
+    isFetching: isSearchFetching,
+    isError: isSearchError,
+    refetch: refetchSearch,
+  } = useSearchCustomerAccountsPaginatedQuery(
+    { search: debouncedSearch.trim(), page: currentPage },
+    { skip: !isSearchActive, refetchOnMountOrArgChange: true }
+  );
+
+  const isTableLoading = isSearchActive ? isSearchLoading : isLoading;
+  const isTableFetching = isSearchActive ? isSearchFetching : isFetching;
+  const accountsData = isSearchActive
+    ? searchAccountsResponse?.results ?? []
+    : paginatedAccountsResponse?.results ?? [];
 
   const [createAccountMutation, { isLoading: isCreating }] = useCreateAccountMutation();
   const [updateAccountMutation, { isLoading: isUpdating }] = useUpdateAccountMutation();
   const [deleteAccountMutation, { isLoading: isDeleting }] = useDeleteAccountMutation();
 
-  // Map full accounts to CustomerRecord for global KPIs
+  // Map full accounts to CustomerRecord for global KPIs and product filtering
   const fullCustomers = useMemo<CustomerRecord[]>(() => {
     if (Array.isArray(fullAccountsData) && fullAccountsData.length > 0) {
-      return fullAccountsData.map(mapAccountToCustomer);
+      return fullAccountsData.map((a) => mapAccountToCustomer(a, productLookupMap));
     }
     if (Array.isArray(accountsData) && accountsData.length > 0) {
-      return accountsData.map(mapAccountToCustomer);
+      return accountsData.map((a) => mapAccountToCustomer(a, productLookupMap));
     }
     return [];
-  }, [fullAccountsData, accountsData]);
+  }, [fullAccountsData, accountsData, productLookupMap]);
 
-  // Map backend accounts to CustomerRecord from live API
+  // Map current page's API (list or CustomerAccountSearch) records to CustomerRecord
   const customers = useMemo<CustomerRecord[]>(() => {
     if (Array.isArray(accountsData) && accountsData.length > 0) {
-      return accountsData.map(mapAccountToCustomer);
+      return accountsData.map((a) => mapAccountToCustomer(a, productLookupMap));
     }
     return [];
-  }, [accountsData]);
+  }, [accountsData, productLookupMap]);
 
-  // Compute live KPI metrics dynamically from backend API (with fallback from customer list)
+  // Compute live KPI metrics dynamically from backend API (without fake ARR fallbacks)
   const kpiMetrics = useMemo(() => {
     if (customerKpiData) {
       return {
@@ -255,21 +326,23 @@ export function CustomerMasterScreen({
       };
     }
 
-    const total = fullCustomers.length;
+    const total = paginatedAccountsResponse?.count ?? fullCustomers.length;
     const active = fullCustomers.filter((c) => c.status === 'Active').length;
     const expiring = fullCustomers.filter((c) => c.status === 'Expiring').length;
     const overdue = fullCustomers.filter((c) => c.status === 'Overdue').length;
     const totalArrVal = fullCustomers.reduce((sum, c) => sum + (c.arrValue || 0), 0);
-    const formattedArr =
-      totalArrVal >= 10000000
-        ? `₹${(totalArrVal / 10000000).toFixed(2)} Cr`
-        : totalArrVal >= 100000
-        ? `₹${(totalArrVal / 100000).toFixed(1)} L`
-        : `₹${totalArrVal.toLocaleString('en-IN')}`;
+    const formattedArr = isKpiLoading
+      ? '...'
+      : totalArrVal >= 10000000
+      ? `₹${(totalArrVal / 10000000).toFixed(2)} Cr`
+      : totalArrVal >= 100000
+      ? `₹${(totalArrVal / 100000).toFixed(1)} L`
+      : `₹${totalArrVal.toLocaleString('en-IN')}`;
 
-    const activePct = total > 0 ? Number(((active / total) * 100).toFixed(1)) : 0;
-    const expiringPct = total > 0 ? Number(((expiring / total) * 100).toFixed(1)) : 0;
-    const overduePct = total > 0 ? Number(((overdue / total) * 100).toFixed(1)) : 0;
+    const baseTotal = fullCustomers.length || total;
+    const activePct = baseTotal > 0 ? Number(((active / baseTotal) * 100).toFixed(1)) : 0;
+    const expiringPct = baseTotal > 0 ? Number(((expiring / baseTotal) * 100).toFixed(1)) : 0;
+    const overduePct = baseTotal > 0 ? Number(((overdue / baseTotal) * 100).toFixed(1)) : 0;
 
     return {
       total,
@@ -281,7 +354,7 @@ export function CustomerMasterScreen({
       expiringPct,
       overduePct,
     };
-  }, [customerKpiData, fullCustomers]);
+  }, [customerKpiData, fullCustomers, paginatedAccountsResponse?.count, isKpiLoading]);
 
   // Dynamic products list extracted from live accounts + standard choices
   const availableProducts = useMemo(() => {
@@ -701,7 +774,7 @@ export function CustomerMasterScreen({
           plan: cust.plan || '—',
           startDate: cust.startDate || '—',
           renewalDate: cust.nextRenewal || '—',
-          renewalAmount: cust.arr ? `₹${cust.arr.replace(/[^0-9,]/g, '')}` : '—',
+          renewalAmount: cust.arrValue > 0 && cust.arr ? `₹${cust.arr.replace(/[^0-9,]/g, '')}` : '—',
           renewalAmountValue: cust.arrValue || 0,
           status: derivedStatus,
           paymentStatus: derivedStatus === 'Active' ? 'Paid' : 'Pending',
@@ -807,9 +880,10 @@ export function CustomerMasterScreen({
   });
 
   const selectedCustomer = useMemo<CustomerRecord | null>(() => {
-    if (customers.length === 0) return null;
-    return customers.find((c) => c.id === selectedCustomerId) || customers[0] || null;
-  }, [customers, selectedCustomerId]);
+    const pool = [...customers, ...fullCustomers];
+    if (pool.length === 0) return null;
+    return pool.find((c) => c.id === selectedCustomerId) || customers[0] || fullCustomers[0] || null;
+  }, [customers, fullCustomers, selectedCustomerId]);
 
   useEffect(() => {
     if (!selectedCustomerId && customers.length > 0) {
@@ -828,8 +902,8 @@ export function CustomerMasterScreen({
     startDate: '',
     nextRenewal: '',
     status: 'Active',
-    arr: '12,00,000',
-    arrValue: 1200000,
+    arr: '0',
+    arrValue: 0,
     location: '',
     contactPerson: '',
     phone: '',
@@ -898,8 +972,8 @@ export function CustomerMasterScreen({
       startDate: '01 Dec 2026',
       nextRenewal: '30 Nov 2027',
       status: 'Active',
-      arr: '24,00,000',
-      arrValue: 2400000,
+      arr: '0',
+      arrValue: 0,
       location: 'Bangalore, India',
       contactPerson: '',
       phone: '',
@@ -945,7 +1019,7 @@ export function CustomerMasterScreen({
       Location: formState.location || 'India',
       Primary_Product: formState.product || 'Pegatto CRM',
       Subscribed_Plan: formState.plan || 'Standard',
-      Annual_Contract_ARR: formState.arr || '12,00,000',
+      Annual_Contract_ARR: formState.arr || '0',
       Next_Renewal: formatToIsoDate(formState.nextRenewal),
       Licensed_User_Seats: String(formState.users || 10),
       Account_Status: formState.status || 'Active',
@@ -1103,36 +1177,90 @@ export function CustomerMasterScreen({
     }
   };
 
-  // Filtered customers (queried from server-side filter API, with client fallback guard)
-  const filteredCustomers = useMemo(() => {
-    return customers.filter((c) => {
-      const query = debouncedSearch.trim().toLowerCase();
-      const matchesSearch =
-        !query ||
-        c.name.toLowerCase().includes(query) ||
-        c.customerId.toLowerCase().includes(query) ||
-        c.contactPerson.toLowerCase().includes(query) ||
-        c.industry.toLowerCase().includes(query);
+  // Server-paginated unfiltered list OR server-paginated CustomerAccountSearch API
+  const isServerPaginated = isSearchActive
+    ? selectedProductFilter === 'All Products'
+    : selectedProductFilter === 'All Products' && rowsPerPage === 10;
 
-      const matchesProduct =
+  const filteredCustomers = useMemo(() => {
+    if (isSearchActive) {
+      if (selectedProductFilter === 'All Products') return customers;
+      return customers.filter(
+        (c) =>
+          c.product.toLowerCase().includes(selectedProductFilter.toLowerCase()) ||
+          selectedProductFilter.toLowerCase().includes(c.product.toLowerCase()) ||
+          (selectedProductFilter === 'IT Services' &&
+            (c.product.toLowerCase().includes('it') || c.product.toLowerCase().includes('crm'))) ||
+          (selectedProductFilter === 'People (HRMS)' &&
+            (c.product.toLowerCase().includes('people') || c.product.toLowerCase().includes('hrm')))
+      );
+    }
+
+    const sourceList = isServerPaginated
+      ? customers
+      : fullCustomers.length > 0
+      ? fullCustomers
+      : customers;
+
+    if (isServerPaginated) return sourceList;
+
+    return sourceList.filter((c) => {
+      return (
         selectedProductFilter === 'All Products' ||
         c.product.toLowerCase().includes(selectedProductFilter.toLowerCase()) ||
         selectedProductFilter.toLowerCase().includes(c.product.toLowerCase()) ||
         (selectedProductFilter === 'IT Services' &&
           (c.product.toLowerCase().includes('it') || c.product.toLowerCase().includes('crm'))) ||
         (selectedProductFilter === 'People (HRMS)' &&
-          (c.product.toLowerCase().includes('people') || c.product.toLowerCase().includes('hrm')));
-
-      return matchesSearch && matchesProduct;
+          (c.product.toLowerCase().includes('people') || c.product.toLowerCase().includes('hrm')))
+      );
     });
-  }, [customers, debouncedSearch, selectedProductFilter]);
+  }, [isSearchActive, isServerPaginated, customers, fullCustomers, selectedProductFilter]);
 
-  // Handle select all checkbox
+  const effectivePageSize = isSearchActive || isServerPaginated ? 10 : rowsPerPage;
+  const totalCustomersCount = isSearchActive
+    ? selectedProductFilter === 'All Products'
+      ? searchAccountsResponse?.count ?? filteredCustomers.length
+      : filteredCustomers.length
+    : isServerPaginated
+    ? paginatedAccountsResponse?.count ?? (fullCustomers.length || filteredCustomers.length)
+    : filteredCustomers.length;
+  const totalPages = Math.max(1, Math.ceil(totalCustomersCount / effectivePageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const paginatedCustomers = useMemo(() => {
+    if (isServerPaginated) return filteredCustomers;
+    const start = (safeCurrentPage - 1) * effectivePageSize;
+    return filteredCustomers.slice(start, start + effectivePageSize);
+  }, [isServerPaginated, filteredCustomers, safeCurrentPage, effectivePageSize]);
+
+  const visiblePageNumbers = useMemo(() => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const pages: Array<number | 'ellipsis-start' | 'ellipsis-end'> = [1];
+    const startPage = Math.max(2, safeCurrentPage - 1);
+    const endPage = Math.min(totalPages - 1, safeCurrentPage + 1);
+    if (startPage > 2) pages.push('ellipsis-start');
+    for (let p = startPage; p <= endPage; p++) pages.push(p);
+    if (endPage < totalPages - 1) pages.push('ellipsis-end');
+    pages.push(totalPages);
+    return pages;
+  }, [totalPages, safeCurrentPage]);
+
+  // Handle select all checkbox for current visible page
   const handleSelectAll = (checked: boolean) => {
+    const visibleIds = paginatedCustomers.map((c) => c.id);
     if (checked) {
-      setSelectedCustomerIds(filteredCustomers.map((c) => c.id));
+      setSelectedCustomerIds((prev) => Array.from(new Set([...prev, ...visibleIds])));
     } else {
-      setSelectedCustomerIds([]);
+      setSelectedCustomerIds((prev) => prev.filter((id) => !visibleIds.includes(id)));
     }
   };
 
@@ -2331,21 +2459,33 @@ export function CustomerMasterScreen({
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-[#5046e5]" />
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <span>Customers ({filteredCustomers.length})</span>
-                  {isFetching && (
+                  <span>Customers ({totalCustomersCount})</span>
+                  {totalPages > 1 && (
+                    <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                      Page {safeCurrentPage} of {totalPages}
+                    </span>
+                  )}
+                  {isTableFetching && (
                     <span className="inline-flex items-center text-[10px] text-[#5046e5] font-semibold bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200 animate-pulse">
-                      Filtering...
+                      {isSearchActive ? 'Searching API...' : 'Loading...'}
                     </span>
                   )}
                 </h3>
                 <button
                   type="button"
-                  onClick={() => refetch()}
-                  disabled={isFetching}
+                  onClick={() => {
+                    if (isSearchActive) {
+                      refetchSearch();
+                    } else {
+                      refetch();
+                    }
+                    refetchFullAccounts();
+                  }}
+                  disabled={isTableFetching}
                   className="p-1 text-slate-400 hover:text-[#5046e5] rounded-md transition-colors cursor-pointer"
                   title="Refresh customer data"
                 >
-                  <RefreshCw className={cn('h-3.5 w-3.5', isFetching && 'animate-spin text-[#5046e5]')} />
+                  <RefreshCw className={cn('h-3.5 w-3.5', isTableFetching && 'animate-spin text-[#5046e5]')} />
                 </button>
               </div>
 
@@ -2356,8 +2496,18 @@ export function CustomerMasterScreen({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search by customer name, code or contact..."
-                    className="pl-9 pr-3 py-1.5 text-xs h-9 bg-white border-slate-200 rounded-lg placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#5046e5]"
+                    className="pl-9 pr-8 py-1.5 text-xs h-9 bg-white border-slate-200 rounded-lg placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-[#5046e5]"
                   />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      title="Clear search"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
                 {!isDrawerOpen && (
                   <Button
@@ -2371,6 +2521,19 @@ export function CustomerMasterScreen({
                 )}
               </div>
             </div>
+
+            {isSearchActive && isSearchError && (
+              <div className="flex items-center justify-between gap-2 rounded-xl border border-rose-200 bg-rose-50/80 px-3.5 py-2 text-xs text-rose-800">
+                <span>Failed to fetch live search results from CustomerAccountSearch API.</span>
+                <button
+                  type="button"
+                  onClick={() => refetchSearch()}
+                  className="font-semibold underline hover:text-rose-950 cursor-pointer"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
 
             {/* Bulk Action Bar when checkboxes are selected */}
             {selectedCustomerIds.length > 0 && (
@@ -2421,8 +2584,8 @@ export function CustomerMasterScreen({
                         <input
                           type="checkbox"
                           checked={
-                            filteredCustomers.length > 0 &&
-                            selectedCustomerIds.length === filteredCustomers.length
+                            paginatedCustomers.length > 0 &&
+                            paginatedCustomers.every((c) => selectedCustomerIds.includes(c.id))
                           }
                           onChange={(e) => handleSelectAll(e.target.checked)}
                           className="rounded border-slate-300 text-[#5046e5] focus:ring-[#5046e5] h-3.5 w-3.5 cursor-pointer accent-[#5046e5]"
@@ -2439,8 +2602,9 @@ export function CustomerMasterScreen({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium">
-                    {filteredCustomers.map((cust, idx) => {
+                    {paginatedCustomers.map((cust, idx) => {
                       const isSelected = isDrawerOpen && selectedCustomerId === cust.id;
+                      const rowNumber = (safeCurrentPage - 1) * effectivePageSize + idx + 1;
                       return (
                         <tr
                           key={cust.id}
@@ -2464,7 +2628,7 @@ export function CustomerMasterScreen({
                             />
                           </td>
                           <td className="py-2.5 px-2.5 text-center text-slate-500 font-semibold text-[11px]">
-                            {idx + 1}
+                            {rowNumber}
                           </td>
                           <td className="py-2.5 px-3 font-bold text-slate-900">
                             <div>
@@ -2503,7 +2667,7 @@ export function CustomerMasterScreen({
                             </span>
                           </td>
                           <td className="py-2.5 px-3 text-right font-bold text-slate-900 whitespace-nowrap">
-                            ₹{cust.arr}
+                            {cust.arrValue > 0 ? `₹${cust.arr}` : '—'}
                           </td>
                           <td
                             className="py-2.5 px-3 text-center"
@@ -2547,21 +2711,139 @@ export function CustomerMasterScreen({
                         </tr>
                       );
                     })}
-                    {filteredCustomers.length === 0 && (
+                    {paginatedCustomers.length === 0 && (
                       <tr>
                         <td colSpan={9} className="py-12 text-center text-slate-400">
                           <div className="flex flex-col items-center justify-center gap-2">
-                            <Users className="h-8 w-8 text-slate-300" />
-                            <p className="font-semibold text-slate-600 text-sm">No customers in database</p>
-                            <p className="text-xs text-slate-400">
-                              Click &ldquo;Add Customer&rdquo; to register your first customer account.
-                            </p>
+                            {isTableLoading || isTableFetching ? (
+                              <>
+                                <Loader2 className="h-7 w-7 text-[#5046e5] animate-spin" />
+                                <p className="font-semibold text-slate-600 text-sm">
+                                  {isSearchActive
+                                    ? 'Searching customer records via API...'
+                                    : 'Loading customer records...'}
+                                </p>
+                              </>
+                            ) : (
+                              <>
+                                <Users className="h-8 w-8 text-slate-300" />
+                                <p className="font-semibold text-slate-600 text-sm">
+                                  {debouncedSearch.trim() || selectedProductFilter !== 'All Products'
+                                    ? 'No matching customers found'
+                                    : 'No customers in database'}
+                                </p>
+                                <p className="text-xs text-slate-400">
+                                  {debouncedSearch.trim() || selectedProductFilter !== 'All Products'
+                                    ? 'Try clearing your search query or switching back to All Products.'
+                                    : 'Click “Add Customer” to register your first customer account.'}
+                                </p>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
                     )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Pagination Footer Bar */}
+              <div className="px-3.5 py-2.5 border-t border-slate-200/80 bg-slate-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs text-slate-500">
+                <div>
+                  Showing{' '}
+                  <span className="font-semibold text-slate-700">
+                    {totalCustomersCount > 0 ? (safeCurrentPage - 1) * effectivePageSize + 1 : 0}
+                    –
+                    {Math.min(
+                      (safeCurrentPage - 1) * effectivePageSize + paginatedCustomers.length,
+                      totalCustomersCount
+                    )}
+                  </span>{' '}
+                  of <span className="font-semibold text-slate-700">{totalCustomersCount}</span> customers
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <span>Rows per page:</span>
+                    <select
+                      value={isSearchActive ? 10 : rowsPerPage}
+                      disabled={isSearchActive}
+                      onChange={(e) => {
+                        setRowsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      title={isSearchActive ? 'Search API returns 10 results per page' : 'Rows per page'}
+                      className="h-7 px-2 rounded border border-slate-200 bg-white text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#5046e5] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={safeCurrentPage <= 1 || isTableFetching}
+                      onClick={() => setCurrentPage(1)}
+                      title="First Page"
+                      className="h-6 px-1.5 rounded hover:bg-slate-200/70 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      &laquo;
+                    </button>
+                    <button
+                      type="button"
+                      disabled={safeCurrentPage <= 1 || isTableFetching}
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      title="Previous Page"
+                      className="h-6 px-1.5 rounded hover:bg-slate-200/70 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center"
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                    </button>
+
+                    {visiblePageNumbers.map((pageItem) =>
+                      typeof pageItem === 'string' ? (
+                        <span key={pageItem} className="px-1 text-slate-400 select-none">
+                          ...
+                        </span>
+                      ) : (
+                        <button
+                          key={pageItem}
+                          type="button"
+                          disabled={isTableFetching}
+                          onClick={() => setCurrentPage(pageItem)}
+                          className={cn(
+                            'h-6 min-w-6 px-1.5 rounded text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer disabled:opacity-60',
+                            safeCurrentPage === pageItem
+                              ? 'bg-[#5046e5] text-white shadow-2xs'
+                              : 'text-slate-600 hover:bg-slate-200/70'
+                          )}
+                        >
+                          {pageItem}
+                        </button>
+                      )
+                    )}
+
+                    <button
+                      type="button"
+                      disabled={safeCurrentPage >= totalPages || isTableFetching}
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      title="Next Page"
+                      className="h-6 px-1.5 rounded hover:bg-slate-200/70 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center"
+                    >
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={safeCurrentPage >= totalPages || isTableFetching}
+                      onClick={() => setCurrentPage(totalPages)}
+                      title="Last Page"
+                      className="h-6 px-1.5 rounded hover:bg-slate-200/70 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      &raquo;
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

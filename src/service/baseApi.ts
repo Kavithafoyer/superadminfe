@@ -104,6 +104,7 @@ export const baseApi = createApi({
     "AddonTieredPricing",
     "AddonPriceHistory",
     "SystemPreferences",
+    "Dashboard",
   ],
   endpoints: () => ({}),
 });
