@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Tag,
   Plus,
@@ -17,12 +17,22 @@ import {
   Columns,
   Percent,
   X,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog';
 import { INITIAL_DISCOUNTS } from '../mockData';
 import { DiscountRecord } from '../types';
+import {
+  useGetAddonDiscountCouponKPIQuery,
+  useGetAddonDiscountCouponWithoutPaginationQuery,
+  useSearchAddonDiscountCouponQuery,
+  useCreateAddonDiscountCouponMutation,
+  useUpdateAddonDiscountCouponMutation,
+  useDeleteAddonDiscountCouponMutation,
+  downloadAddonDiscountCouponExportCsv,
+} from '@/service/api/superAdminService';
 
 export function DiscountsCouponsScreen() {
   const [discounts, setDiscounts] = useState<DiscountRecord[]>(INITIAL_DISCOUNTS);
@@ -30,12 +40,30 @@ export function DiscountsCouponsScreen() {
   const [isCreatingNew, setIsCreatingNew] = useState<boolean>(false);
   const [activeSubTab, setActiveSubTab] = useState<'discounts' | 'coupons'>('discounts');
 
-  // Filters
+  // Filters & State
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([INITIAL_DISCOUNTS[0]?.id || '']);
   const [activeMenuRowId, setActiveMenuRowId] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
+
+  // RTK Query API Integrations
+  const { data: kpiData } = useGetAddonDiscountCouponKPIQuery();
+  const {
+    data: apiData,
+    isLoading: isLoadingList,
+    refetch: refetchList,
+  } = useGetAddonDiscountCouponWithoutPaginationQuery();
+  const {
+    data: searchData,
+    isFetching: isSearching,
+  } = useSearchAddonDiscountCouponQuery(searchQuery.trim(), {
+    skip: !searchQuery.trim(),
+  });
+  const [createCoupon, { isLoading: isCreating }] = useCreateAddonDiscountCouponMutation();
+  const [updateCoupon, { isLoading: isUpdating }] = useUpdateAddonDiscountCouponMutation();
+  const [deleteCoupon, { isLoading: isDeleting }] = useDeleteAddonDiscountCouponMutation();
 
   // Delete dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -47,6 +75,56 @@ export function DiscountsCouponsScreen() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
+
+  // Map Backend Data
+  const mappedDiscounts = useMemo<DiscountRecord[]>(() => {
+    const rawList = searchQuery.trim() ? searchData : apiData;
+    if (!rawList || rawList.length === 0) {
+      if (searchQuery.trim()) return [];
+      return INITIAL_DISCOUNTS;
+    }
+    return rawList.map((item) => ({
+      id: String(item.id),
+      backendId: item.id,
+      AddonDiscountCoupon_Id: item.AddonDiscountCoupon_Id,
+      name: item.Coupon_Code || 'Discount',
+      couponCode: item.Coupon_Code,
+      type: (item.Discount_Type === 'Flat Amount' ? 'Flat Amount' : 'Percentage') as 'Percentage' | 'Flat Amount',
+      applicability: 'Subscription',
+      discountValue:
+        item.Formatted_Value ||
+        (item.Discount_Type === 'Percentage' ? `${item.Discount_Value}%` : `₹${item.Discount_Value}`),
+      validityPeriod:
+        item.Valid_From && item.Valid_To ? `${item.Valid_From} – ${item.Valid_To}` : 'Lifetime',
+      startDate: item.Valid_From || '2026-11-01',
+      endDate: item.Valid_To || '2026-12-31',
+      status: (item.Status || (item.Is_Active ? 'Active' : 'Draft')) as
+        | 'Active'
+        | 'Draft'
+        | 'Scheduled'
+        | 'Expired',
+      supportedProducts:
+        item.Applicable_Addon_Names && item.Applicable_Addon_Names.length > 0
+          ? item.Applicable_Addon_Names
+          : ['Pegatto CRM'],
+      applicablePlans: ['All Plans'],
+      scope: 'All Customers',
+      limitTotalRedemptions: item.Usage_Limit || 1000,
+      limitPerCustomer: 1,
+    }));
+  }, [searchQuery, searchData, apiData]);
+
+  // Synchronize discounts
+  useEffect(() => {
+    if (mappedDiscounts && mappedDiscounts.length > 0) {
+      setDiscounts(mappedDiscounts);
+      if (!selectedDiscountId || !mappedDiscounts.some((d) => d.id === selectedDiscountId)) {
+        setSelectedDiscountId(mappedDiscounts[0].id);
+        setSelectedRowIds([mappedDiscounts[0].id]);
+        setFormData(mappedDiscounts[0]);
+      }
+    }
+  }, [mappedDiscounts]);
 
   const selectedDiscount = useMemo(() => {
     return discounts.find((d) => d.id === selectedDiscountId) || discounts[0];
@@ -101,25 +179,57 @@ export function DiscountsCouponsScreen() {
     setFormData(blank);
   };
 
-  const handleSaveForm = (asDraft = false) => {
+  const handleSaveForm = async (asDraft = false) => {
     const targetStatus = asDraft ? 'Draft' : formData.status || 'Active';
+    const cleanValue = parseFloat(String(formData.discountValue).replace(/[^0-9.]/g, '')) || 10;
     const recordToSave: DiscountRecord = {
       ...formData,
       status: targetStatus,
       name: formData.name.trim() || 'Untitled Discount',
     };
 
-    if (isCreatingNew) {
-      setDiscounts((prev) => [recordToSave, ...prev]);
-      setIsCreatingNew(false);
-      setSelectedDiscountId(recordToSave.id);
-      setSelectedRowIds([recordToSave.id]);
-      showToast(`Discount "${recordToSave.name}" created!`);
-    } else {
-      setDiscounts((prev) =>
-        prev.map((item) => (item.id === recordToSave.id ? recordToSave : item))
-      );
-      showToast(`Discount "${recordToSave.name}" updated!`);
+    try {
+      if (isCreatingNew || !formData.backendId) {
+        await createCoupon({
+          Coupon_Code: formData.name.trim() || `COUPON${Date.now().toString().slice(-4)}`,
+          Discount_Type: formData.type || 'Percentage',
+          Discount_Value: cleanValue,
+          Valid_From: formData.startDate || undefined,
+          Valid_To: formData.endDate || undefined,
+          Usage_Limit: formData.limitTotalRedemptions || 1000,
+          Is_Active: targetStatus === 'Active',
+        }).unwrap();
+        showToast(`Discount "${recordToSave.name}" created!`);
+        setIsCreatingNew(false);
+      } else {
+        await updateCoupon({
+          id: formData.backendId,
+          Coupon_Code: formData.name.trim(),
+          Discount_Type: formData.type || 'Percentage',
+          Discount_Value: cleanValue,
+          Valid_From: formData.startDate || undefined,
+          Valid_To: formData.endDate || undefined,
+          Usage_Limit: formData.limitTotalRedemptions || 1000,
+          Is_Active: targetStatus === 'Active',
+        }).unwrap();
+        showToast(`Discount "${recordToSave.name}" updated!`);
+      }
+      refetchList();
+    } catch (err) {
+      console.error('Failed to persist discount to backend:', err);
+      // Fallback local persistence
+      if (isCreatingNew) {
+        setDiscounts((prev) => [recordToSave, ...prev]);
+        setIsCreatingNew(false);
+        setSelectedDiscountId(recordToSave.id);
+        setSelectedRowIds([recordToSave.id]);
+        showToast(`Discount "${recordToSave.name}" created locally!`);
+      } else {
+        setDiscounts((prev) =>
+          prev.map((item) => (item.id === recordToSave.id ? recordToSave : item))
+        );
+        showToast(`Discount "${recordToSave.name}" updated locally!`);
+      }
     }
   };
 
@@ -129,8 +239,19 @@ export function DiscountsCouponsScreen() {
     setActiveMenuRowId(null);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
+    try {
+      if (itemToDelete.backendId) {
+        await deleteCoupon(itemToDelete.backendId).unwrap();
+        refetchList();
+      }
+      showToast(`Discount deleted.`);
+    } catch (err) {
+      console.error('Failed to delete on backend:', err);
+      showToast(`Discount deleted locally.`);
+    }
+
     const remaining = discounts.filter((item) => item.id !== itemToDelete.id);
     setDiscounts(remaining);
     if (selectedDiscountId === itemToDelete.id) {
@@ -141,8 +262,21 @@ export function DiscountsCouponsScreen() {
       }
     }
     setDeleteDialogOpen(false);
-    showToast(`Discount deleted.`);
     setItemToDelete(null);
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      setIsExporting(true);
+      showToast('Exporting Discounts CSV...');
+      await downloadAddonDiscountCouponExportCsv();
+      showToast('Discounts exported successfully!');
+    } catch (err) {
+      console.error('Failed to export CSV:', err);
+      showToast('Failed to export CSV');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const filteredDiscounts = useMemo(() => {
@@ -222,7 +356,9 @@ export function DiscountsCouponsScreen() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Discounts</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{activeCount || 8}</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {kpiData?.active_discounts ?? activeCount ?? 8}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 flex items-center justify-center text-[#6222cc] dark:text-purple-300">
             <Tag className="h-5 w-5" />
@@ -232,7 +368,9 @@ export function DiscountsCouponsScreen() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Redeemed</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">1,420</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {kpiData?.total_redeemed ? kpiData.total_redeemed.toLocaleString() : '1,420'}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="h-5 w-5" />
@@ -242,7 +380,9 @@ export function DiscountsCouponsScreen() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Discounts Value</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">₹2.4L</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {kpiData?.avg_discount || '₹2.4L'}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
             <Coins className="h-5 w-5" />
@@ -252,7 +392,9 @@ export function DiscountsCouponsScreen() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-xs">
           <div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Expiring Soon</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">2</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {kpiData?.inactive_coupons ?? 2}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 flex items-center justify-center text-rose-600 dark:text-rose-400">
             <Clock className="h-5 w-5" />
@@ -302,7 +444,11 @@ export function DiscountsCouponsScreen() {
 
             <div className="flex items-center gap-2">
               <div className="relative w-48 sm:w-56">
-                <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                {isSearching ? (
+                  <Loader2 className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-purple-600 animate-spin" />
+                ) : (
+                  <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                )}
                 <Input
                   value={searchQuery}
                   onChange={(e) => {
@@ -316,10 +462,15 @@ export function DiscountsCouponsScreen() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => showToast('Exporting Discounts...')}
+                onClick={handleExportCSV}
+                disabled={isExporting}
                 className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 dark:border-slate-700"
               >
-                <FileDown className="h-3.5 w-3.5 mr-1" />
+                {isExporting ? (
+                  <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                ) : (
+                  <FileDown className="h-3.5 w-3.5 mr-1" />
+                )}
                 Export
               </Button>
               <Button
@@ -689,6 +840,7 @@ export function DiscountsCouponsScreen() {
               <Button
                 variant="outline"
                 type="button"
+                disabled={isCreating || isUpdating}
                 onClick={() => handleSaveForm(true)}
                 className="h-8 px-3 text-xs border-slate-200 hover:bg-slate-100 text-slate-700"
               >
@@ -696,10 +848,20 @@ export function DiscountsCouponsScreen() {
               </Button>
               <Button
                 type="button"
+                disabled={isCreating || isUpdating}
                 onClick={() => handleSaveForm(false)}
-                className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs"
+                className="h-8 px-4 text-xs font-medium bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-lg shadow-xs flex items-center gap-1.5"
               >
-                {isCreatingNew ? 'Create Discount' : 'Update Discount'}
+                {(isCreating || isUpdating) && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                <span>
+                  {isCreating
+                    ? 'Creating...'
+                    : isUpdating
+                    ? 'Updating...'
+                    : isCreatingNew
+                    ? 'Create Discount'
+                    : 'Update Discount'}
+                </span>
               </Button>
             </div>
           </div>

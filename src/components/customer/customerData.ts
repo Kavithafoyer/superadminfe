@@ -32,6 +32,9 @@ export interface CustomerRecord {
     icon: string;
   }>;
   addonsList: string[];
+  accountOwner?: string;
+  slaTier?: string;
+  notes?: string;
 }
 
 export const INITIAL_CUSTOMERS: CustomerRecord[] = [

@@ -139,6 +139,22 @@ export function ProductBadgeIcon({
     );
   }
 
+  if (t.includes('fin') || t.includes('bill') || t.includes('pay')) {
+    return (
+      <div className={cn('flex items-center justify-center bg-emerald-50 text-emerald-600 border border-emerald-100 shrink-0', sizeClasses[size], className)}>
+        <CreditCard className={iconSizes[size]} />
+      </div>
+    );
+  }
+
+  if (t.includes('health') || t.includes('med') || t.includes('care')) {
+    return (
+      <div className={cn('flex items-center justify-center bg-rose-50 text-rose-600 border border-rose-100 shrink-0', sizeClasses[size], className)}>
+        <Award className={iconSizes[size]} />
+      </div>
+    );
+  }
+
   if (t.includes('core') || t.includes('plat') || t.includes('free')) {
     return (
       <div className={cn('flex items-center justify-center bg-purple-50 text-[#6222cc] border border-purple-100 shrink-0', sizeClasses[size], className)}>

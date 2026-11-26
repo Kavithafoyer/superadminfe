@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   History,
   TrendingUp,
@@ -28,12 +28,20 @@ import {
   Pencil,
   Trash2,
   Save,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { INITIAL_PRICE_HISTORY } from '../mockData';
 import { PriceHistoryItem, PriceChangeRecord } from '../types';
+import {
+  useGetAddonPriceHistoryKPIQuery,
+  useGetAddonPriceHistoryWithoutPaginationQuery,
+  useFilterAddonPriceHistoryMutationMutation,
+  useCreateAddonPriceHistoryMutation,
+  downloadAddonPriceHistoryExportCsv,
+} from '@/service/api/superAdminService';
 
 export function PriceHistoryScreen() {
   const [historyItems, setHistoryItems] = useState<PriceHistoryItem[]>(INITIAL_PRICE_HISTORY);
@@ -42,14 +50,115 @@ export function PriceHistoryScreen() {
 
   // Filter States
   const [productFilter, setProductFilter] = useState('Pegatto CRM');
-  const [addonFilter, setAddonFilter] = useState('AI Lead Scoring');
+  const [addonFilter, setAddonFilter] = useState('WhatsApp CRM Integration');
   const [dateRange, setDateRange] = useState('01 Aug 2026 – 18 Nov 2026');
+
+  // RTK Query API Integrations
+  const { data: kpiData } = useGetAddonPriceHistoryKPIQuery();
+  const {
+    data: apiHistoryList,
+    isLoading: isLoadingList,
+    refetch: refetchHistory,
+  } = useGetAddonPriceHistoryWithoutPaginationQuery();
+  const [filterPriceHistory, { isLoading: isFiltering }] = useFilterAddonPriceHistoryMutationMutation();
+  const [createPriceHistory, { isLoading: isCreating }] = useCreateAddonPriceHistoryMutation();
+  const [isExporting, setIsExporting] = useState<boolean>(false);
 
   // Modal State for logging a new price change
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [newPriceInput, setNewPriceInput] = useState<number>(1099);
   const [effectiveDateInput, setEffectiveDateInput] = useState<string>('01 Dec 2026');
   const [reasonInput, setReasonInput] = useState<string>('Winter release & performance optimization');
+
+  // Group backend records by Addon Name
+  const mappedHistoryItems = useMemo<PriceHistoryItem[]>(() => {
+    if (!apiHistoryList || apiHistoryList.length === 0) {
+      return INITIAL_PRICE_HISTORY;
+    }
+
+    const groupMap = new Map<string, PriceHistoryItem>();
+
+    apiHistoryList.forEach((rec) => {
+      const addonName = rec.Addon_Name || 'WhatsApp CRM Integration';
+      if (!groupMap.has(addonName)) {
+        groupMap.set(addonName, {
+          id: `aph-${rec.Addon_Pricing || rec.id}`,
+          product: rec.Product || 'Pegatto CRM',
+          addonName: addonName,
+          category: rec.Category || 'Communication',
+          currentPrice: Number(rec.New_Price ?? rec.New_Base_Price) || 0,
+          initialPrice: Number(rec.Previous_Price ?? rec.Old_Base_Price) || 0,
+          totalChanges: 0,
+          lastUpdated: rec.Effective_Date || '05 Nov 2026',
+          history: [],
+          backendId: rec.id,
+          addonPricingId: rec.Addon_Pricing,
+        });
+      }
+
+      const item = groupMap.get(addonName)!;
+      item.totalChanges += 1;
+
+      const changeRecord: PriceChangeRecord = {
+        id: String(rec.id),
+        effectiveDate:
+          rec.Effective_Date ||
+          (rec.Change_Date
+            ? new Date(rec.Change_Date).toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              })
+            : '05 Nov 2026'),
+        previousPrice:
+          rec.Previous_Price !== undefined ? rec.Previous_Price : Number(rec.Old_Base_Price),
+        newPrice: Number(rec.New_Price ?? rec.New_Base_Price),
+        changeAmount:
+          rec.Change_Amount !== undefined
+            ? rec.Change_Amount
+            : Number(rec.New_Base_Price) - Number(rec.Old_Base_Price),
+        changePercentage:
+          rec.Change_Percentage !== undefined
+            ? rec.Change_Percentage
+            : rec.Old_Base_Price
+            ? Number(
+                (
+                  ((Number(rec.New_Base_Price) - Number(rec.Old_Base_Price)) /
+                    Number(rec.Old_Base_Price)) *
+                  100
+                ).toFixed(2)
+              )
+            : 0,
+        reason: rec.Reason || 'Regular price adjustment',
+        changedBy: rec.Changed_By_Name || 'SA (Super Admin)',
+        backendId: rec.id,
+        addonPricingId: rec.Addon_Pricing,
+      };
+
+      item.history.push(changeRecord);
+      item.initialPrice = Number(rec.Previous_Price ?? rec.Old_Base_Price) || item.initialPrice;
+      if (item.history.length === 1) {
+        item.currentPrice = Number(rec.New_Price ?? rec.New_Base_Price);
+        item.lastUpdated = changeRecord.effectiveDate;
+      }
+    });
+
+    const result = Array.from(groupMap.values());
+    INITIAL_PRICE_HISTORY.forEach((mock) => {
+      if (!result.some((r) => r.addonName === mock.addonName)) {
+        result.push(mock);
+      }
+    });
+
+    return result;
+  }, [apiHistoryList]);
+
+  // Synchronize historyItems
+  useEffect(() => {
+    if (mappedHistoryItems && mappedHistoryItems.length > 0) {
+      setHistoryItems(mappedHistoryItems);
+    }
+  }, [mappedHistoryItems]);
 
   const selectedItem = useMemo(() => {
     return (
@@ -63,9 +172,20 @@ export function PriceHistoryScreen() {
   const totalChangesCount = historyItems.reduce((acc, curr) => acc + curr.totalChanges, 0) + 125;
   const priceIncreasesCount = 72;
   const priceDecreasesCount = 38;
-  const lastChangeDate = selectedItem.lastUpdated || '18 Nov 2026';
+  const lastChangeDate = selectedItem?.lastUpdated || '05 Nov 2026';
 
-  const handleApplyFilter = () => {
+  const handleApplyFilter = async () => {
+    try {
+      const res = await filterPriceHistory({
+        addon_name: addonFilter !== 'All Add-ons' ? addonFilter : undefined,
+        product: productFilter,
+      }).unwrap();
+      if (res && res.length > 0) {
+        // Results returned from backend filter
+      }
+    } catch (e) {
+      console.error('Filter query failed:', e);
+    }
     const matched = historyItems.find((i) => i.addonName === addonFilter);
     if (matched) {
       setSelectedItemId(matched.id);
@@ -74,12 +194,27 @@ export function PriceHistoryScreen() {
 
   const handleResetFilter = () => {
     setProductFilter('Pegatto CRM');
-    setAddonFilter('AI Lead Scoring');
+    setAddonFilter('WhatsApp CRM Integration');
     setDateRange('01 Aug 2026 – 18 Nov 2026');
     setSelectedItemId(historyItems[0]?.id || '');
+    refetchHistory();
   };
 
-  const handleLogPriceChange = () => {
+  const handleExportCSV = async () => {
+    try {
+      setIsExporting(true);
+      await downloadAddonPriceHistoryExportCsv({
+        pricing_id: selectedItem?.addonPricingId,
+        addon_name: addonFilter !== 'All Add-ons' ? addonFilter : undefined,
+      });
+    } catch (err) {
+      console.error('Failed to export CSV:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleLogPriceChange = async () => {
     if (!newPriceInput || !reasonInput.trim()) return;
 
     const previous = selectedItem.currentPrice;
@@ -96,6 +231,20 @@ export function PriceHistoryScreen() {
       reason: reasonInput.trim(),
       changedBy: 'SA (Super Admin)',
     };
+
+    try {
+      if (selectedItem?.addonPricingId) {
+        await createPriceHistory({
+          Addon_Pricing: selectedItem.addonPricingId,
+          Old_Base_Price: previous,
+          New_Base_Price: newPriceInput,
+          Reason: reasonInput.trim(),
+        }).unwrap();
+        refetchHistory();
+      }
+    } catch (err) {
+      console.error('Failed to log price change to backend:', err);
+    }
 
     setHistoryItems((prev) =>
       prev.map((item) => {
@@ -142,17 +291,24 @@ export function PriceHistoryScreen() {
         <div className="flex items-center gap-2.5">
           <Button
             variant="outline"
-            onClick={handleResetFilter}
+            onClick={() => refetchHistory()}
+            disabled={isLoadingList}
             className="h-9 px-3.5 text-xs font-medium border-slate-200 dark:border-slate-800 shadow-xs"
           >
-            <RefreshCw className="h-4 w-4 mr-1.5" />
+            <RefreshCw className={`h-4 w-4 mr-1.5 ${isLoadingList ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <Button
             variant="outline"
+            onClick={handleExportCSV}
+            disabled={isExporting}
             className="h-9 px-3.5 text-xs font-medium border-slate-200 dark:border-slate-800 shadow-xs"
           >
-            <FileDown className="h-4 w-4 mr-1.5" />
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+            ) : (
+              <FileDown className="h-4 w-4 mr-1.5" />
+            )}
             Export History
           </Button>
           <Button
@@ -170,7 +326,9 @@ export function PriceHistoryScreen() {
         <div className="p-4 rounded-xl border border-blue-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-purple-900 dark:text-blue-300">Total Price Changes</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{totalChangesCount}</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {kpiData?.total_price_changes ?? totalChangesCount ?? 131}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/60 text-[#6222cc] flex items-center justify-center text-[#6222cc] dark:text-blue-300">
             <Tag className="h-5 w-5" />
@@ -180,7 +338,9 @@ export function PriceHistoryScreen() {
         <div className="p-4 rounded-xl border border-emerald-200/80 dark:border-emerald-800/40 bg-gradient-to-br from-emerald-50 via-emerald-50/40 to-white dark:from-emerald-950/30 dark:via-emerald-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-emerald-900 dark:text-emerald-300">Price Increases</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{priceIncreasesCount}</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {kpiData?.price_increases ?? priceIncreasesCount ?? 72}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center text-emerald-600 dark:text-emerald-300">
             <TrendingUp className="h-5 w-5" />
@@ -190,7 +350,9 @@ export function PriceHistoryScreen() {
         <div className="p-4 rounded-xl border border-amber-200/80 dark:border-amber-800/40 bg-gradient-to-br from-amber-50 via-amber-50/40 to-white dark:from-amber-950/30 dark:via-amber-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-amber-900 dark:text-amber-300">Price Decreases</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{priceDecreasesCount}</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {kpiData?.price_decreases ?? priceDecreasesCount ?? 38}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-900/60 flex items-center justify-center text-amber-600 dark:text-amber-300">
             <TrendingDown className="h-5 w-5" />
@@ -200,7 +362,9 @@ export function PriceHistoryScreen() {
         <div className="p-4 rounded-xl border border-purple-200/80 dark:border-purple-800/40 bg-gradient-to-br from-purple-50 via-purple-50/40 to-white dark:from-purple-950/30 dark:via-purple-900/10 dark:to-slate-900 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-purple-900 dark:text-purple-300">Last Change</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">{lastChangeDate}</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+              {kpiData?.last_change ?? lastChangeDate ?? '05 Nov 2026'}
+            </p>
           </div>
           <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center text-purple-600 dark:text-purple-300">
             <Calendar className="h-5 w-5" />
@@ -290,10 +454,12 @@ export function PriceHistoryScreen() {
             </Button>
             <Button
               size="sm"
+              disabled={isFiltering}
               onClick={handleApplyFilter}
-              className="h-9 bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs px-5 shadow-sm"
+              className="h-9 bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs px-5 shadow-sm flex items-center gap-1.5"
             >
-              Apply
+              {isFiltering && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              <span>Apply</span>
             </Button>
           </div>
         </div>
@@ -692,11 +858,16 @@ export function PriceHistoryScreen() {
               </Button>
               <Button
                 size="sm"
+                disabled={isCreating}
                 onClick={handleLogPriceChange}
-                className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs px-5 shadow-sm"
+                className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs px-5 shadow-sm flex items-center gap-1.5"
               >
-                <Save className="h-3.5 w-3.5 mr-1.5" />
-                Record Price Change
+                {isCreating ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Save className="h-3.5 w-3.5 mr-1.5" />
+                )}
+                <span>{isCreating ? 'Saving...' : 'Record Price Change'}</span>
               </Button>
             </div>
           </div>

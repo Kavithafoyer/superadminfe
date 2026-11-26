@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Layers,
@@ -25,6 +25,7 @@ import {
   SlidersHorizontal,
   X,
   ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -40,26 +41,146 @@ import {
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog';
 import { INITIAL_PRICE_TEMPLATES } from '../mockData';
 import { PriceTemplateRecord, TemplateTier } from '../types';
+import {
+  useGetAddonPriceTemplateKPIQuery,
+  useGetAddonPriceTemplatesWithoutPaginationQuery,
+  useSearchAddonPriceTemplatesQuery,
+  useFilterAddonPriceTemplatesMutationMutation,
+  useCreateAddonPriceTemplateMutation,
+  useUpdateAddonPriceTemplateMutation,
+  useDeleteAddonPriceTemplateMutation,
+  downloadAddonPriceTemplatesExportCsv,
+} from '@/service/api/addonPriceTemplateApi';
+
+const mapDtoToPriceTemplate = (dto: any): PriceTemplateRecord => {
+  const status: 'Active' | 'Draft' | 'Inactive' = dto.Is_Active ? 'Active' : 'Draft';
+  const currencySymbol = dto.Currency === 'INR' ? 'INR (₹)' : dto.Currency || 'INR (₹)';
+  return {
+    id: String(dto.id || dto.AddonPriceTemplate_Id || `pt-${dto.Template_Code}`),
+    code: dto.Template_Code || 'PT-000',
+    name: dto.Template_Name || 'Untitled Template',
+    type: (dto.Billing_Type as any) || 'Subscription',
+    billingCycle: (dto.Billing_Cycle as any) || 'Monthly',
+    currency: currencySymbol,
+    tiersCount: 3,
+    appliedAddonsCount: 0,
+    status: status,
+    description: dto.Description || `${dto.Template_Name || ''} pricing template`,
+    tiers: [
+      { tierName: 'Basic', price: 499, userLimit: 'Up to 5', storage: '5 GB', features: 'Core features' },
+      { tierName: 'Pro', price: 999, userLimit: 'Up to 25', storage: '50 GB', features: 'Advanced features' },
+      { tierName: 'Enterprise', price: 1999, userLimit: 'Up to 100', storage: '250 GB', features: 'All features + Support' },
+    ],
+    showTemplateForNewAddons: true,
+    allowCustomizationAtAddonLevel: true,
+    backendId: dto.id,
+    AddonPriceTemplate_Id: dto.AddonPriceTemplate_Id,
+  };
+};
 
 export function PriceTemplatesScreen() {
   const router = useRouter();
-  const [templates, setTemplates] = useState<PriceTemplateRecord[]>(INITIAL_PRICE_TEMPLATES);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(INITIAL_PRICE_TEMPLATES[0]?.id || '');
-  const [isCreatingNew, setIsCreatingNew] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'basic' | 'tiers' | 'discounts' | 'applicability'>('basic');
-  const [activeSubTab, setActiveSubTab] = useState<'pricing' | 'templates' | 'bulk' | 'history'>('templates');
+
+  // 1. Live KPI API Query
+  const {
+    data: kpiData,
+    isFetching: isKpiFetching,
+    refetch: refetchKPI,
+  } = useGetAddonPriceTemplateKPIQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+
+  // 2. Live Price Templates List API Query
+  const {
+    data: liveTemplatesData,
+    isLoading: isTemplatesLoading,
+    isFetching: isTemplatesFetching,
+    refetch: refetchTemplates,
+  } = useGetAddonPriceTemplatesWithoutPaginationQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
 
   // Filters from Screenshot 1
   const [typeFilter, setTypeFilter] = useState('All Types');
   const [cycleFilter, setCycleFilter] = useState('All Cycles');
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search query to trigger Search API
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  // 3. Search API Query (Live GET superadmin/AddonPriceTemplateSearch/?search=...)
+  const {
+    data: searchResults,
+    isFetching: isSearchFetching,
+    refetch: refetchSearch,
+  } = useSearchAddonPriceTemplatesQuery(debouncedSearch, {
+    skip: !debouncedSearch,
+  });
+
+  // 4. Filter API Mutation (Live POST superadmin/AddonPriceTemplateFilter/)
+  const [filterTemplatesApi, { isLoading: isFiltering }] = useFilterAddonPriceTemplatesMutationMutation();
+  const [filteredResults, setFilteredResults] = useState<any[] | null>(null);
+  const [isFilterActive, setIsFilterActive] = useState(false);
+
+  // 5. CRUD Mutations
+  const [createTemplateApi, { isLoading: isCreating }] = useCreateAddonPriceTemplateMutation();
+  const [updateTemplateApi, { isLoading: isUpdating }] = useUpdateAddonPriceTemplateMutation();
+  const [deleteTemplateApi, { isLoading: isDeleting }] = useDeleteAddonPriceTemplateMutation();
+
+  // Active raw data from live APIs
+  const activeRawList = useMemo(() => {
+    if (debouncedSearch) {
+      return Array.isArray(searchResults) ? searchResults : [];
+    }
+    if (isFilterActive && filteredResults !== null) {
+      return filteredResults;
+    }
+    if (Array.isArray(liveTemplatesData) && liveTemplatesData.length > 0) {
+      return liveTemplatesData;
+    }
+    return null;
+  }, [debouncedSearch, searchResults, isFilterActive, filteredResults, liveTemplatesData]);
+
+  // Active price templates
+  const templates = useMemo<PriceTemplateRecord[]>(() => {
+    if (activeRawList !== null) {
+      return activeRawList.map(mapDtoToPriceTemplate);
+    }
+    return INITIAL_PRICE_TEMPLATES;
+  }, [activeRawList]);
+
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(INITIAL_PRICE_TEMPLATES[0]?.id || '');
+  const [isCreatingNew, setIsCreatingNew] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'basic' | 'tiers' | 'discounts' | 'applicability'>('basic');
+  const [activeSubTab, setActiveSubTab] = useState<'pricing' | 'templates' | 'bulk' | 'history'>('templates');
+
+  // Auto-select template on dataset changes
+  useEffect(() => {
+    if (templates.length > 0) {
+      const exists = templates.find((t) => t.id === selectedTemplateId);
+      if (!exists && !isCreatingNew) {
+        setSelectedTemplateId(templates[0].id);
+        setSelectedRowIds([templates[0].id]);
+        setFormData({ ...templates[0] });
+      }
+    }
+  }, [templates, selectedTemplateId, isCreatingNew]);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([INITIAL_PRICE_TEMPLATES[0]?.id || '']);
   const [activeMenuRowId, setActiveMenuRowId] = useState<string | null>(null);
+
+  // Export state
+  const [isExporting, setIsExporting] = useState(false);
 
   // Dialogs
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -134,26 +255,82 @@ export function PriceTemplatesScreen() {
     showToast('Loaded blank template in edit panel.');
   };
 
-  const handleSaveForm = (asDraft = false) => {
+  const handleApplyFilter = async () => {
+    try {
+      const filters: any = {};
+      if (typeFilter !== 'All Types') filters.Billing_Type = typeFilter;
+      if (cycleFilter !== 'All Cycles') filters.Billing_Cycle = cycleFilter;
+      if (statusFilter !== 'All Status') filters.Status = statusFilter;
+      if (debouncedSearch) filters.search = debouncedSearch;
+
+      const res = await filterTemplatesApi(filters).unwrap();
+      const list = Array.isArray(res) ? res : [];
+      setFilteredResults(list);
+      setIsFilterActive(true);
+      setCurrentPage(1);
+      showToast(`Filter applied from server: ${list.length} template(s) found.`);
+    } catch (e) {
+      console.error('Filter error:', e);
+      showToast('Error applying filter from server');
+    }
+  };
+
+  const handleResetFilter = () => {
+    setTypeFilter('All Types');
+    setCycleFilter('All Cycles');
+    setStatusFilter('All Status');
+    setSearchQuery('');
+    setDebouncedSearch('');
+    setIsFilterActive(false);
+    setFilteredResults(null);
+    setCurrentPage(1);
+    refetchTemplates();
+    refetchKPI();
+    showToast('Filters reset.');
+  };
+
+  const handleSaveForm = async (asDraft = false) => {
     const targetStatus = asDraft ? 'Draft' : formData.status || 'Active';
-    const recordToSave: PriceTemplateRecord = {
-      ...formData,
-      status: targetStatus,
-      code: formData.code.trim() || `PT-${Date.now().toString().slice(-3)}`,
-      name: formData.name.trim() || 'Untitled Template',
+    const cleanCode = formData.code.trim() || `PT-${Date.now().toString().slice(-3)}`;
+    const cleanName = formData.name.trim() || 'Untitled Template';
+    const cleanCurrency = formData.currency.includes('INR') ? 'INR' : formData.currency;
+
+    const payload = {
+      Template_Code: cleanCode,
+      Template_Name: cleanName,
+      Billing_Type: formData.type,
+      Billing_Cycle: formData.billingCycle,
+      Currency: cleanCurrency,
+      Is_Active: targetStatus === 'Active',
+      Is_Deleted: false,
     };
 
-    if (isCreatingNew) {
-      setTemplates((prev) => [recordToSave, ...prev]);
-      setIsCreatingNew(false);
-      setSelectedTemplateId(recordToSave.id);
-      setSelectedRowIds([recordToSave.id]);
-      showToast(`Template "${recordToSave.name}" created!`);
-    } else {
-      setTemplates((prev) =>
-        prev.map((item) => (item.id === recordToSave.id ? recordToSave : item))
-      );
-      showToast(`Template "${recordToSave.name}" updated!`);
+    try {
+      if (isCreatingNew) {
+        const res = await createTemplateApi(payload).unwrap();
+        const createdRecord = mapDtoToPriceTemplate(res);
+        setIsCreatingNew(false);
+        setSelectedTemplateId(createdRecord.id);
+        setSelectedRowIds([createdRecord.id]);
+        setFormData(createdRecord);
+        refetchKPI();
+        refetchTemplates();
+        if (isFilterActive) handleApplyFilter();
+        if (debouncedSearch) refetchSearch();
+        showToast(`Template "${createdRecord.name}" created in database!`);
+      } else {
+        const targetId = formData.backendId || Number(formData.id) || 1;
+        const res = await updateTemplateApi({ id: targetId, ...payload }).unwrap();
+        const updatedRecord = mapDtoToPriceTemplate(res);
+        refetchKPI();
+        refetchTemplates();
+        if (isFilterActive) handleApplyFilter();
+        if (debouncedSearch) refetchSearch();
+        showToast(`Template "${updatedRecord.name}" updated in database!`);
+      }
+    } catch (err: any) {
+      console.error('Save error:', err);
+      showToast('Error saving template.');
     }
   };
 
@@ -163,40 +340,29 @@ export function PriceTemplatesScreen() {
     setActiveMenuRowId(null);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
-    const remaining = templates.filter((item) => item.id !== itemToDelete.id);
-    setTemplates(remaining);
-    if (selectedTemplateId === itemToDelete.id) {
-      if (remaining.length > 0) {
-        setSelectedTemplateId(remaining[0].id);
-        setSelectedRowIds([remaining[0].id]);
-        setFormData({ ...remaining[0] });
-      }
+    try {
+      const deleteId = itemToDelete.backendId || Number(itemToDelete.id) || itemToDelete.id;
+      await deleteTemplateApi(deleteId).unwrap();
+      refetchKPI();
+      refetchTemplates();
+      if (isFilterActive) handleApplyFilter();
+      if (debouncedSearch) refetchSearch();
+      showToast(`Template "${itemToDelete.name}" deleted from database.`);
+    } catch (e) {
+      console.error('Delete error:', e);
+      showToast('Error deleting template.');
     }
     setDeleteDialogOpen(false);
-    showToast('Template deleted.');
     setItemToDelete(null);
   };
 
-  // Filter logic
-  const filteredTemplates = useMemo(() => {
-    return templates.filter((item) => {
-      const q = searchQuery.toLowerCase();
-      const matchesSearch =
-        item.name.toLowerCase().includes(q) || item.code.toLowerCase().includes(q);
-      const matchesType = typeFilter === 'All Types' || item.type === typeFilter;
-      const matchesCycle = cycleFilter === 'All Cycles' || item.billingCycle === cycleFilter;
-      const matchesStatus = statusFilter === 'All Status' || item.status === statusFilter;
-      return matchesSearch && matchesType && matchesCycle && matchesStatus;
-    });
-  }, [templates, searchQuery, typeFilter, cycleFilter, statusFilter]);
-
-  const totalPages = Math.ceil(filteredTemplates.length / rowsPerPage) || 1;
+  const totalPages = Math.ceil(templates.length / rowsPerPage) || 1;
   const paginatedTemplates = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
-    return filteredTemplates.slice(start, start + rowsPerPage);
-  }, [filteredTemplates, currentPage, rowsPerPage]);
+    return templates.slice(start, start + rowsPerPage);
+  }, [templates, currentPage, rowsPerPage]);
 
   const handleToggleSelectAll = () => {
     if (selectedRowIds.length === paginatedTemplates.length) {
@@ -213,29 +379,52 @@ export function PriceTemplatesScreen() {
     );
   };
 
-  const handleExportCSV = () => {
-    const headers = ['Template Code', 'Template Name', 'Type', 'Billing Cycle', 'Currency', 'Tiers', 'Applied Add-ons', 'Status'];
-    const rows = filteredTemplates.map((t) => [
-      t.code,
-      t.name,
-      t.type,
-      t.billingCycle,
-      t.currency,
-      t.tiersCount,
-      t.appliedAddonsCount,
-      t.status,
-    ]);
-    const csvContent =
-      'data:text/csv;charset=utf-8,' +
-      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Price_Templates_Export.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast('Exported templates to CSV');
+  const handleExportCSV = async () => {
+    setIsExporting(true);
+    showToast('Exporting price templates from server...');
+    try {
+      const success = await downloadAddonPriceTemplatesExportCsv({
+        search: debouncedSearch || undefined,
+        Billing_Type: typeFilter !== 'All Types' ? typeFilter : undefined,
+        Billing_Cycle: cycleFilter !== 'All Cycles' ? cycleFilter : undefined,
+        Status: statusFilter !== 'All Status' ? statusFilter : undefined,
+        ids:
+          selectedRowIds.length > 0 && selectedRowIds.length < templates.length
+            ? selectedRowIds
+            : undefined,
+      });
+
+      if (success) {
+        showToast('Export completed successfully from server!');
+        return;
+      }
+
+      // Fallback local CSV export
+      const headers = ['Template Code', 'Template Name', 'Type', 'Billing Cycle', 'Currency', 'Tiers', 'Applied Add-ons', 'Status'];
+      const rows = templates.map((t) => [
+        t.code,
+        `"${t.name.replace(/"/g, '""')}"`,
+        t.type,
+        t.billingCycle,
+        t.currency,
+        t.tiersCount,
+        t.appliedAddonsCount,
+        t.status,
+      ]);
+      const csvContent =
+        'data:text/csv;charset=utf-8,' +
+        [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `Price_Templates_Export_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Exported templates to CSV.');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -269,6 +458,20 @@ export function PriceTemplatesScreen() {
         <div className="flex items-center gap-2.5">
           <button
             type="button"
+            onClick={() => {
+              refetchKPI();
+              refetchTemplates();
+              showToast('Refreshed price templates and KPI from database.');
+            }}
+            disabled={isTemplatesFetching || isKpiFetching}
+            className="h-9 px-3 text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+            title="Refresh from Database"
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5 text-[#6222cc]", (isTemplatesFetching || isKpiFetching) && "animate-spin")} />
+            <span>Refresh</span>
+          </button>
+          <button
+            type="button"
             onClick={handleStartCreateNew}
             className="h-9 px-4 text-xs font-semibold bg-[#6222cc] hover:bg-[#521cb0] text-white rounded-xl shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
           >
@@ -287,7 +490,9 @@ export function PriceTemplatesScreen() {
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500">Total Templates</p>
-            <p className="text-2xl font-bold text-slate-900 mt-0.5">14</p>
+            <p className="text-2xl font-bold text-slate-900 mt-0.5">
+              {kpiData?.total_templates ?? templates.length}
+            </p>
           </div>
         </div>
 
@@ -298,7 +503,9 @@ export function PriceTemplatesScreen() {
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500">Active Templates</p>
-            <p className="text-2xl font-bold text-slate-900 mt-0.5">10</p>
+            <p className="text-2xl font-bold text-slate-900 mt-0.5">
+              {kpiData?.active_templates ?? templates.filter((t) => t.status === 'Active').length}
+            </p>
           </div>
         </div>
 
@@ -309,7 +516,9 @@ export function PriceTemplatesScreen() {
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500">Applied Add-ons</p>
-            <p className="text-2xl font-bold text-slate-900 mt-0.5">32</p>
+            <p className="text-2xl font-bold text-slate-900 mt-0.5">
+              {kpiData?.applied_addons ?? 32}
+            </p>
           </div>
         </div>
 
@@ -320,7 +529,9 @@ export function PriceTemplatesScreen() {
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500">Avg. Discount</p>
-            <p className="text-2xl font-bold text-slate-900 mt-0.5">15%</p>
+            <p className="text-2xl font-bold text-slate-900 mt-0.5">
+              {kpiData?.avg_discount ?? '15%'}
+            </p>
           </div>
         </div>
       </div>
@@ -428,23 +639,25 @@ export function PriceTemplatesScreen() {
           <div className="flex items-center gap-3 pt-2 sm:pt-0">
             <button
               type="button"
-              onClick={() => {
-                setTypeFilter('All Types');
-                setCycleFilter('All Cycles');
-                setStatusFilter('All Status');
-                setSearchQuery('');
-                showToast('Filters reset.');
-              }}
+              onClick={handleResetFilter}
               className="text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
             >
               Reset
             </button>
             <Button
               type="button"
-              onClick={() => showToast('Filters applied.')}
-              className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs h-9 px-4 rounded-lg font-medium shadow-2xs cursor-pointer"
+              disabled={isFiltering}
+              onClick={handleApplyFilter}
+              className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs h-9 px-4 rounded-lg font-medium shadow-2xs cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
             >
-              Apply
+              {isFiltering ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Applying...</span>
+                </>
+              ) : (
+                'Apply'
+              )}
             </Button>
           </div>
         </div>
@@ -463,20 +676,44 @@ export function PriceTemplatesScreen() {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setDebouncedSearch(searchQuery.trim());
+                  }
+                }}
                 placeholder="Search by template name or code..."
-                className="pl-9 h-9 text-xs rounded-xl bg-white border-slate-200/90"
+                className="pl-9 pr-8 h-9 text-xs rounded-xl bg-white border-slate-200/90"
               />
+              {isSearchFetching ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-[#6222cc] absolute right-3 top-1/2 -translate-y-1/2" />
+              ) : searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setDebouncedSearch('');
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              ) : null}
             </div>
 
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
+                disabled={isExporting}
                 onClick={handleExportCSV}
-                className="h-9 px-3 text-xs bg-white text-slate-700 border-slate-200 rounded-xl gap-1.5 shadow-2xs hover:bg-slate-50"
+                className="h-9 px-3 text-xs bg-white text-slate-700 border-slate-200 rounded-xl gap-1.5 shadow-2xs hover:bg-slate-50 cursor-pointer disabled:opacity-50"
               >
-                <FileDown className="h-3.5 w-3.5 text-slate-500" />
-                <span>Export</span>
+                {isExporting ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-[#6222cc]" />
+                ) : (
+                  <FileDown className="h-3.5 w-3.5 text-slate-500" />
+                )}
+                <span>{isExporting ? 'Exporting...' : 'Export'}</span>
               </Button>
               <Button
                 variant="outline"
@@ -489,6 +726,28 @@ export function PriceTemplatesScreen() {
               </Button>
             </div>
           </div>
+
+          {/* Active Filter or Search Banner */}
+          {(debouncedSearch || isFilterActive) && (
+            <div className="flex items-center justify-between text-xs bg-purple-50/70 border border-purple-100 text-purple-900 rounded-xl px-3 py-2 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-[#6222cc] animate-pulse" />
+                <span>
+                  {debouncedSearch
+                    ? `Live search for "${debouncedSearch}"`
+                    : 'Server filter applied'}
+                  : <strong>{templates.length} template(s) found</strong>
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleResetFilter}
+                className="text-xs font-semibold text-[#6222cc] hover:underline cursor-pointer"
+              >
+                Clear
+              </button>
+            </div>
+          )}
 
           <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
             <div className="overflow-x-auto">
@@ -609,7 +868,7 @@ export function PriceTemplatesScreen() {
             {/* Pagination matching Screenshot 1 */}
             <div className="p-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
               <div>
-                Showing 1-{Math.min(paginatedTemplates.length, filteredTemplates.length)} of 14 templates
+                Showing {templates.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}-{Math.min(currentPage * rowsPerPage, templates.length)} of {templates.length} templates
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1.5">
@@ -627,12 +886,56 @@ export function PriceTemplatesScreen() {
                   </select>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button type="button" className="p-1 rounded hover:bg-slate-100 text-slate-400">«</button>
-                  <button type="button" className="p-1 rounded hover:bg-slate-100 text-slate-400">&lt;</button>
-                  <button type="button" className="h-6 w-6 rounded bg-[#6222cc] text-white font-semibold text-xs flex items-center justify-center shadow-xs">1</button>
-                  <button type="button" className="h-6 w-6 rounded hover:bg-slate-100 text-slate-600 font-medium text-xs flex items-center justify-center">2</button>
-                  <button type="button" className="p-1 rounded hover:bg-slate-100 text-slate-400">&gt;</button>
-                  <button type="button" className="p-1 rounded hover:bg-slate-100 text-slate-400">»</button>
+                  <button
+                    type="button"
+                    disabled={currentPage <= 1}
+                    onClick={() => setCurrentPage(1)}
+                    className="p-1 rounded hover:bg-slate-100 text-slate-400 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    «
+                  </button>
+                  <button
+                    type="button"
+                    disabled={currentPage <= 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="p-1 rounded hover:bg-slate-100 text-slate-400 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    &lt;
+                  </button>
+                  {Array.from({ length: totalPages }).map((_, idx) => {
+                    const pageNum = idx + 1;
+                    return (
+                      <button
+                        key={pageNum}
+                        type="button"
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={cn(
+                          'h-6 w-6 rounded font-semibold text-xs flex items-center justify-center cursor-pointer',
+                          currentPage === pageNum
+                            ? 'bg-[#6222cc] text-white shadow-xs'
+                            : 'hover:bg-slate-100 text-slate-600 font-medium'
+                        )}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="p-1 rounded hover:bg-slate-100 text-slate-400 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    &gt;
+                  </button>
+                  <button
+                    type="button"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage(totalPages)}
+                    className="p-1 rounded hover:bg-slate-100 text-slate-400 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    »
+                  </button>
                 </div>
               </div>
             </div>
@@ -925,17 +1228,20 @@ export function PriceTemplatesScreen() {
               <Button
                 type="button"
                 variant="outline"
+                disabled={isCreating || isUpdating}
                 onClick={() => handleSaveForm(true)}
-                className="text-xs h-8 px-3 border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="text-xs h-8 px-3 border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
                 Save as Draft
               </Button>
               <Button
                 type="button"
+                disabled={isCreating || isUpdating}
                 onClick={() => handleSaveForm(false)}
-                className="text-xs h-8 px-4 bg-[#6222cc] hover:bg-[#521cb0] text-white font-semibold rounded-lg shadow-xs cursor-pointer"
+                className="text-xs h-8 px-4 bg-[#6222cc] hover:bg-[#521cb0] text-white font-semibold rounded-lg shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
               >
-                Save Template
+                {(isCreating || isUpdating) && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                <span>{isCreating || isUpdating ? 'Saving...' : 'Save Template'}</span>
               </Button>
             </div>
           </div>

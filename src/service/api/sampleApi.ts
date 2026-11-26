@@ -6,6 +6,7 @@ import { fetchFromApi } from '../apiClient';
  * Endpoints automatically generate React hooks like `useGetItemsQuery` and `useCreateItemMutation`.
  */
 export const sampleApi = baseApi.injectEndpoints({
+  overrideExisting: true,
   endpoints: (builder) => ({
     getItems: builder.query<{ id: string; name: string }[], void>({
       query: () => 'items/',
