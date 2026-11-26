@@ -10,7 +10,6 @@ import {
   Phone,
   Mail,
   GraduationCap,
-  Share2,
   Calendar,
   Layers,
   BarChart2,
@@ -20,7 +19,6 @@ import {
   History,
   Clock,
   HeartPulse,
-  TrendingUp,
   RotateCw,
   Zap,
   ShoppingCart,
@@ -28,20 +26,24 @@ import {
   ChevronDown,
   SlidersHorizontal,
   Check,
+  XCircle,
   IndianRupee,
-  Upload,
-  MessageSquare,
-  ShieldCheck,
   Download,
-  ExternalLink,
-  Plus,
   AlertCircle,
-  FolderOpen,
   Loader2,
   ArrowLeft,
   Laptop,
   RefreshCw,
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from 'recharts';
 import { INITIAL_CUSTOMERS, CustomerRecord } from '@/components/customer/customerData';
 import {
   useGetAccountFullListQuery,
@@ -51,13 +53,73 @@ import {
   useGetCustomerDocumentListQuery,
   useGetCustomerAuditHistoryQuery,
   useGetTicketsListQuery,
-  useGetUsageAnalyticsQuery,
-  useGetCustomerOverviewAnalyticsQuery,
+  useGetProductDropdownQuery,
+  useGetCustomerUsageHealthAnalyticsQuery,
+  buildUniqueProductLabels,
   downloadAccountsExportCsv,
+  type CustomerUsageHealthFilterParams,
 } from '@/service/api/superAdminService';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+
+function buildUsageHealthFilterParams(
+  customerPk: number | undefined,
+  dateRange: string,
+  productId: string
+): CustomerUsageHealthFilterParams | undefined {
+  if (!customerPk) return undefined;
+  const params: CustomerUsageHealthFilterParams = { customer_id: customerPk };
+  const now = new Date();
+  switch (dateRange) {
+    case 'Last 30 Days':
+      params.days = 30;
+      params.months = 3;
+      break;
+    case 'Last 90 Days':
+      params.days = 90;
+      params.months = 6;
+      break;
+    case 'Last 6 Months':
+      params.days = 180;
+      params.months = 6;
+      break;
+    case 'Year to Date': {
+      const startOfYear = new Date(now.getFullYear(), 0, 1);
+      const ytdDays = Math.max(
+        1,
+        Math.min(365, Math.ceil((now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)))
+      );
+      params.days = ytdDays;
+      params.year = now.getFullYear();
+      break;
+    }
+    case 'All Time':
+      params.days = 365;
+      params.months = 24;
+      break;
+    case 'Last 12 Months':
+    default:
+      params.days = 30;
+      params.months = 12;
+      break;
+  }
+  if (productId !== 'all' && /^\d+$/.test(productId)) {
+    params.product_id = Number(productId);
+  }
+  return params;
+}
+
+function getSubscriptionValue(val: unknown, nestedKey: string, fallback: string): string {
+  if (val && typeof val === 'object') {
+    const rec = val as Record<string, unknown>;
+    if (rec[nestedKey]) return String(rec[nestedKey]);
+  }
+  if (val !== null && val !== undefined && String(val).trim() !== '' && typeof val !== 'object') {
+    return String(val);
+  }
+  return fallback;
+}
 
 const mapAccountToCustomer = (acc: any): CustomerRecord => {
   const industryStr = String(acc.Industry || 'IT Services').toLowerCase();
@@ -264,20 +326,52 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
     });
   }, [ticketsData, customer]);
 
-  // 7. Live Usage Telemetry API
-  const { data: usageAnalytics } = useGetUsageAnalyticsQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-  });
+  const [dateRange, setDateRange] = useState('Last 12 Months');
+  const [selectedProductId, setSelectedProductId] = useState<string>('all');
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
 
-  // 8. Live Customer Overview Analytics & KPI Charts API
+  const { data: rawProductDropdown = [] } = useGetProductDropdownQuery();
+  const productOptions = useMemo(
+    () =>
+      buildUniqueProductLabels(
+        (Array.isArray(rawProductDropdown) ? rawProductDropdown : []).map((p: any) => ({
+          product_id: p.id,
+          product_name: p.product_name || p.name || `Product #${p.id}`,
+        }))
+      ),
+    [rawProductDropdown]
+  );
+
+  // Strictly resolve positive integer primary key (pk) for CustomerUsageHealthAnalytics
+  const customerPk = useMemo(() => {
+    if (customer?.id && /^\d+$/.test(String(customer.id))) {
+      return Number(customer.id);
+    }
+    if (targetId && /^\d+$/.test(String(targetId))) {
+      return Number(targetId);
+    }
+    return undefined;
+  }, [customer?.id, targetId]);
+
+  const usageHealthParams = useMemo(
+    () => buildUsageHealthFilterParams(customerPk, dateRange, selectedProductId),
+    [customerPk, dateRange, selectedProductId]
+  );
+
+  // 7. Live Customer Usage, Health & Usage Trend Analytics API
   const {
-    data: overviewAnalytics,
-    isLoading: isOverviewAnalyticsLoading,
-    isFetching: isOverviewAnalyticsFetching,
-    refetch: refetchOverviewAnalytics,
-  } = useGetCustomerOverviewAnalyticsQuery(
-    customer?.customerId ? { customerId: customer.customerId } : undefined,
-    { refetchOnMountOrArgChange: true }
+    data: usageHealth,
+    isLoading: isUsageHealthLoading,
+    isFetching: isUsageHealthFetching,
+    isError: isUsageHealthError,
+    error: usageHealthError,
+    refetch: refetchUsageHealth,
+  } = useGetCustomerUsageHealthAnalyticsQuery(
+    usageHealthParams as CustomerUsageHealthFilterParams,
+    {
+      skip: !usageHealthParams,
+      refetchOnMountOrArgChange: true,
+    }
   );
 
   const [activeTab, setActiveTab] = useState<
@@ -319,8 +413,8 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
   const handleTabClick = (tabId: typeof activeTab) => {
     setActiveTab(tabId);
     try {
-      if (tabId === 'overview') {
-        refetchOverviewAnalytics?.();
+      if (tabId === 'overview' || tabId === 'usage') {
+        if (usageHealthParams) refetchUsageHealth?.();
       } else if (tabId === 'billing') {
         refetchRenewals?.();
         refetchInvoices?.();
@@ -337,9 +431,6 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
       // safe fallback if query is not yet started or in flight
     }
   };
-
-  const [dateRange, setDateRange] = useState('Last 12 Months');
-  const [showActionsMenu, setShowActionsMenu] = useState(false);
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: User },
@@ -391,100 +482,169 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
     );
   }
 
-  // Dynamic Chart Points & Guidelines for Usage Trend Area/Line Chart from Live API
-  const trendMaxVal = Math.max(1, overviewAnalytics?.usage_trend?.max_val || customer?.users || 50);
+  // Prefer real database customer identity/capacity from AccountFullList + CustomerUsageHealthAnalytics
+  const displayCustomerName =
+    liveCustomers.length === 0 && usageHealth?.customer_name
+      ? usageHealth.customer_name
+      : customer.name;
+  const displayAccountCode =
+    liveCustomers.length === 0 && usageHealth?.account_code
+      ? usageHealth.account_code
+      : customer.customerId;
 
-  const gridSteps = [
-    { val: trendMaxVal, y: 15 },
-    { val: Math.round(trendMaxVal * 0.75), y: 45 },
-    { val: Math.round(trendMaxVal * 0.5), y: 75 },
-    { val: Math.round(trendMaxVal * 0.25), y: 105 },
-    { val: 0, y: 135 },
-  ];
+  // Usage & Adoption metrics directly from CustomerUsageHealthAnalytics API
+  const activeUsersMetric = usageHealth?.usage_and_adoption?.active_users;
+  const loginsMetric = usageHealth?.usage_and_adoption?.logins;
+  const keyModulesMetric = usageHealth?.usage_and_adoption?.key_modules_used;
 
-  const chartPoints = (
-    overviewAnalytics?.usage_trend?.monthly_data &&
-    overviewAnalytics.usage_trend.monthly_data.length > 0
-      ? overviewAnalytics.usage_trend.monthly_data
-      : [
-          { month: 'Jan', active_users: 15 },
-          { month: 'Feb', active_users: 18 },
-          { month: 'Mar', active_users: 20 },
-          { month: 'Apr', active_users: 23 },
-          { month: 'May', active_users: 26 },
-          { month: 'Jun', active_users: 29 },
-          { month: 'Jul', active_users: 31 },
-          { month: 'Aug', active_users: 33 },
-          { month: 'Sep', active_users: 34 },
-          { month: 'Oct', active_users: 37 },
-          { month: 'Nov', active_users: 39 },
-          { month: 'Dec', active_users: 42 },
-        ]
-  ).map((item, idx) => {
-    const x = 45 + idx * 50;
-    const ratio = Math.min(1, Math.max(0, item.active_users / trendMaxVal));
-    const y = Math.round(135 - ratio * 110);
-    return { ...item, x, y };
-  });
+  const activeUsersVal = activeUsersMetric?.current ?? 0;
+  const activeUsersTotal = activeUsersMetric?.total ?? customer.users ?? 0;
+  const activeUsersPct = activeUsersMetric?.pct ?? 0;
 
-  const polylinePoints = chartPoints.map((p) => `${p.x},${p.y}`).join(' ');
-  const polygonPoints = `45,135 ${polylinePoints} 595,135`;
+  const loginsLabel =
+    loginsMetric?.label ||
+    (customer.industryIcon === 'education' ? 'Student Logins' : 'User Logins');
+  const loginsVal = loginsMetric?.current ?? 0;
+  const loginsTotal = loginsMetric?.total ?? 0;
+  const loginsPct = loginsMetric?.pct ?? 0;
 
-  // Customer Health Score & Checklist from Live API
-  const healthScore = overviewAnalytics?.customer_health?.score ?? 92;
-  const healthStatus = overviewAnalytics?.customer_health?.status || 'Healthy';
-  const healthChecklist = overviewAnalytics?.customer_health?.checklist || [
-    { label: 'High Adoption', passed: true },
-    { label: 'No Open Critical Tickets', passed: true },
-    { label: 'On-time Payments', passed: true },
-    { label: 'Renewal Likely', passed: true },
-  ];
-  const strokeDashoffset = 2 * Math.PI * 40 * (1 - Math.min(100, Math.max(0, healthScore)) / 100);
+  const modulesUsedVal = keyModulesMetric?.current ?? 0;
+  const modulesUsedTotal = keyModulesMetric?.total ?? 0;
+  const modulesUsedPct = keyModulesMetric?.pct ?? 0;
 
-  // Usage & Adoption Metrics from Live API
-  const activeUsersVal =
-    overviewAnalytics?.usage_and_adoption?.active_users?.current ??
-    (customer?.activeUsers || Math.min(customer?.users || 50, 42));
-  const activeUsersTotal =
-    overviewAnalytics?.usage_and_adoption?.active_users?.total ?? (customer?.users || 50);
-  const activeUsersPct =
-    overviewAnalytics?.usage_and_adoption?.active_users?.pct ??
-    Math.round((activeUsersVal / Math.max(activeUsersTotal, 1)) * 100);
+  // Usage Trend monthly points from CustomerUsageHealthAnalytics API
+  const usageTrendData = useMemo(() => {
+    const raw = usageHealth?.usage_trend?.monthly_data ?? [];
+    const spanExceedsYear = raw.length > 12;
+    return raw.map((item, idx) => ({
+      ...item,
+      keyId: item.year_month || `${item.month}-${idx}`,
+      displayLabel:
+        spanExceedsYear && item.year_month
+          ? `${item.month} '${item.year_month.slice(2, 4)}`
+          : item.month,
+    }));
+  }, [usageHealth]);
 
-  const dailyLoginsVal =
-    overviewAnalytics?.usage_and_adoption?.daily_active_logins?.current ??
-    (customer?.activeUsers || Math.min(customer?.users || 50, 38));
-  const dailyLoginsTotal =
-    overviewAnalytics?.usage_and_adoption?.daily_active_logins?.total ?? (customer?.users || 50);
-  const dailyLoginsPct =
-    overviewAnalytics?.usage_and_adoption?.daily_active_logins?.pct ??
-    Math.round((dailyLoginsVal / Math.max(dailyLoginsTotal, 1)) * 100);
+  const trendDirection = usageHealth?.usage_trend?.direction || 'flat';
+  const trendGrowthLabel =
+    usageHealth?.usage_trend?.growth_label ||
+    (isUsageHealthLoading ? 'Loading trend...' : '0% vs. previous period');
 
-  const modulesUsedVal = overviewAnalytics?.usage_and_adoption?.key_modules_used?.current ?? 6;
-  const modulesUsedTotal = overviewAnalytics?.usage_and_adoption?.key_modules_used?.total ?? 10;
-  const modulesUsedPct =
-    overviewAnalytics?.usage_and_adoption?.key_modules_used?.pct ??
-    Math.round((modulesUsedVal / modulesUsedTotal) * 100);
+  // Customer Health Score, Status & Checklist directly from CustomerUsageHealthAnalytics API
+  const healthScore = usageHealth?.customer_health?.score ?? null;
+  const healthStatus =
+    usageHealth?.customer_health?.status || (isUsageHealthLoading ? '...' : '—');
+  const healthColor = usageHealth?.customer_health?.color;
+  const healthChecklist = usageHealth?.customer_health?.checklist ?? [];
+  const openCriticalTickets = usageHealth?.customer_health?.open_critical_tickets ?? 0;
+  const strokeDashoffset =
+    2 * Math.PI * 40 * (1 - Math.min(100, Math.max(0, healthScore ?? 0)) / 100);
 
-  // Subscribed products and addons from Live API
-  const liveSubscribedProducts =
-    overviewAnalytics?.subscribed_products && overviewAnalytics.subscribed_products.length > 0
-      ? overviewAnalytics.subscribed_products
-      : customer?.subscribedProducts || [];
-  const liveAddonsList =
-    overviewAnalytics?.addons && overviewAnalytics.addons.length > 0
-      ? overviewAnalytics.addons
-      : customer?.addonsList || ['AI Lead Scoring', 'WhatsApp CRM', 'Analytics Pro'];
+  const healthStrokeHex =
+    healthColor === 'emerald' || (healthScore !== null && healthScore >= 80 && !healthColor)
+      ? '#22c55e'
+      : healthColor === 'rose' || (healthScore !== null && healthScore < 60 && !healthColor)
+      ? '#ef4444'
+      : '#f59e0b';
 
-  // Subscription Summary from Live API
-  const subSummary = overviewAnalytics?.subscription_summary;
-  const currentPlanDisplay = subSummary?.plan || customer?.plan || 'Professional';
+  const healthTextClass =
+    healthColor === 'emerald' || (healthScore !== null && healthScore >= 80 && !healthColor)
+      ? 'text-emerald-600'
+      : healthColor === 'rose' || (healthScore !== null && healthScore < 60 && !healthColor)
+      ? 'text-rose-600'
+      : 'text-amber-600';
+
+  // Live Subscribed Products & Add-ons derived from customerSubscriptions when present
+  const liveSubscribedProducts = useMemo(() => {
+    if (customerSubscriptions.length > 0) {
+      return customerSubscriptions.map((sub: any) => ({
+        name: getSubscriptionValue(
+          sub.Product_Name || sub.Product_Id,
+          'Product_Name',
+          customer.product || 'Product Suite'
+        ),
+        edition: getSubscriptionValue(
+          sub.Plan_Name || sub.Plan_Id,
+          'Plan_Name',
+          customer.plan || 'Professional'
+        ),
+        status: String(sub.status || customer.status || 'Active'),
+      }));
+    }
+    return customer.subscribedProducts || [];
+  }, [customerSubscriptions, customer]);
+
+  const liveAddonsList = useMemo(() => {
+    const names = new Set<string>();
+    for (const sub of customerSubscriptions as any[]) {
+      if (Array.isArray(sub?.AllocatedAddons)) {
+        for (const addon of sub.AllocatedAddons) {
+          if (addon?.Addon_Name) names.add(String(addon.Addon_Name));
+        }
+      }
+    }
+    if (names.size > 0) return Array.from(names);
+    return customer.addonsList || [];
+  }, [customerSubscriptions, customer]);
+
+  // Live Subscription & Renewal summary derived from Subscriptions + Renewals + Customer Health
+  const primarySubscription = customerSubscriptions[0] as any;
+  const primaryRenewal = renewalsData[0] as any;
+  const currentPlanDisplay =
+    (primarySubscription &&
+      getSubscriptionValue(
+        primarySubscription.Plan_Name || primarySubscription.Plan_Id,
+        'Plan_Name',
+        customer.plan || 'Professional'
+      )) ||
+    primaryRenewal?.Plan_Name ||
+    customer.plan ||
+    'Professional';
+
+  const rawRenewalOrSubAmt = Number(
+    primaryRenewal?.RenewalAmount ??
+      primaryRenewal?.PlanNetAmount ??
+      primarySubscription?.NetAmount ??
+      primarySubscription?.Total_Amount ??
+      customer.arrValue ??
+      0
+  );
   const annualArrDisplay =
-    subSummary?.arr_formatted ||
-    `₹${Number(customer?.arrValue || 9000000).toLocaleString('en-IN')}`;
-  const nextRenewalDisplay = subSummary?.next_renewal || customer?.nextRenewal || '2027-11-30';
+    rawRenewalOrSubAmt > 0
+      ? `₹${rawRenewalOrSubAmt.toLocaleString('en-IN')}`
+      : `₹${Number(customer.arrValue || 0).toLocaleString('en-IN')}`;
+
+  const nextRenewalDisplay =
+    (primaryRenewal?.RenewalDate ? String(primaryRenewal.RenewalDate).slice(0, 10) : null) ||
+    (primarySubscription?.end_date ? String(primarySubscription.end_date).slice(0, 10) : null) ||
+    customer.nextRenewal ||
+    'Confirmed';
+
+  const daysUntilRenewalComputed = useMemo(() => {
+    if (!nextRenewalDisplay || nextRenewalDisplay === 'Confirmed') return daysUntilRenewal;
+    const d = new Date(nextRenewalDisplay);
+    if (isNaN(d.getTime())) return daysUntilRenewal;
+    return Math.ceil((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  }, [nextRenewalDisplay, daysUntilRenewal]);
+
+  const licensedSeatsDisplay =
+    activeUsersMetric?.total !== undefined ? activeUsersMetric.total : customer.users;
+
+  const renewalLikelyPassed =
+    healthChecklist.find((item) => item.key === 'renewal_likely')?.passed ??
+    (healthScore !== null ? healthScore >= 70 : true);
   const renewalLikelihoodDisplay =
-    subSummary?.renewal_likelihood || `Renewal Likely (${healthScore}%)`;
+    healthScore !== null
+      ? renewalLikelyPassed
+        ? `Renewal Likely (${healthScore}%)`
+        : `At Risk (${healthScore}%)`
+      : 'Evaluating...';
+
+  const usageHealthErrMessage =
+    (usageHealthError as { data?: { message?: string; detail?: string } })?.data?.message ||
+    (usageHealthError as { data?: { detail?: string } })?.data?.detail ||
+    'Unable to load usage, health, and trend telemetry from CustomerUsageHealthAnalytics.';
 
   return (
     <div className="w-full space-y-4 pb-14 font-sans text-slate-800 antialiased">
@@ -531,15 +691,37 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
             <div className="flex items-center gap-2 bg-white rounded-lg border border-slate-200/90 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs cursor-pointer hover:bg-slate-50">
               <Users className="h-3.5 w-3.5 text-[#6366f1]" />
               <select
-                value={customer.customerId}
+                value={customer.id}
                 onChange={(e) => {
                   router.push(`/customer/overview?id=${e.target.value}`);
                 }}
                 className="appearance-none bg-transparent pr-4 text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
               >
-                {liveCustomers.map((c) => (
-                  <option key={c.customerId} value={c.customerId}>
+                {(liveCustomers.length > 0 ? liveCustomers : [customer]).map((c) => (
+                  <option key={c.id || c.customerId} value={c.id}>
                     {c.name} ({c.customerId})
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="h-3.5 w-3.5 text-slate-400 absolute right-2.5 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Product Filter Selector */}
+          <div className="relative">
+            <div className="flex items-center gap-2 bg-white rounded-lg border border-slate-200/90 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs cursor-pointer hover:bg-slate-50">
+              <Layers className="h-3.5 w-3.5 text-[#6366f1]" />
+              <select
+                value={selectedProductId}
+                onChange={(e) => {
+                  setSelectedProductId(e.target.value);
+                }}
+                className="appearance-none bg-transparent pr-4 text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
+              >
+                <option value="all">All Products</option>
+                {productOptions.map((prod) => (
+                  <option key={prod.uniqueKey} value={String(prod.product_id)}>
+                    {prod.displayName}
                   </option>
                 ))}
               </select>
@@ -561,6 +743,7 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
               >
                 <option value="Last 12 Months">Last 12 Months</option>
                 <option value="Last 6 Months">Last 6 Months</option>
+                <option value="Last 90 Days">Last 90 Days</option>
                 <option value="Last 30 Days">Last 30 Days</option>
                 <option value="Year to Date">Year to Date</option>
                 <option value="All Time">All Time</option>
@@ -574,20 +757,20 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
             type="button"
             onClick={() => {
               try { refetch?.(); } catch (e) {}
-              try { refetchOverviewAnalytics?.(); } catch (e) {}
+              try { if (usageHealthParams) refetchUsageHealth?.(); } catch (e) {}
               try { refetchRenewals?.(); } catch (e) {}
               try { refetchInvoices?.(); } catch (e) {}
               try { refetchDocuments?.(); } catch (e) {}
               try { refetchAudit?.(); } catch (e) {}
               try { refetchSubscriptions?.(); } catch (e) {}
               try { refetchTickets?.(); } catch (e) {}
-              toast.success('Refreshed customer data from database');
+              toast.success('Refreshing customer data from database');
             }}
-            disabled={isFetching || isOverviewAnalyticsFetching}
+            disabled={isFetching || isUsageHealthFetching}
             className="flex items-center gap-1.5 bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-xs transition-colors cursor-pointer"
             title="Refresh from Database"
           >
-            <RefreshCw className={cn('h-3.5 w-3.5 text-[#6366f1]', (isFetching || isOverviewAnalyticsFetching) && 'animate-spin')} />
+            <RefreshCw className={cn('h-3.5 w-3.5 text-[#6366f1]', (isFetching || isUsageHealthFetching) && 'animate-spin')} />
             <span className="hidden sm:inline">Refresh</span>
           </button>
 
@@ -643,6 +826,42 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
           </div>
         </div>
       </div>
+
+      {isUsageHealthFetching && (
+        <div className="flex items-center gap-2.5 rounded-xl border border-indigo-200 bg-indigo-50/70 px-4 py-2 text-xs text-indigo-800">
+          <RefreshCw className="h-3.5 w-3.5 animate-spin text-[#6366f1] shrink-0" />
+          <span className="font-medium">
+            Loading live usage, health, and trend telemetry from CustomerUsageHealthAnalytics...
+          </span>
+        </div>
+      )}
+
+      {isUsageHealthError && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50/80 px-4 py-2.5 text-xs text-rose-800">
+          <div className="flex items-center gap-2 min-w-0">
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+            <span className="truncate font-medium">{usageHealthErrMessage}</span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => refetchUsageHealth?.()}
+            className="h-7 text-xs border-rose-300 shrink-0 cursor-pointer"
+          >
+            Retry
+          </Button>
+        </div>
+      )}
+
+      {!isLoading && !customerPk && (
+        <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-2.5 text-xs text-amber-800">
+          <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+          <span>
+            No numeric database customer ID resolved yet. Select a customer record from the Customer Master list to load live CustomerUsageHealthAnalytics telemetry.
+          </span>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════════════════════
           2. CUSTOMER HERO PROFILE CARD + 3 STAT CARDS (ROW 1)
@@ -783,7 +1002,7 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
           <div className="flex-1 min-w-0 w-full space-y-1.5">
             <div className="flex items-center gap-2.5 flex-wrap">
               <h2 className="text-lg md:text-xl font-bold text-slate-900 truncate">
-                {customer.name}
+                {displayCustomerName}
               </h2>
               <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-100 text-emerald-700">
                 {customer.status}
@@ -805,16 +1024,20 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-3.5 w-3.5 text-[#6366f1] shrink-0" />
-                <span className="text-slate-700">{customer.phone}</span>
+                <span className="text-slate-700">{customer.phone || '—'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="h-3.5 w-3.5 text-[#6366f1] shrink-0" />
-                <a
-                  href={`mailto:${customer.email}`}
-                  className="text-slate-700 hover:text-[#6366f1] transition-colors"
-                >
-                  {customer.email}
-                </a>
+                {customer.email ? (
+                  <a
+                    href={`mailto:${customer.email}`}
+                    className="text-slate-700 hover:text-[#6366f1] transition-colors"
+                  >
+                    {customer.email}
+                  </a>
+                ) : (
+                  <span className="text-slate-400">—</span>
+                )}
               </div>
             </div>
           </div>
@@ -830,13 +1053,13 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
             <div>
               <div className="text-[11px] text-slate-400 font-medium">Customer ID</div>
               <div className="text-xs md:text-sm font-bold text-slate-900 mt-0.5">
-                {customer.customerId}
+                {displayAccountCode}
               </div>
             </div>
             <div>
               <div className="text-[11px] text-slate-400 font-medium">Plan</div>
               <div className="text-xs md:text-sm font-bold text-slate-900 mt-0.5">
-                {customer.plan}
+                {currentPlanDisplay}
               </div>
             </div>
           </div>
@@ -851,7 +1074,7 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
             </div>
             <div className="mt-2 text-xs font-semibold text-slate-500">Annual ARR</div>
             <div className="text-lg md:text-xl font-extrabold text-slate-900 mt-1 truncate max-w-full">
-              ₹{Number(customer.arrValue || 9000000).toLocaleString('en-IN')}
+              {annualArrDisplay}
             </div>
             <div className="text-[11px] text-slate-400 font-medium mt-0.5">Billed Annually</div>
           </div>
@@ -863,9 +1086,9 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
             </div>
             <div className="mt-2 text-xs font-semibold text-slate-500">Licensed Seats</div>
             <div className="text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">
-              {customer.users.toLocaleString()}
+              {licensedSeatsDisplay.toLocaleString()}
             </div>
-            <div className="text-[11px] text-slate-500 font-medium mt-0.5">{customer.plan} Plan</div>
+            <div className="text-[11px] text-slate-500 font-medium mt-0.5">{currentPlanDisplay} Plan</div>
           </div>
 
           {/* Card 3: Contract Renewal & Countdown */}
@@ -874,7 +1097,7 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
               'h-10 w-10 rounded-xl flex items-center justify-center',
               customer.status === 'Overdue'
                 ? 'bg-rose-50 text-rose-600'
-                : daysUntilRenewal !== null && daysUntilRenewal <= 30
+                : daysUntilRenewalComputed !== null && daysUntilRenewalComputed <= 30
                 ? 'bg-amber-50 text-amber-600'
                 : 'bg-emerald-50 text-emerald-600'
             )}>
@@ -882,9 +1105,9 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
             </div>
             <div className="mt-2 text-xs font-semibold text-slate-500">Next Renewal</div>
             <div className="text-lg md:text-xl font-extrabold text-slate-900 mt-1">
-              {daysUntilRenewal !== null ? `${daysUntilRenewal}d left` : 'Confirmed'}
+              {daysUntilRenewalComputed !== null ? `${daysUntilRenewalComputed}d left` : 'Confirmed'}
             </div>
-            <div className="text-[11px] text-slate-500 font-medium mt-0.5">{customer.nextRenewal}</div>
+            <div className="text-[11px] text-slate-500 font-medium mt-0.5">{nextRenewalDisplay}</div>
           </div>
         </div>
       </div>
@@ -1026,11 +1249,15 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
               </div>
             </div>
 
-            {/* Box 2: Usage & Adoption (Last 30 Days) - Live API */}
+            {/* Box 2: Usage & Adoption - Live CustomerUsageHealthAnalytics API */}
             <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs">
-              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm mb-3">
-                <BarChart3 className="h-4 w-4 text-[#6366f1]" />
-                <span>Usage &amp; Adoption (Last 30 Days)</span>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                  <BarChart3 className="h-4 w-4 text-[#6366f1]" />
+                  <span>
+                    Usage &amp; Adoption (Last {usageHealth?.period_days ?? usageHealthParams?.days ?? 30} Days)
+                  </span>
+                </div>
               </div>
 
               <div className="space-y-3.5">
@@ -1039,10 +1266,12 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
                   <div className="flex items-center justify-between text-xs mb-1.5">
                     <div className="flex items-center gap-2 text-slate-700 font-medium">
                       <Users className="h-4 w-4 text-[#6366f1]" />
-                      <span>Active Users</span>
+                      <span>{activeUsersMetric?.label || 'Active Users'}</span>
                     </div>
                     <span className="font-bold text-slate-900">
-                      {activeUsersVal} / {activeUsersTotal} ({activeUsersPct}%)
+                      {isUsageHealthLoading && !usageHealth
+                        ? '...'
+                        : `${activeUsersVal.toLocaleString()} / ${activeUsersTotal.toLocaleString()} (${activeUsersPct}%)`}
                     </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
@@ -1055,37 +1284,28 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
                   </div>
                 </div>
 
-                {/* Metric 2: Industry-Adaptive Metric (Student Logins for Education, Daily Logins for IT / Others) */}
+                {/* Metric 2: Logins (Student Logins / User Logins from API) */}
                 <div>
                   <div className="flex items-center justify-between text-xs mb-1.5">
                     <div className="flex items-center gap-2 text-slate-700 font-medium">
-                      {customer.industryIcon === 'education' ? (
-                        <>
-                          <GraduationCap className="h-4 w-4 text-[#6366f1]" />
-                          <span>Student Logins</span>
-                        </>
+                      {loginsLabel.toLowerCase().includes('student') ? (
+                        <GraduationCap className="h-4 w-4 text-[#6366f1]" />
                       ) : (
-                        <>
-                          <Zap className="h-4 w-4 text-[#6366f1]" />
-                          <span>Daily Active Logins</span>
-                        </>
+                        <Zap className="h-4 w-4 text-[#6366f1]" />
                       )}
+                      <span>{loginsLabel}</span>
                     </div>
                     <span className="font-bold text-slate-900">
-                      {customer.industryIcon === 'education'
-                        ? `${(customer.studentLogins || 0).toLocaleString()} / ${(customer.students || 0).toLocaleString()} (${customer.students ? Math.round(((customer.studentLogins || 0) / customer.students) * 100) : 0}%)`
-                        : `${dailyLoginsVal} / ${dailyLoginsTotal} (${dailyLoginsPct}%)`}
+                      {isUsageHealthLoading && !usageHealth
+                        ? '...'
+                        : `${loginsVal.toLocaleString()} / ${loginsTotal.toLocaleString()} (${loginsPct}%)`}
                     </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
                     <div
                       className="h-full rounded-full bg-[#6366f1] transition-all duration-500"
                       style={{
-                        width: `${
-                          customer.industryIcon === 'education'
-                            ? (customer.students ? Math.min(100, Math.round(((customer.studentLogins || 0) / customer.students) * 100)) : 0)
-                            : Math.min(100, Math.max(0, dailyLoginsPct))
-                        }%`,
+                        width: `${Math.min(100, Math.max(0, loginsPct))}%`,
                       }}
                     />
                   </div>
@@ -1096,10 +1316,12 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
                   <div className="flex items-center justify-between text-xs mb-1.5">
                     <div className="flex items-center gap-2 text-slate-700 font-medium">
                       <Layers className="h-4 w-4 text-[#6366f1]" />
-                      <span>Key Modules Used</span>
+                      <span>{keyModulesMetric?.label || 'Key Modules Used'}</span>
                     </div>
                     <span className="font-bold text-slate-900">
-                      {modulesUsedVal} / {modulesUsedTotal} ({modulesUsedPct}%)
+                      {isUsageHealthLoading && !usageHealth
+                        ? '...'
+                        : `${modulesUsedVal.toLocaleString()} / ${modulesUsedTotal.toLocaleString()} (${modulesUsedPct}%)`}
                     </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
@@ -1114,11 +1336,18 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
               </div>
             </div>
 
-            {/* Box 3: Customer Health - Live API */}
+            {/* Box 3: Customer Health - Live CustomerUsageHealthAnalytics API */}
             <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs">
-              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm mb-3">
-                <HeartPulse className="h-4 w-4 text-[#6366f1]" />
-                <span>Customer Health</span>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+                  <HeartPulse className="h-4 w-4 text-[#6366f1]" />
+                  <span>Customer Health</span>
+                </div>
+                {openCriticalTickets > 0 && (
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
+                    {openCriticalTickets} Critical Ticket{openCriticalTickets === 1 ? '' : 's'}
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-4">
@@ -1138,7 +1367,7 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
                       cx="50"
                       cy="50"
                       r="40"
-                      stroke={healthScore >= 80 ? '#22c55e' : healthScore < 60 ? '#ef4444' : '#f59e0b'}
+                      stroke={healthStrokeHex}
                       strokeWidth="10"
                       strokeDasharray={2 * Math.PI * 40}
                       strokeDashoffset={strokeDashoffset}
@@ -1148,35 +1377,44 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span className="text-xl font-extrabold text-slate-900">{healthScore}%</span>
-                    <span
-                      className={cn(
-                        'text-[11px] font-semibold',
-                        healthScore >= 80 ? 'text-emerald-600' : healthScore < 60 ? 'text-rose-600' : 'text-amber-600'
-                      )}
-                    >
+                    <span className="text-xl font-extrabold text-slate-900">
+                      {healthScore !== null ? `${healthScore}%` : isUsageHealthLoading ? '...' : '—'}
+                    </span>
+                    <span className={cn('text-[11px] font-semibold', healthTextClass)}>
                       {healthStatus}
                     </span>
                   </div>
                 </div>
 
                 {/* Health Criteria Checklist */}
-                <div className="space-y-2 text-xs font-semibold text-slate-800">
-                  {healthChecklist.map((factor, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <span
-                        className={cn(
-                          'flex h-4 w-4 items-center justify-center rounded text-white shrink-0',
-                          factor.passed ? 'bg-emerald-500' : 'bg-slate-300'
-                        )}
-                      >
-                        <Check className="h-3 w-3 stroke-[3]" />
-                      </span>
-                      <span className={factor.passed ? 'text-slate-800' : 'text-slate-400'}>
-                        {factor.label}
-                      </span>
+                <div className="space-y-2 text-xs font-semibold text-slate-800 flex-1 min-w-0">
+                  {healthChecklist.length === 0 ? (
+                    <div className="text-[11px] text-slate-400 font-medium">
+                      {isUsageHealthLoading ? 'Evaluating health checklist...' : 'No health signals available'}
                     </div>
-                  ))}
+                  ) : (
+                    healthChecklist.map((factor, idx) => (
+                      <div key={factor.key || idx} className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            'flex h-4 w-4 items-center justify-center rounded shrink-0',
+                            factor.passed
+                              ? 'bg-emerald-500 text-white'
+                              : 'bg-rose-100 text-rose-600'
+                          )}
+                        >
+                          {factor.passed ? (
+                            <Check className="h-3 w-3 stroke-[3]" />
+                          ) : (
+                            <XCircle className="h-3 w-3 stroke-[2.5]" />
+                          )}
+                        </span>
+                        <span className={cn('truncate', factor.passed ? 'text-slate-800' : 'text-slate-500')}>
+                          {factor.label}
+                        </span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -1188,91 +1426,88 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
             {/* Left: Usage Trend – Active Users (8 Cols) */}
             <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                 <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
                   <Layers className="h-4 w-4 text-[#6366f1]" />
-                  <span>Usage Trend – Active Users</span>
+                  <span>{usageHealth?.usage_trend?.title || 'Usage Trend – Active Users'}</span>
                 </div>
-                <div className="text-[11px] font-semibold text-emerald-600">
-                  {overviewAnalytics?.usage_trend?.growth_label || '↑ +18% vs. previous period'}
+                <div className="flex items-center gap-3">
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    Target Capacity: <strong className="text-slate-600">{licensedSeatsDisplay.toLocaleString()}</strong> seats
+                  </span>
+                  <div
+                    className={cn(
+                      'text-[11px] font-semibold flex items-center gap-1',
+                      trendDirection === 'up'
+                        ? 'text-emerald-600'
+                        : trendDirection === 'down'
+                        ? 'text-rose-600'
+                        : 'text-slate-500'
+                    )}
+                  >
+                    <span>{trendDirection === 'up' ? '↑' : trendDirection === 'down' ? '↓' : '→'}</span>
+                    <span>{trendGrowthLabel}</span>
+                  </div>
                 </div>
               </div>
 
               {/* Area Line Chart */}
-              <div className="h-44 w-full relative">
-                <svg
-                  className="w-full h-full overflow-visible"
-                  viewBox="0 0 600 150"
-                  preserveAspectRatio="none"
-                >
-                  <defs>
-                    <linearGradient id="usageGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#6366f1" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0" />
-                    </linearGradient>
-                  </defs>
-
-                  {/* Horizontal Guideline Grids & Labels from Live API Ceiling */}
-                  {gridSteps.map((grid) => (
-                    <g key={grid.val}>
-                      <line
-                        x1="35"
-                        y1={grid.y}
-                        x2="600"
-                        y2={grid.y}
-                        stroke="#f1f5f9"
-                        strokeWidth="1"
+              <div className="h-48 w-full">
+                {usageTrendData.length === 0 ? (
+                  <div className="h-full flex items-center justify-center text-xs text-slate-400 font-medium">
+                    {isUsageHealthLoading
+                      ? 'Loading monthly usage trend...'
+                      : 'No monthly activity trend data available.'}
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={usageTrendData} margin={{ top: 10, right: 12, left: -18, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="usageGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis
+                        dataKey="displayLabel"
+                        minTickGap={14}
+                        tick={{ fontSize: 10, fill: '#64748b' }}
+                        axisLine={{ stroke: '#e2e8f0' }}
+                        tickLine={false}
                       />
-                      <text
-                        x="5"
-                        y={grid.y + 3}
-                        fontSize="9"
-                        fill="#94a3b8"
-                        fontFamily="sans-serif"
-                      >
-                        {grid.val}
-                      </text>
-                    </g>
-                  ))}
-
-                  {/* Live Dynamic Area Fill */}
-                  <polygon
-                    points={polygonPoints}
-                    fill="url(#usageGradient)"
-                  />
-
-                  {/* Live Dynamic Smooth Polyline */}
-                  <polyline
-                    points={polylinePoints}
-                    fill="none"
-                    stroke="#6366f1"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-
-                  {/* Live Dynamic Dots on points with Tooltip */}
-                  {chartPoints.map((p, idx) => (
-                    <g key={idx}>
-                      <circle
-                        cx={p.x}
-                        cy={p.y}
-                        r="3.5"
-                        fill="#6366f1"
-                        stroke="#ffffff"
-                        strokeWidth="1.5"
+                      <YAxis
+                        allowDecimals={false}
+                        domain={[0, (dataMax: number) => Math.max(dataMax, 4)]}
+                        tick={{ fontSize: 10, fill: '#94a3b8' }}
+                        axisLine={false}
+                        tickLine={false}
                       />
-                      <title>{`${p.month}: ${p.active_users} active users`}</title>
-                    </g>
-                  ))}
-                </svg>
-
-                {/* X Axis Months from Live API */}
-                <div className="flex justify-between pl-9 pr-1 text-[11px] font-medium text-slate-500 mt-2">
-                  {chartPoints.map((p) => (
-                    <span key={p.month}>{p.month}</span>
-                  ))}
-                </div>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                          borderRadius: '8px',
+                          border: 'none',
+                          color: '#fff',
+                          fontSize: '11px',
+                        }}
+                        formatter={(val: unknown, _name: unknown, item: { payload?: { target_users?: number } }) => [
+                          `${val} users (target: ${item?.payload?.target_users ?? licensedSeatsDisplay})`,
+                          'Active Users',
+                        ]}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="active_users"
+                        stroke="#6366f1"
+                        strokeWidth={2.5}
+                        fill="url(#usageGradient)"
+                        dot={{ r: 3, fill: '#6366f1', stroke: '#ffffff', strokeWidth: 1.5 }}
+                        activeDot={{ r: 5 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
 
@@ -1302,20 +1537,20 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
                       <span className="text-slate-600 font-medium w-28">Next Renewal</span>
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-bold text-slate-900">{nextRenewalDisplay}</span>
-                        {(subSummary?.days_left ?? daysUntilRenewal) !== null && (
+                        {daysUntilRenewalComputed !== null && (
                           <span
                             className={cn(
                               'text-[10px] font-semibold px-2 py-0.5 rounded',
-                              (subSummary?.days_left ?? daysUntilRenewal ?? 0) <= 0
+                              daysUntilRenewalComputed <= 0
                                 ? 'text-rose-800 bg-rose-100'
-                                : (subSummary?.days_left ?? daysUntilRenewal ?? 0) <= 30
+                                : daysUntilRenewalComputed <= 30
                                 ? 'text-amber-800 bg-amber-100'
                                 : 'text-emerald-800 bg-emerald-100'
                             )}
                           >
-                            {(subSummary?.days_left ?? daysUntilRenewal ?? 0) <= 0
+                            {daysUntilRenewalComputed <= 0
                               ? 'Expired'
-                              : `(${subSummary?.days_left ?? daysUntilRenewal} days left)`}
+                              : `(${daysUntilRenewalComputed} days left)`}
                           </span>
                         )}
                       </div>
@@ -1324,7 +1559,14 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
 
                   {/* Renewal Likely Badge */}
                   <div className="bg-slate-50/80 border border-slate-100 rounded-xl p-3 flex flex-col items-center text-center shrink-0 min-w-[95px]">
-                    <div className="h-8 w-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1">
+                    <div
+                      className={cn(
+                        'h-8 w-8 rounded-full flex items-center justify-center mb-1',
+                        renewalLikelyPassed
+                          ? 'bg-emerald-50 text-emerald-600'
+                          : 'bg-rose-50 text-rose-600'
+                      )}
+                    >
                       <RotateCw className="h-4 w-4" />
                     </div>
                     <span className="text-[11px] font-bold text-slate-900 leading-tight">
@@ -1554,27 +1796,51 @@ export function CustomerOverviewScreen({ customerId }: { customerId?: string }) 
 
       {activeTab === 'usage' && (
         <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs space-y-4">
-          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-            <BarChart2 className="h-5 w-5 text-[#6366f1]" />
-            Detailed System Telemetry &amp; Adoption
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <BarChart2 className="h-5 w-5 text-[#6366f1]" />
+              Detailed System Telemetry &amp; Adoption (Last {usageHealth?.period_days ?? usageHealthParams?.days ?? 30} Days)
+            </h3>
+            <span className="text-xs font-semibold text-slate-500">
+              {trendDirection === 'up' ? '↑' : trendDirection === 'down' ? '↓' : '→'} {trendGrowthLabel}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70">
-              <div className="text-xs text-slate-500">Licensed User Seats</div>
-              <div className="text-2xl font-bold text-slate-900 mt-1">{customer.users} Seats</div>
-              <div className="text-xs text-emerald-600 font-medium mt-0.5">
-                {customer.status === 'Active' ? '100% Provisioned' : 'Action Required'}
+              <div className="text-xs text-slate-500">{activeUsersMetric?.label || 'Active Users'}</div>
+              <div className="text-2xl font-bold text-slate-900 mt-1">
+                {activeUsersVal.toLocaleString()} / {activeUsersTotal.toLocaleString()}
+              </div>
+              <div className="text-xs text-[#6366f1] font-semibold mt-0.5">
+                {activeUsersPct}% seat utilization
               </div>
             </div>
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70">
-              <div className="text-xs text-slate-500">Active Tenant Instances</div>
-              <div className="text-2xl font-bold text-slate-900 mt-1">{customer.tenantsCount} Instance</div>
-              <div className="text-xs text-emerald-600 font-medium mt-0.5">Operational</div>
+              <div className="text-xs text-slate-500">{loginsLabel}</div>
+              <div className="text-2xl font-bold text-slate-900 mt-1">
+                {loginsVal.toLocaleString()} / {loginsTotal.toLocaleString()}
+              </div>
+              <div className="text-xs text-[#6366f1] font-semibold mt-0.5">
+                {loginsPct}% of period target
+              </div>
             </div>
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70">
-              <div className="text-xs text-slate-500">Account Classification</div>
-              <div className="text-2xl font-bold text-slate-900 mt-1">{customer.industry}</div>
-              <div className="text-xs text-slate-500 font-medium mt-0.5">SLA: {customer.slaTier}</div>
+              <div className="text-xs text-slate-500">{keyModulesMetric?.label || 'Key Modules Used'}</div>
+              <div className="text-2xl font-bold text-slate-900 mt-1">
+                {modulesUsedVal.toLocaleString()} / {modulesUsedTotal.toLocaleString()}
+              </div>
+              <div className="text-xs text-[#6366f1] font-semibold mt-0.5">
+                {modulesUsedPct}% module adoption
+              </div>
+            </div>
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70">
+              <div className="text-xs text-slate-500">Health &amp; Open Critical Tickets</div>
+              <div className="text-2xl font-bold text-slate-900 mt-1">
+                {healthScore !== null ? `${healthScore}% (${healthStatus})` : healthStatus}
+              </div>
+              <div className="text-xs text-slate-500 font-medium mt-0.5">
+                {openCriticalTickets} open critical tickets • {customer.industry}
+              </div>
             </div>
           </div>
         </div>
