@@ -113,28 +113,12 @@ export const getMenuGroups = (): MenuSection[] => [
             path: '/products/master',
           },
           {
-            label: 'Editions & Versions',
+            label: 'Product Editions',
             path: '/products/editions',
           },
           {
-            label: 'Module Master',
-            path: '/products/modules',
-          },
-          {
-            label: 'Feature Master',
-            path: '/products/features',
-          },
-          {
-            label: 'Free Core Configuration',
-            path: '/products/configuration',
-          },
-          {
-            label: 'Trial Configuration',
-            path: '/products/trial-configuration',
-          },
-          {
-            label: 'Product Releases',
-            path: '/products/releases',
+            label: 'Modules & Features',
+            path: '/products/features-modules',
           },
           {
             label: 'Feature Mapping',
@@ -147,6 +131,18 @@ export const getMenuGroups = (): MenuSection[] => [
           {
             label: 'Free & Paid Plans',
             path: '/products/free-paid-plans',
+          },
+          {
+            label: 'Free Core Configuration',
+            path: '/products/configuration',
+          },
+          {
+            label: 'Trial Configuration',
+            path: '/products/trial-configuration',
+          },
+          {
+            label: 'Product Releases',
+            path: '/products/releases',
           },
           {
             label: 'License & Entitlements',
@@ -534,6 +530,10 @@ export function isRouteActive(targetPath: string, currentPath: string | null): b
   }
   if (targetPath === '/products/master') {
     return currentPath.startsWith('/products/master');
+  }
+
+  if (targetPath === '/products/features-modules') {
+    return [targetPath, '/products/modules', '/products/features'].includes(currentPath);
   }
 
   // Tenant Management aliases & deep routes

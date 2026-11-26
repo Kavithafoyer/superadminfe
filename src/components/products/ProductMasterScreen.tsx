@@ -69,6 +69,39 @@ interface ProductMasterScreenProps {
   initialTab?: 'details' | 'editions' | 'features' | 'plans';
 }
 
+function newProductDraft(): Partial<InitialProductConfig> {
+  return {
+  id: `prd-${Date.now().toString(36)}`,
+  product_name: '',
+  product_code: '',
+  category: 'Education',
+  status: 'Draft',
+  short_description: '',
+  description: '',
+  current_version: 'v1.0.0',
+  release_date: '22 Nov 2026',
+  lifecycle_stage: 'General Availability',
+  logo_file: 'new-product-logo.svg',
+  logo_dimensions: '(120 × 120)',
+  icon_file: 'new-product-icon.svg',
+  icon_dimensions: '(32 × 32)',
+  icon_type: 'education',
+  editions_count: 1,
+  editions: ['Standard'],
+  editions_details: [
+    {
+      id: `ed-${Date.now()}`,
+      name: 'Standard',
+      code: 'STD',
+      description: 'Standard product edition',
+      status: 'Active',
+      displayOrder: 1,
+      capabilities: {},
+    },
+  ],
+};
+}
+
 export function ProductMasterScreen({
   initialMode = 'edit_product',
   initialProductId,
@@ -99,9 +132,17 @@ export function ProductMasterScreen({
     return initialProductId || products[0]?.id || 'prd-edu';
   });
 
-  const selectedProduct = useMemo(() => {
-    return products.find((p) => p.id === selectedProductId) || products[0];
+  const matchedProduct = useMemo(() => {
+    const selection = selectedProductId.toLowerCase();
+    return products.find(product => product.id === selectedProductId ||
+      product.product_code?.toLowerCase() === selection || product.product_name.toLowerCase() === selection);
   }, [products, selectedProductId]);
+  const selectedProduct = matchedProduct ?? products[0];
+
+  function openProductSection(path: string) {
+    if (!matchedProduct) return;
+    router.push(path + '?product=' + encodeURIComponent(matchedProduct.product_code || matchedProduct.id));
+  }
 
   // Is right side drawer open? (Default open as per Screenshot 1)
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(true);
@@ -130,9 +171,7 @@ export function ProductMasterScreen({
   }, [categoryApiResponse]);
 
   // Product Form state for right side
-  const [productForm, setProductForm] = useState<Partial<InitialProductConfig>>({
-    ...INITIAL_PRODUCTS[0],
-  });
+  const [productForm, setProductForm] = useState<Partial<InitialProductConfig>>(() => initialMode === 'add_product' ? newProductDraft() : { ...selectedProduct });
 
   // Edition Form state
   const [editionForm, setEditionForm] = useState<Partial<EditionRecord>>({});
@@ -195,36 +234,7 @@ export function ProductMasterScreen({
   const handleStartAddProduct = () => {
     setDrawerMode('add_product');
     setActiveTab('details');
-    setProductForm({
-      id: `prd-${Date.now().toString(36)}`,
-      product_name: '',
-      product_code: '',
-      category: 'Education',
-      status: 'Draft',
-      short_description: '',
-      description: '',
-      current_version: 'v1.0.0',
-      release_date: '22 Nov 2026',
-      lifecycle_stage: 'General Availability',
-      logo_file: 'new-product-logo.svg',
-      logo_dimensions: '(120 × 120)',
-      icon_file: 'new-product-icon.svg',
-      icon_dimensions: '(32 × 32)',
-      icon_type: 'education',
-      editions_count: 1,
-      editions: ['Standard'],
-      editions_details: [
-        {
-          id: `ed-${Date.now()}`,
-          name: 'Standard',
-          code: 'STD',
-          description: 'Standard product edition',
-          status: 'Active',
-          displayOrder: 1,
-          capabilities: {},
-        },
-      ],
-    });
+    setProductForm(newProductDraft());
     setIsDrawerOpen(true);
   };
 
@@ -317,7 +327,7 @@ export function ProductMasterScreen({
       toast.success(`Product "${newProd.product_name}" created successfully!`);
     } else {
       const updated = products.map((p) => {
-        if (p.id === selectedProductId) {
+        if (p.id === matchedProduct?.id) {
           return {
             ...p,
             ...productForm,
@@ -594,7 +604,7 @@ export function ProductMasterScreen({
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredProducts.map((p, index) => {
-                    const isSelected = selectedProductId === p.id && isDrawerOpen;
+                    const isSelected = matchedProduct?.id === p.id && isDrawerOpen;
 
                     return (
                       <tr
@@ -741,7 +751,10 @@ export function ProductMasterScreen({
             RIGHT COLUMN: CREATE / EDIT DRAWER PANEL (~42% width)
             EXACT MATCH WITH media_1795366877487_39e86412.jpg
            ============================================================ */}
-        {isDrawerOpen && (
+        {isDrawerOpen && !matchedProduct && drawerMode !== 'add_product' && (
+          <p className="lg:col-span-5 rounded-xl border p-4 text-sm text-muted-foreground">This product isn?t available in the Product Master list. Choose a product from the list.</p>
+        )}
+        {isDrawerOpen && (matchedProduct || drawerMode === 'add_product') && (
           <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-4">
             {/* Header: Product Icon + Name + Badge + Close Button */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -792,7 +805,8 @@ export function ProductMasterScreen({
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('editions')}
+                disabled={drawerMode === 'add_product'}
+                onClick={() => openProductSection('/products/editions')}
                 className={cn(
                   'px-3.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer whitespace-nowrap',
                   activeTab === 'editions'
@@ -800,11 +814,12 @@ export function ProductMasterScreen({
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
                 )}
               >
-                Editions ({selectedProduct.editions_count || selectedProduct.editions_details?.length || 3})
+                Editions
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('features')}
+                disabled={drawerMode === 'add_product'}
+                onClick={() => openProductSection('/products/features-modules')}
                 className={cn(
                   'px-3.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer whitespace-nowrap',
                   activeTab === 'features'
@@ -816,7 +831,8 @@ export function ProductMasterScreen({
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('plans')}
+                disabled={drawerMode === 'add_product'}
+                onClick={() => openProductSection('/products/plans-pricing')}
                 className={cn(
                   'px-3.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer whitespace-nowrap',
                   activeTab === 'plans'

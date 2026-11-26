@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { INITIAL_PRODUCTS } from './productData';
 import {
   Users,
   GraduationCap,
@@ -28,6 +29,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { IsometricBoxIcon } from './ProductIcons';
 
@@ -47,6 +49,7 @@ export interface ModuleItem {
     core: boolean;
     standard: boolean;
     enterprise: boolean;
+    availability?: Record<string, boolean>;
     status: 'Active' | 'Inactive';
   }[];
 }
@@ -245,8 +248,33 @@ export function FeaturesModulesScreen({
 }: {
   initialTab?: 'details' | 'features' | 'mapping';
 }) {
+  return <Suspense fallback={<p role="status">Loading product workspace...</p>}><ModulesWorkspace initialTab={initialTab} /></Suspense>;
+}
+
+function ModulesWorkspace({ initialTab }: { initialTab: 'details' | 'features' | 'mapping' }) {
+  const productId = useSearchParams().get('product');
+  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('PEGATTO_PRODUCT_MASTER_RECORDS_V4') ?? 'null');
+      if (Array.isArray(saved) && saved.length) setProducts(saved);
+    } catch {
+      // Keep the default preview if browser storage cannot be read.
+    }
+  }, []);
+  const product = products.find(item => item.id === productId || (productId && item.product_code?.toLowerCase() === productId.toLowerCase())) ?? products[0];
+  return <ProductModules key={product.id} product={product} initialTab={initialTab} />;
+}
+
+function ProductModules({ product, initialTab }: { product: typeof INITIAL_PRODUCTS[number]; initialTab: 'details' | 'features' | 'mapping' }) {
   const router = useRouter();
-  const [modules, setModules] = useState<ModuleItem[]>(INITIAL_MODULES);
+  const [modules, setModules] = useState<ModuleItem[]>(product.id === INITIAL_PRODUCTS[0].id ? INITIAL_MODULES : []);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const activePage = Math.min(page, Math.max(0, Math.ceil(modules.length / pageSize) - 1));
+  const visibleModules = modules.slice(activePage * pageSize, (activePage + 1) * pageSize);
   const [selectedModuleId, setSelectedModuleId] = useState<string>('mod-1');
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [rightActiveTab, setRightActiveTab] = useState<'details' | 'features' | 'mapping'>(initialTab);
@@ -254,10 +282,10 @@ export function FeaturesModulesScreen({
   const selectedModule = modules.find((m) => m.id === selectedModuleId) || modules[0];
 
   const [formState, setFormState] = useState<Partial<ModuleItem>>({
-    name: selectedModule.name,
-    category: selectedModule.category,
-    status: selectedModule.status,
-    description: selectedModule.description,
+    name: selectedModule?.name ?? '',
+    category: selectedModule?.category ?? '',
+    status: selectedModule?.status ?? 'Active',
+    description: selectedModule?.description ?? '',
   });
 
   const handleSelectModule = (mod: ModuleItem) => {
@@ -271,27 +299,17 @@ export function FeaturesModulesScreen({
     setIsDrawerOpen(true);
   };
 
-  const handleToggleFeature = (featureId: string, editionKey: 'core' | 'standard' | 'enterprise') => {
-    const updated = modules.map((m) => {
-      if (m.id === selectedModuleId) {
-        return {
-          ...m,
-          features: m.features.map((f) => {
-            if (f.id === featureId) {
-              return {
-                ...f,
-                [editionKey]: !f[editionKey],
-              };
-            }
-            return f;
-          }),
-        };
-      }
-      return m;
-    });
-    setModules(updated);
-    toast.success('Updated feature edition availability');
-  };
+  function changeFeature(featureId: string, changes: Partial<ModuleItem['features'][number]>) {
+    setModules(current => current.map(module => module.id === selectedModule?.id ? {
+      ...module, features: module.features.map(feature => feature.id === featureId ? { ...feature, ...changes } : feature),
+    } : module));
+  }
+
+  function includesFeature(feature: ModuleItem['features'][number], edition: typeof product.editions_details[number]) {
+    const name = edition.name.toLowerCase();
+    const original = name.startsWith('core') ? feature.core : name === 'standard' ? feature.standard : name === 'enterprise' ? feature.enterprise : false;
+    return feature.availability?.[edition.id] ?? original;
+  }
 
   const handleSaveModule = (e: React.FormEvent) => {
     e.preventDefault();
@@ -341,26 +359,18 @@ export function FeaturesModulesScreen({
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              {rightActiveTab === 'features'
-                ? 'Feature Master'
-                : rightActiveTab === 'mapping'
-                ? 'Feature Mapping'
-                : 'Module Master'}
+              Product Master
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              {rightActiveTab === 'features'
-                ? 'Manage, configure, and assign product features across modules'
-                : rightActiveTab === 'mapping'
-                ? 'Map modules and feature sets to editions and tier packages'
-                : 'Configure and manage functional modules, feature counts, and edition assignments'}
+              Create and manage all Pegatto products, editions, versions and lifecycle
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2.5">
           <Button
-            onClick={() => router.push('/products/master')}
-            className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-sm px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition-all"
+            onClick={() => router.push('/products/master?mode=add')}
+            className="bg-[#5024e8] hover:bg-[#4218ce] text-white font-medium text-sm px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition-all"
           >
             <Plus className="h-4 w-4" />
             <span>Add Product</span>
@@ -368,6 +378,7 @@ export function FeaturesModulesScreen({
 
           <Button
             variant="outline"
+            onClick={() => setTransferOpen(true)}
             className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium text-sm px-3.5 py-2 rounded-lg flex items-center gap-1.5 shadow-xs"
           >
             <Upload className="h-4 w-4 text-slate-600" />
@@ -384,73 +395,74 @@ export function FeaturesModulesScreen({
         </div>
       </div>
 
-      {/* 2. Breadcrumb */}
-      <div>
-        <button
-          type="button"
-          onClick={() => router.push('/products/master')}
-          className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#6222cc] hover:text-[#521cb0] transition-colors"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          <span>Back to Product List</span>
-        </button>
-      </div>
-
-      {/* 3. Product Summary Banner */}
-      <div className="flex items-start justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs">
-        <div className="flex items-start gap-3">
-          <div className="w-11 h-11 p-2.5 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#6222cc]">
-            <GraduationCap className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-slate-900">Pegatto Education</h2>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                Active
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1 max-w-xl">
-              Education management platform for admissions, academics, fees, communication and analytics.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Navigation Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <button
-          type="button"
-          onClick={() => router.push('/products/master')}
-          className="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-all"
-        >
-          Product Details
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push('/products/editions')}
-          className="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-all"
-        >
-          Editions (3)
-        </button>
-        <button
-          type="button"
-          className="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-[#6222cc] text-white shadow-xs"
-        >
-          Features & Modules
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push('/products/plans-pricing')}
-          className="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-all"
-        >
-          Plans & Pricing
-        </button>
-      </div>
-
       {/* 5. Main Split Screen (Image 1) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div className="grid grid-cols-1 gap-3 xl:grid-cols-12 xl:items-stretch">
         {/* Left Side: Features & Modules Table */}
-        <div className={cn('space-y-3 transition-all', isDrawerOpen ? 'lg:col-span-7' : 'lg:col-span-12')}>
+        <div className={cn('min-w-0 space-y-4 rounded-2xl border border-indigo-100 bg-white p-4', isDrawerOpen ? 'lg:col-span-12 xl:col-span-6' : 'lg:col-span-12')}>
+          <div className="space-y-3">
+          {/* 2. Breadcrumb */}
+          <div>
+            <button
+              type="button"
+              onClick={() => router.push('/products/master')}
+              className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#6222cc] hover:text-[#521cb0] transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span>Back to Product List</span>
+            </button>
+          </div>
+
+          {/* 3. Product Summary Banner */}
+          <div className="flex items-start justify-between gap-4 p-1 ">
+            <div className="flex items-start gap-3">
+              <div className="w-11 h-11 p-2.5 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#6222cc]">
+                <GraduationCap className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-bold text-slate-900">{product.product_name}</h2>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                    {product.status}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mt-1 max-w-xl">
+                  {product.short_description}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Navigation Tabs */}
+          <div className="grid grid-cols-2 gap-1.5 border-b border-indigo-100 sm:grid-cols-4">
+            <button
+              type="button"
+              onClick={() => router.push('/products/master')}
+              className="px-2 py-3 text-xs font-semibold rounded-t-lg bg-violet-50 hover:bg-violet-100 text-indigo-950 border border-violet-100 transition-all"
+            >
+              Product Details
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/products/editions?product=' + encodeURIComponent(product.id))}
+              className="px-2 py-3 text-xs font-semibold rounded-t-lg bg-violet-50 hover:bg-violet-100 text-indigo-950 border border-violet-100 transition-all"
+            >
+              Editions ({(product.editions_details ?? []).length})
+            </button>
+            <button
+              type="button"
+              className="px-2 py-3 text-xs font-semibold rounded-t-lg bg-[#5024e8] text-white "
+            >
+              Features & Modules
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/products/plans-pricing')}
+              className="px-2 py-3 text-xs font-semibold rounded-t-lg bg-violet-50 hover:bg-violet-100 text-indigo-950 border border-violet-100 transition-all"
+            >
+              Plans & Pricing
+            </button>
+          </div>
+          </div>
           {/* Section Header */}
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
@@ -460,7 +472,7 @@ export function FeaturesModulesScreen({
               <div>
                 <h3 className="text-base font-bold text-slate-900">Features & Modules</h3>
                 <p className="text-xs text-slate-500">
-                  Define and manage modules, features and their edition availability.
+                  Preview modules, features, and their edition availability.
                 </p>
               </div>
             </div>
@@ -469,22 +481,22 @@ export function FeaturesModulesScreen({
               onClick={() => {
                 const newMod: ModuleItem = {
                   id: `mod-${Date.now()}`,
-                  name: 'New Custom Module',
+                  name: '',
                   category: 'Admissions',
-                  featureCount: 1,
-                  editionsAvailability: 'Standard, Enterprise',
+                  featureCount: 0,
+                  editionsAvailability: '',
                   status: 'Active',
-                  iconType: 'layers' as any,
-                  description: 'Custom capability module description',
-                  features: [
-                    { id: `f-${Date.now()}`, name: 'Base Feature', description: 'Core feature capability', core: true, standard: true, enterprise: true, status: 'Active' },
-                  ],
+                  iconType: 'users',
+                  description: '',
+                  features: [],
                 };
                 setModules([...modules, newMod]);
-                setSelectedModuleId(newMod.id);
-                toast.success('Added new module');
+                handleSelectModule(newMod);
+                setRightActiveTab('details');
+                setPage(Math.floor(modules.length / pageSize));
+
               }}
-              className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-xs sm:text-sm px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs"
+              className="bg-[#5024e8] hover:bg-[#4218ce] text-white font-medium text-xs sm:text-sm px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs"
             >
               <Plus className="h-4 w-4" />
               <span>Add Module</span>
@@ -496,7 +508,7 @@ export function FeaturesModulesScreen({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs sm:text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/60 text-slate-600 font-semibold text-[11px] uppercase tracking-wider">
+                  <tr className="border-b border-slate-100 bg-indigo-50 text-slate-800 font-semibold text-[11px] uppercase tracking-wider">
                     <th className="py-3 px-3 text-center w-8">#</th>
                     <th className="py-3 px-4">Module / Feature</th>
                     <th className="py-3 px-3">Category</th>
@@ -507,7 +519,8 @@ export function FeaturesModulesScreen({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {modules.map((mod, index) => {
+                  {!modules.length && <tr><td colSpan={7} className="p-4 text-slate-500">No modules to show for this product.</td></tr>}
+                  {visibleModules.map((mod, index) => {
                     const isSelected = selectedModuleId === mod.id && isDrawerOpen;
                     return (
                       <tr
@@ -515,11 +528,11 @@ export function FeaturesModulesScreen({
                         onClick={() => handleSelectModule(mod)}
                         className={cn(
                           'cursor-pointer transition-colors',
-                          isSelected ? 'bg-blue-50/60 font-medium' : 'hover:bg-slate-50/70'
+                          isSelected ? 'bg-violet-100/70 font-medium' : 'hover:bg-slate-50/70'
                         )}
                       >
                         <td className="py-3 px-3 text-center text-slate-500 text-xs font-semibold">
-                          {index + 1}
+                          {activePage * pageSize + index + 1}
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2.5">
@@ -531,11 +544,11 @@ export function FeaturesModulesScreen({
                         </td>
                         <td className="py-3 px-3 text-slate-600 text-xs">{mod.category}</td>
                         <td className="py-3 px-3 text-center font-semibold text-slate-800">
-                          {mod.features.length || mod.featureCount}
+                          {mod.features.length}
                         </td>
-                        <td className="py-3 px-4 text-slate-600 text-xs">{mod.editionsAvailability}</td>
+                        <td className="py-3 px-4 text-slate-600 text-xs">{(product.editions_details ?? []).filter(edition => mod.features.some(feature => includesFeature(feature, edition))).map(edition => edition.name).join(', ') || '—'}</td>
                         <td className="py-3 px-3">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
                             {mod.status}
                           </span>
                         </td>
@@ -569,6 +582,7 @@ export function FeaturesModulesScreen({
                               type="button"
                               onClick={() => {
                                 setModules(modules.filter((m) => m.id !== mod.id));
+                                if (selectedModuleId === mod.id) setIsDrawerOpen(false);
                                 toast.success(`Deleted ${mod.name}`);
                               }}
                               title="Delete Module"
@@ -587,21 +601,21 @@ export function FeaturesModulesScreen({
 
             {/* Pagination */}
             <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-slate-100 bg-white text-xs text-slate-600">
-              <div>Showing 1 - {modules.length} of {modules.length} modules</div>
+              <div>Showing {modules.length ? activePage * pageSize + 1 : 0} - {activePage * pageSize + visibleModules.length} of {modules.length} modules</div>
               <div className="flex items-center gap-1.5">
-                <button type="button" disabled className="p-1.5 rounded-md border border-slate-200 text-slate-400 opacity-50">
+                <button type="button" aria-label="Previous page" disabled={!activePage} onClick={() => setPage(activePage - 1)} className="p-1.5 rounded-md border border-slate-200 disabled:opacity-50">
                   <ChevronLeft className="h-3.5 w-3.5" />
                 </button>
-                <button type="button" className="w-7 h-7 flex items-center justify-center rounded-md bg-[#6222cc] text-white font-semibold shadow-xs">
-                  1
+                <button type="button" className="w-7 h-7 flex items-center justify-center rounded-md bg-[#5024e8] text-white font-semibold shadow-xs">
+                  {activePage + 1}
                 </button>
-                <button type="button" disabled className="p-1.5 rounded-md border border-slate-200 text-slate-400 opacity-50">
+                <button type="button" aria-label="Next page" disabled={(activePage + 1) * pageSize >= modules.length} onClick={() => setPage(activePage + 1)} className="p-1.5 rounded-md border border-slate-200 disabled:opacity-50">
                   <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               </div>
               <div className="flex items-center gap-1.5">
                 <span>Items per page</span>
-                <select defaultValue="10" className="h-7 px-2 border border-slate-200 rounded-md bg-white text-slate-700 outline-hidden">
+                <select aria-label="Items per page" value={pageSize} onChange={event => { setPageSize(Number(event.target.value)); setPage(0); }} className="h-7 px-2 border border-slate-200 rounded-md bg-white text-slate-700 outline-hidden">
                   <option value="10">10</option>
                   <option value="20">20</option>
                 </select>
@@ -611,8 +625,8 @@ export function FeaturesModulesScreen({
         </div>
 
         {/* Right Side: Module Details Panel (Image 1) */}
-        {isDrawerOpen && (
-          <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/90 shadow-sm p-5 space-y-4">
+        {isDrawerOpen && selectedModule && (
+          <div className="min-w-0 lg:col-span-12 xl:col-span-6 rounded-2xl border border-indigo-100 bg-white p-4 space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
@@ -631,14 +645,14 @@ export function FeaturesModulesScreen({
             </div>
 
             {/* Right Tabs */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            <div className="grid grid-cols-3 items-stretch gap-1.5 border-b border-indigo-100">
               <button
                 type="button"
                 onClick={() => setRightActiveTab('details')}
                 className={cn(
-                  'px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all',
+                  'px-2 py-3 text-xs font-semibold rounded-t-lg transition-colors',
                   rightActiveTab === 'details'
-                    ? 'bg-[#6222cc] text-white shadow-xs'
+                    ? 'bg-[#5024e8] text-white shadow-xs'
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
                 )}
               >
@@ -648,9 +662,9 @@ export function FeaturesModulesScreen({
                 type="button"
                 onClick={() => setRightActiveTab('features')}
                 className={cn(
-                  'px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all',
+                  'px-2 py-3 text-xs font-semibold rounded-t-lg transition-colors',
                   rightActiveTab === 'features'
-                    ? 'bg-[#6222cc] text-white shadow-xs'
+                    ? 'bg-[#5024e8] text-white shadow-xs'
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
                 )}
               >
@@ -660,9 +674,9 @@ export function FeaturesModulesScreen({
                 type="button"
                 onClick={() => setRightActiveTab('mapping')}
                 className={cn(
-                  'px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all',
+                  'px-2 py-3 text-xs font-semibold rounded-t-lg transition-colors',
                   rightActiveTab === 'mapping'
-                    ? 'bg-[#6222cc] text-white shadow-xs'
+                    ? 'bg-[#5024e8] text-white shadow-xs'
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
                 )}
               >
@@ -675,7 +689,7 @@ export function FeaturesModulesScreen({
               {/* Row 1: Module Name, Category, Status */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <div className="space-y-1 sm:col-span-1">
-                  <label className="text-[11px] font-semibold text-slate-700">
+                  <label className="text-xs font-semibold text-slate-800">
                     Module Name <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -687,7 +701,7 @@ export function FeaturesModulesScreen({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-700">
+                  <label className="text-xs font-semibold text-slate-800">
                     Category <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -705,7 +719,7 @@ export function FeaturesModulesScreen({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-700">Status</label>
+                  <label className="text-xs font-semibold text-slate-800">Status</label>
                   <div className="relative">
                     <select
                       value={formState.status || 'Active'}
@@ -722,7 +736,7 @@ export function FeaturesModulesScreen({
 
               {/* Row 2: Description */}
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">
+                <label className="text-xs font-semibold text-slate-800">
                   Description <span className="text-red-500">*</span>
                 </label>
                 <Textarea
@@ -738,18 +752,18 @@ export function FeaturesModulesScreen({
               <div className="pt-2">
                 <div className="flex items-center justify-between pb-2">
                   <h4 className="text-xs font-bold text-slate-900">
-                    Features in this Module ({selectedModule.features.length})
+                    {rightActiveTab === 'mapping' ? 'Edition Mapping' : 'Features in this Module'} ({selectedModule.features.length})
                   </h4>
                   <Button
                     type="button"
                     onClick={() => {
                       const newFeature = {
                         id: `f-${Date.now()}`,
-                        name: 'New Feature',
-                        description: 'Custom capability within this module',
+                        name: '',
+                        description: '',
                         core: false,
-                        standard: true,
-                        enterprise: true,
+                        standard: false,
+                        enterprise: false,
                         status: 'Active' as const,
                       };
                       const updated = modules.map((m) => {
@@ -762,9 +776,9 @@ export function FeaturesModulesScreen({
                         return m;
                       });
                       setModules(updated);
-                      toast.success('Added new feature');
+                      setRightActiveTab('features');
                     }}
-                    className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-[11px] px-2.5 py-1 h-7 rounded-md flex items-center gap-1 shadow-xs"
+                    className="bg-[#5024e8] hover:bg-[#4218ce] text-white font-medium text-[11px] px-2.5 py-1 h-7 rounded-md flex items-center gap-1 shadow-xs"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     <span>Add Feature</span>
@@ -772,16 +786,14 @@ export function FeaturesModulesScreen({
                 </div>
 
                 {/* Features Table */}
-                <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
+                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
                   <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="bg-slate-50/80 text-slate-700 font-semibold border-b border-slate-200 text-[11px]">
+                      <tr className="bg-indigo-50 text-slate-800 font-semibold border-b border-slate-200 text-[11px]">
                         <th className="py-2 px-2 text-center w-6">#</th>
                         <th className="py-2 px-3">Feature Name</th>
                         <th className="py-2 px-3">Description</th>
-                        <th className="py-2 px-2 text-center w-12">Core</th>
-                        <th className="py-2 px-2 text-center w-14">Standard</th>
-                        <th className="py-2 px-2 text-center w-16">Enterprise</th>
+                        {(product.editions_details ?? []).map(edition => <th key={edition.id} className="px-2 py-2 text-center">{edition.name}</th>)}
                         <th className="py-2 px-2 text-center">Status</th>
                       </tr>
                     </thead>
@@ -792,41 +804,19 @@ export function FeaturesModulesScreen({
                             {fIdx + 1}
                           </td>
                           <td className="py-2 px-3 font-semibold text-slate-900 text-xs">
-                            {feat.name}
+                            {rightActiveTab === 'features' ? <Input aria-label="Feature name" value={feat.name} onChange={event => changeFeature(feat.id, { name: event.target.value })} /> : feat.name}
                           </td>
                           <td className="py-2 px-3 text-[11px] text-slate-500 max-w-[140px] truncate">
-                            {feat.description}
+                            {rightActiveTab === 'features' ? <Input aria-label="Feature description" value={feat.description} onChange={event => changeFeature(feat.id, { description: event.target.value })} /> : feat.description}
                           </td>
-                          {/* Core Checkbox */}
-                          <td className="py-2 px-2 text-center">
-                            <input
-                              type="checkbox"
-                              checked={feat.core}
-                              onChange={() => handleToggleFeature(feat.id, 'core')}
-                              className="rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] cursor-pointer h-3.5 w-3.5"
-                            />
-                          </td>
-                          {/* Standard Checkbox */}
-                          <td className="py-2 px-2 text-center">
-                            <input
-                              type="checkbox"
-                              checked={feat.standard}
-                              onChange={() => handleToggleFeature(feat.id, 'standard')}
-                              className="rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] cursor-pointer h-3.5 w-3.5"
-                            />
-                          </td>
-                          {/* Enterprise Checkbox */}
-                          <td className="py-2 px-2 text-center">
-                            <input
-                              type="checkbox"
-                              checked={feat.enterprise}
-                              onChange={() => handleToggleFeature(feat.id, 'enterprise')}
-                              className="rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] cursor-pointer h-3.5 w-3.5"
-                            />
-                          </td>
+                          {(product.editions_details ?? []).map(edition => <td key={edition.id} className="px-2 py-2 text-center">
+                            <input type="checkbox" aria-label={feat.name + ' in ' + edition.name} checked={includesFeature(feat, edition)}
+                              onChange={event => changeFeature(feat.id, { availability: { ...feat.availability, [edition.id]: event.target.checked } })}
+                              className="size-3.5 cursor-pointer accent-violet-700" />
+                          </td>)}
                           {/* Status Pill */}
                           <td className="py-2 px-2 text-center">
-                            <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">
+                            <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-green-100 text-green-800">
                               {feat.status}
                             </span>
                           </td>
@@ -838,10 +828,10 @@ export function FeaturesModulesScreen({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2.5 pt-3">
+              <div className="flex items-center gap-2.5 border-t border-indigo-100 pt-4">
                 <Button
                   type="submit"
-                  className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all"
+                  className="bg-[#5024e8] hover:bg-[#4218ce] text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all"
                 >
                   <Check className="h-4 w-4" />
                   <span>Update Module</span>
@@ -859,6 +849,61 @@ export function FeaturesModulesScreen({
           </div>
         )}
       </div>
+      <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Import / Export</DialogTitle>
+            <DialogDescription>Transfer preview modules for {product.product_name} as JSON.</DialogDescription>
+          </DialogHeader>
+          <Button type="button" variant="outline" onClick={() => {
+            const url = URL.createObjectURL(new Blob([JSON.stringify(modules, null, 2)], { type: 'application/json' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = product.id + '-modules.json';
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          }}>Export Modules</Button>
+          <label className="grid gap-2 text-sm font-medium">Import Modules
+            <Input type="file" accept=".json,application/json" onChange={async event => {
+              const file = event.target.files?.[0];
+              if (!file) return;
+              try {
+                const input: unknown = JSON.parse(await file.text());
+                if (!Array.isArray(input) || !input.every(item =>
+                  item && typeof item.name === 'string' && typeof item.category === 'string' &&
+                  typeof item.description === 'string' && ['Active', 'Inactive'].includes(item.status) &&
+                  Array.isArray(item.features) && item.features.every((feature: ModuleItem['features'][number]) =>
+                    feature && typeof feature.name === 'string' && typeof feature.description === 'string' &&
+                    ['Active', 'Inactive'].includes(feature.status)
+                  )
+                )) throw Error('Invalid module file');
+                const imported = (input as ModuleItem[]).map(item => ({
+                  ...item, id: crypto.randomUUID(),
+                  features: item.features.map(feature => ({ ...feature, id: crypto.randomUUID() })),
+                }));
+                setModules(current => [...current, ...imported]);
+                setTransferOpen(false);
+                toast.success('Modules imported into this preview.');
+              } catch {
+                toast.error('Choose a valid modules JSON export.');
+              }
+            }} />
+          </label>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Modules &amp; Features</DialogTitle>
+            <DialogDescription>How editions, modules, and features fit together.</DialogDescription>
+          </DialogHeader>
+          <ul className="list-disc space-y-2 pl-5 text-sm">
+            <li>Create editions for the product before mapping feature availability.</li>
+            <li>Group related features under a module. Use Edition Mapping to review which editions include those features.</li>
+            <li>This UI preview uses sample records and keeps module edits in this session.</li>
+          </ul>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
