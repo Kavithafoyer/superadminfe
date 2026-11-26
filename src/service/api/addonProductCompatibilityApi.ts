@@ -1,5 +1,6 @@
 import { baseApi } from '../baseApi';
 import { loadResultPages } from './loadResultPages';
+import { broadcastCompatibilityChange, compatibilityTags } from '../compatibilitySync';
 
 export const compatibilityLabels = {
   compatible: 'Compatible',
@@ -66,14 +67,32 @@ export const addonProductCompatibilityApi = baseApi.injectEndpoints({
       providesTags: tags,
       extraOptions,
     }),
+    getCompatibilityEditions: builder.query<{ id: number; Product_Id: number; Edition_Name: string | null; Edition_Code: string | null }[], void>({
+      query: () => 'superadmin/ProductEditionlistwithoutpaginaton/',
+      providesTags: ['ProductMasters'],
+      extraOptions,
+    }),
+    saveCompatibilityProducts: builder.mutation<CompatibilityRule[], Omit<CompatibilityInput, 'Product'> & {
+      Products: number[];
+      Removed_Products?: number[];
+      Changed_Fields?: string[];
+      id?: number;
+    }>({
+      query: (body) => ({ url: crud, method: 'POST', body }),
+      invalidatesTags: (_, error) => error ? [] : compatibilityTags,
+      onQueryStarted: broadcastCompatibilityChange,
+      extraOptions,
+    }),
     saveCompatibilityRule: builder.mutation<CompatibilityRule, CompatibilityInput & { id?: number }>({
       query: (body) => ({ url: crud, method: body.id ? 'PUT' : 'POST', body }),
-      invalidatesTags: (_, error) => error ? [] : tags,
+      invalidatesTags: (_, error) => error ? [] : compatibilityTags,
+      onQueryStarted: broadcastCompatibilityChange,
       extraOptions,
     }),
     deleteCompatibilityRule: builder.mutation<void, number>({
       query: (id) => ({ url: crud, method: 'DELETE', params: { id } }),
-      invalidatesTags: (_, error) => error ? [] : tags,
+      invalidatesTags: (_, error) => error ? [] : compatibilityTags,
+      onQueryStarted: broadcastCompatibilityChange,
       extraOptions,
     }),
   }),
@@ -82,5 +101,5 @@ export const addonProductCompatibilityApi = baseApi.injectEndpoints({
 export const {
   useGetCompatibilityMatrixQuery, useListCompatibilityRulesQuery, useSearchCompatibilityRulesQuery,
   useFilterCompatibilityRulesQuery, useGetCompatibilityRuleQuery, useSaveCompatibilityRuleMutation,
-  useDeleteCompatibilityRuleMutation,
+  useDeleteCompatibilityRuleMutation, useGetCompatibilityEditionsQuery, useSaveCompatibilityProductsMutation,
 } = addonProductCompatibilityApi;

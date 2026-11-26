@@ -1,24 +1,24 @@
-﻿'use client';
+'use client';
 
 import { useRef, useState, type FormEvent } from 'react';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { Building2, Check, Code, FileDown, GraduationCap, Layers, Link2, Plus, Puzzle, Search, Shield, ShoppingCart, Users, X } from 'lucide-react';
+import { Building2, Check, ChevronDown, Code, FileDown, GraduationCap, Layers, Link2, Plus, Puzzle, Search, Shield, ShoppingCart, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
 import {
-  compatibilityLabels, type CompatibilityInput, type CompatibilityRule, type CompatibilityType,
-  useDeleteCompatibilityRuleMutation, useFilterCompatibilityRulesQuery, useGetCompatibilityMatrixQuery,
-  useGetCompatibilityRuleQuery, useListCompatibilityRulesQuery, useSaveCompatibilityRuleMutation,
+  compatibilityLabels, type CompatibilityRule, type CompatibilityType,
+  useFilterCompatibilityRulesQuery, useGetCompatibilityMatrixQuery,
+  useGetCompatibilityEditionsQuery, useListCompatibilityRulesQuery, useSaveCompatibilityProductsMutation,
   useSearchCompatibilityRulesQuery,
 } from '@/service/api/addonProductCompatibilityApi';
 import { useGetMarketplaceAddonsQuery, useGetMarketplaceAddonProductsQuery } from '@/service/api/marketplaceAddonApi';
+import { useGetAddonCategoriesQuery } from '@/service/api/addonCategoryApi';
 import { CategoryIcon } from '../categories/categoryIcons';
 
 const tabs = ['Compatibility Matrix', 'Rules & Dependencies', 'Conflicts', 'Version Compatibility'] as const;
-const emptyFilters = { product: '', category: '' };
+const emptyFilters = { product: '', edition: '', category: '' };
 const fieldClass = 'h-10 w-full rounded-lg border border-input bg-background px-3 text-sm';
 const cardClass = 'min-w-0 rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900';
 const primaryClass = 'h-10 bg-[#6d19e8] text-white hover:bg-[#5814bd]';
@@ -68,20 +68,11 @@ function apiError(error: unknown, fallback: string) {
   return failure?.error || fallback;
 }
 
-type Option = { id: number; name: string; category?: string };
-type Selection = { id: number } | { addon?: number; product?: number };
+type Option = { id: number; name: string; category?: string; categoryIcon?: string | null; supportedProducts?: number[] };
+type Selection = { addon?: number; product?: number };
 
-function RuleEditor({ rule, selection, addons, products, onSaved, onClose }: {
-  rule?: CompatibilityRule;
-  selection: Selection;
-  addons: Option[];
-  products: Option[];
-  onSaved: (rule: CompatibilityRule) => void;
-  onClose: () => void;
-}) {
-  const [form, setForm] = useState({
-    Addon: rule?.Addon ?? ('addon' in selection ? selection.addon : undefined) ?? 0,
-    Product: rule?.Product ?? ('product' in selection ? selection.product : undefined) ?? 0,
+function compatibilitySettings(rule?: CompatibilityRule) {
+  return {
     Compatibility_Type: rule ? ruleType(rule) : 'compatible' as CompatibilityType,
     Dependencies: rule?.Dependencies ?? [],
     Version_Constraint: rule?.Version_Constraint ?? false,
@@ -89,52 +80,61 @@ function RuleEditor({ rule, selection, addons, products, onSaved, onClose }: {
     Maximum_Version: rule?.Maximum_Version ?? '',
     Rule_Description: rule?.Rule_Description ?? '',
     Is_Active: rule?.Is_Active ?? true,
-  });
-  const [save, saveState] = useSaveCompatibilityRuleMutation();
-  const [remove, deleteState] = useDeleteCompatibilityRuleMutation();
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  };
+}
+
+function RuleEditor({ selection, addons, products, existingRules, onSelectAddon, onClose }: {
+  selection: Selection;
+  addons: Option[];
+  products: Option[];
+  existingRules: CompatibilityRule[];
+  onSelectAddon: (id: number) => void;
+  onClose: () => void;
+}) {
+  const addon = addons.find(({ id }) => id === selection.addon);
+  const addonRules = existingRules.filter(({ Addon }) => Addon === selection.addon);
+  const [baseline] = useState(() => ({
+    products: [...new Set([...(addon?.supportedProducts ?? []), ...addonRules.map(({ Product }) => Product)])],
+    settings: compatibilitySettings(addonRules.find(({ Product }) => Product === selection.product) ?? addonRules[0]),
+    mixed: new Set(addonRules.map((rule) => JSON.stringify(compatibilitySettings(rule)))).size > 1,
+  }));
+  const [form, setForm] = useState(() => ({
+    ...baseline.settings,
+    Addon: selection.addon ?? 0,
+    Products: [...new Set([...baseline.products, ...(selection.product ? [selection.product] : [])])],
+  }));
+  const [applyAll, setApplyAll] = useState(false);
+  const [save, saveState] = useSaveCompatibilityProductsMutation();
   const [failure, setFailure] = useState('');
   const lock = useRef(false);
-  const busy = saveState.isLoading || deleteState.isLoading;
-  const addon = addons.find(({ id }) => id === form.Addon);
+  const busy = saveState.isLoading;
+  const availableProducts = products.filter(({ id }) => !form.Products.includes(id));
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (lock.current) return;
-    if (!form.Addon || !form.Product) {
-      setFailure('Select an add-on and a product.');
+    const removedProducts = baseline.products.filter((id) => !form.Products.includes(id));
+    if (!form.Addon || (!form.Products.length && !removedProducts.length)) {
+      setFailure('Select an add-on and at least one product.');
       return;
     }
-    const input: CompatibilityInput = {
+    const input = {
       ...form,
       Minimum_Version: form.Minimum_Version.trim(),
       Maximum_Version: form.Maximum_Version.trim(),
     };
+    const settings = Object.keys(baseline.settings) as (keyof typeof baseline.settings)[];
+    const changedFields = settings.filter((field) =>
+      applyAll || JSON.stringify(input[field]) !== JSON.stringify(baseline.settings[field])
+    );
     lock.current = true;
     setFailure('');
     try {
-      const saved = await save({ ...input, id: rule?.id }).unwrap();
-      toast.success(rule ? 'Compatibility rule updated.' : 'Compatibility rule created.');
-      onSaved(saved);
-    } catch (error) {
-      setFailure(apiError(error, 'Unable to save the rule.'));
-    } finally {
-      lock.current = false;
-    }
-  }
-
-  async function deleteRule() {
-    if (!rule || lock.current) return;
-    lock.current = true;
-    setFailure('');
-    try {
-      await remove(rule.id).unwrap();
-      setConfirmDelete(false);
+      await save({ ...input, Removed_Products: removedProducts, Changed_Fields: changedFields }).unwrap();
+      toast.success('Product compatibility saved.');
       onClose();
-      toast.success('Compatibility rule removed.');
     } catch (error) {
-      setConfirmDelete(false);
-      setFailure(apiError(error, 'Unable to remove the rule.'));
+      setFailure(apiError(error, 'Unable to save product compatibility.'));
     } finally {
       lock.current = false;
     }
@@ -144,7 +144,7 @@ function RuleEditor({ rule, selection, addons, products, onSaved, onClose }: {
     <>
       <form onSubmit={submit} className={`${cardClass} overflow-hidden`}>
         <div className="flex flex-wrap items-center justify-between gap-2 bg-[#f3eafa] p-4 dark:bg-purple-950/65">
-          <h2 className="text-lg font-semibold">{rule ? 'Compatibility Rule Details' : 'Create Compatibility Rule'}</h2>
+          <h2 className="text-lg font-semibold">{addon ? 'Edit Product Compatibility' : 'Create Compatibility Rule'}</h2>
           <span className={`rounded-full px-3 py-1 text-xs font-semibold ${form.Is_Active ? 'bg-green-700 text-white' : 'bg-rose-100 text-rose-800'}`}>
             {form.Is_Active ? 'Active' : 'Inactive'}
           </span>
@@ -152,29 +152,56 @@ function RuleEditor({ rule, selection, addons, products, onSaved, onClose }: {
         {addon && (
           <div className="flex items-center gap-3 px-4 pt-4">
             <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-purple-100 dark:bg-purple-900">
-              <CategoryIcon categoryName={addon.category} className="size-7 text-violet-700 dark:text-purple-200" />
+              <CategoryIcon value={addon.categoryIcon} categoryName={addon.category} className="size-7 text-violet-700 dark:text-purple-200" />
             </span>
             <div><p className="font-bold">{addon.name}</p><p className="text-sm text-muted-foreground">{addon.category}</p></div>
           </div>
         )}
         <fieldset disabled={busy} className="space-y-4 p-4 text-sm">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="space-y-1 font-medium"><span>Add-on</span>
-              <select required disabled={!!rule} className={fieldClass} value={form.Addon || ''} onChange={(event) => {
-                const id = Number(event.target.value);
-                setForm({ ...form, Addon: id, Dependencies: form.Dependencies.filter((item) => item !== id) });
-              }}>
-                <option value="">Select add-on</option>
-                {addons.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
-              </select>
-            </label>
-            <label className="space-y-1 font-medium"><span>Product</span>
-              <select required disabled={!!rule} className={fieldClass} value={form.Product || ''} onChange={(event) => setForm({ ...form, Product: Number(event.target.value) })}>
-                <option value="">Select product</option>
-                {products.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
-              </select>
-            </label>
+          <label className="block space-y-1 font-medium"><span>Add-on</span>
+            <select required className={fieldClass} value={form.Addon || ''} onChange={(event) => onSelectAddon(Number(event.target.value))}>
+              <option value="">Select add-on</option>
+              {addons.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
+            </select>
+          </label>
+          <div className="space-y-1">
+            <label htmlFor="compatibility-products" className="font-medium">Applicable Products <span className="text-red-600">*</span></label>
+            <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-input bg-background p-1.5">
+              {form.Products.map((id) => {
+                const name = products.find((item) => item.id === id)?.name ?? `Product #${id}`;
+                const rule = addonRules.find(({ Product }) => Product === id);
+                const status = rule ? rule.Is_Active ? compatibilityLabels[ruleType(rule)] : 'Inactive rule' : undefined;
+                const chip = 'inline-flex items-center gap-1 rounded-md bg-purple-100 px-2 py-1 text-xs font-medium text-violet-900 dark:bg-purple-900 dark:text-purple-100';
+                return (
+                  <button key={id} type="button" className={chip} title={status} aria-label={`Remove ${name}`}
+                    onClick={() => setForm({ ...form, Products: form.Products.filter((item) => item !== id) })}>
+                    {name}<X aria-hidden="true" className="size-3" />
+                  </button>
+                );
+              })}
+              <div className="relative min-w-32 flex-1">
+                <select id="compatibility-products" value="" disabled={!form.Addon || !availableProducts.length}
+                  className="h-8 w-full appearance-none rounded-md bg-transparent pl-2 pr-7 text-sm disabled:text-muted-foreground"
+                  onChange={(event) => {
+                    const id = Number(event.target.value);
+                    if (id && !form.Products.includes(id)) setForm({ ...form, Products: [...form.Products, id] });
+                  }}>
+                  <option value="">{!form.Addon ? 'Select an add-on first' : availableProducts.length ? 'Add product' : 'No additional products'}</option>
+                  {availableProducts.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
+                </select>
+                <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 size-4 -translate-y-1/2" />
+              </div>
+            </div>
           </div>
+          {baseline.mixed && (
+            <div className="space-y-2 rounded-lg bg-muted p-3 text-muted-foreground">
+              <p>The selected products have different settings. Saving applies only the fields you change to their existing rules.</p>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={applyAll} onChange={(event) => setApplyAll(event.target.checked)} />
+                Apply all displayed settings to every selected product
+              </label>
+            </div>
+          )}
           <fieldset className="space-y-2">
             <legend className="font-medium">Compatibility type</legend>
             <div className="flex flex-wrap gap-3">
@@ -233,7 +260,6 @@ function RuleEditor({ rule, selection, addons, products, onSaved, onClose }: {
           </label>
           {failure && <p role="alert" className="text-red-700 dark:text-red-300">{failure}</p>}
           <div className="flex flex-wrap justify-between gap-2 border-t border-border pt-4">
-            {rule && <Button type="button" variant="ghost" onClick={() => setConfirmDelete(true)} className="text-red-700 dark:text-red-300">Remove rule</Button>}
             <div className="ml-auto flex gap-2">
               <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
               <Button type="submit" className={primaryClass}>{saveState.isLoading ? 'Saving…' : 'Save Rule'}</Button>
@@ -241,8 +267,6 @@ function RuleEditor({ rule, selection, addons, products, onSaved, onClose }: {
           </div>
         </fieldset>
       </form>
-      <ConfirmDeleteDialog isOpen={confirmDelete} onClose={() => setConfirmDelete(false)} onConfirm={deleteRule}
-        loading={deleteState.isLoading} title="Remove compatibility rule" description="Remove the rule for this add-on and product?" />
     </>
   );
 }
@@ -257,15 +281,28 @@ export function ProductCompatibilityScreen() {
   const debounced = useDebounce(term, 300);
   const matrixQuery = useGetCompatibilityMatrixQuery();
   const addonQuery = useGetMarketplaceAddonsQuery();
+  const categoryQuery = useGetAddonCategoriesQuery();
+  const editionQuery = useGetCompatibilityEditionsQuery();
+  const editions = editionQuery.currentData ?? [];
+  const appliedProduct = applied.product || String(editions.find(({ id }) => String(id) === applied.edition)?.Product_Id ?? '');
   const productQuery = useGetMarketplaceAddonProductsQuery();
   const listQuery = useListCompatibilityRulesQuery(tab === tabs[0] ? skipToken : undefined);
   const searchQuery = useSearchCompatibilityRulesQuery(debounced && term === debounced ? debounced : skipToken);
-  const filterQuery = useFilterCompatibilityRulesQuery(applied.product ? { Product: Number(applied.product) } : skipToken);
-  const detail = useGetCompatibilityRuleQuery(selection && 'id' in selection ? selection.id : skipToken);
+  const filterQuery = useFilterCompatibilityRulesQuery(appliedProduct ? { Product: Number(appliedProduct) } : skipToken);
   const allRules = matrixQuery.currentData ?? [];
   const addonOptions = new Map<number, Option>(allRules.map((rule) => [rule.Addon, { id: rule.Addon, name: rule.Addon_Name || `Add-on #${rule.Addon}` }]));
+  const savedCategories = categoryQuery.currentData ?? [];
+  const categoriesById = new Map(savedCategories.map((category) => [String(category.id), category]));
+  const categoriesByName = new Map(savedCategories.map((category) => [category.Category_Name.trim().toLowerCase(), category]));
   for (const addon of addonQuery.currentData ?? []) {
-    addonOptions.set(addon.id, { id: addon.id, name: addon.Addon_Name || `Add-on #${addon.id}`, category: addon.Category ?? undefined });
+    const category = (addon.Addon_Category ? categoriesById.get(String(addon.Addon_Category)) : undefined)
+      ?? categoriesByName.get(addon.Category?.trim().toLowerCase() ?? '');
+    addonOptions.set(addon.id, {
+      id: addon.id, name: addon.Addon_Name || `Add-on #${addon.id}`,
+      category: category?.Category_Name ?? addon.Category ?? undefined,
+      categoryIcon: category?.Category_Icon,
+      supportedProducts: addon.Products ?? addon.products_details?.map(({ id }) => id),
+    });
   }
   const productOptions = new Map<number, Option>(allRules.map((rule) => [rule.Product, { id: rule.Product, name: rule.Product_Name || `Product #${rule.Product}` }]));
   for (const product of productQuery.currentData ?? []) {
@@ -279,21 +316,30 @@ export function ProductCompatibilityScreen() {
   const baseRules = tab === tabs[0] ? allRules : listQuery.currentData ?? [];
   const rules = baseRules.filter((rule) =>
     (!term || matchingSearch.has(rule.id)) &&
-    (!applied.product || matchingProduct.has(rule.id)) &&
+    (!appliedProduct || matchingProduct.has(rule.id)) &&
     (!applied.category || addonOptions.get(rule.Addon)?.category === applied.category) &&
     (tab !== 'Conflicts' || (rule.Is_Active && ruleType(rule) === 'incompatible')) &&
     (tab !== 'Version Compatibility' || rule.Version_Constraint)
   );
-  const ruleByPair = new Map(rules.map((rule) => [`${rule.Addon}:${rule.Product}`, rule]));
+  const ruleByPair = new Map(allRules.map((rule) => [`${rule.Addon}:${rule.Product}`, rule]));
   const filteredAddons = new Set(rules.map(({ Addon }) => Addon));
-  const matrixAddons = addons.filter(({ id, category }) =>
-    (!applied.category || applied.category === category) && (!(term || applied.product) || filteredAddons.has(id))
-  );
-  const matrixProducts = applied.product ? products.filter(({ id }) => String(id) === applied.product) : products;
+  const matrixAddons = addons.filter(({ id, name, category, supportedProducts }) => {
+    if (applied.category && applied.category !== category) return false;
+    if (!(term || appliedProduct) || filteredAddons.has(id)) return true;
+    const searchTerm = term.toLowerCase();
+    return supportedProducts?.some((productId) =>
+      !ruleByPair.has(`${id}:${productId}`) &&
+      (!appliedProduct || String(productId) === appliedProduct) &&
+      (!searchTerm || name.toLowerCase().includes(searchTerm) ||
+        productOptions.get(productId)?.name.toLowerCase().includes(searchTerm))
+    ) ?? false;
+  });
+  const matrixProducts = appliedProduct ? products.filter(({ id }) => String(id) === appliedProduct) : products;
   const failedQuery = [matrixQuery, addonQuery, productQuery, listQuery, searchQuery, filterQuery].find((query) => query.isError);
   const loading = matrixQuery.isLoading || addonQuery.isLoading || productQuery.isLoading || listQuery.isLoading ||
     Boolean(term && (term !== debounced || searchQuery.isFetching)) || filterQuery.isFetching;
-  const newRuleDisabled = !addons.length || !products.length || addonQuery.isError || productQuery.isError;
+  const newRuleDisabled = matrixQuery.isLoading || matrixQuery.isError ||
+    !addons.length || !products.length || addonQuery.isError || productQuery.isError;
 
   async function exportRules() {
     try {
@@ -352,22 +398,50 @@ export function ProductCompatibilityScreen() {
       </div>
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,9fr)_minmax(0,5fr)]">
         <div className="min-w-0 space-y-3">
-          <form aria-label="Filter compatibility rules" className={`${cardClass} flex flex-wrap items-end gap-3 p-4`}
+          <form aria-label="Filter compatibility rules"
+            className={`${cardClass} grid grid-cols-1 items-end gap-3 p-4 sm:grid-cols-3 xl:grid-cols-[1.1fr_1fr_1fr_auto]`}
             onSubmit={(event) => { event.preventDefault(); setApplied(filters); }}>
-            <label className="min-w-32 flex-1 space-y-1 text-sm font-medium"><span>Product</span>
-              <select className={fieldClass} value={filters.product} onChange={(event) => setFilters({ ...filters, product: event.target.value })}>
-                <option value="">All products</option>
-                {products.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
-              </select>
+            <label className="min-w-0 space-y-1 text-sm font-medium"><span>Product</span>
+              <span className="relative block">
+                <select className={`${fieldClass} appearance-none truncate pr-8`} value={filters.product}
+                  onChange={(event) => setFilters({ ...filters, product: event.target.value, edition: '' })}>
+                  <option value="">All Products</option>
+                  {products.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
+                </select>
+                <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2" />
+              </span>
             </label>
-            <label className="min-w-32 flex-1 space-y-1 text-sm font-medium"><span>Add-on category</span>
-              <select className={fieldClass} value={filters.category} onChange={(event) => setFilters({ ...filters, category: event.target.value })}>
-                <option value="">All categories</option>
-                {categories.map((category) => <option key={category}>{category}</option>)}
-              </select>
+            <label className="min-w-0 space-y-1 text-sm font-medium"><span>Edition</span>
+              <span className="relative block">
+                <select className={`${fieldClass} appearance-none truncate pr-8`} value={filters.edition} disabled={editionQuery.isError || editionQuery.isLoading}
+                  title="Edition filters by its associated product. Rules are saved at the product level."
+                  onChange={(event) => setFilters({ ...filters, edition: event.target.value })}>
+                  <option value="">All Editions</option>
+                  {editions.filter(({ Product_Id }) => !filters.product || String(Product_Id) === filters.product).map((edition) => (
+                    <option key={edition.id} value={edition.id}>
+                      {edition.Edition_Name || edition.Edition_Code || `Edition #${edition.id}`}
+                      {!filters.product && productOptions.has(edition.Product_Id) ? ` ? ${productOptions.get(edition.Product_Id)?.name}` : ''}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2" />
+              </span>
             </label>
-            <Button type="button" variant="ghost" className="h-10" onClick={() => { setFilters(emptyFilters); setApplied(emptyFilters); setSearch(''); }}>Reset</Button>
-            <Button type="submit" className={primaryClass}>Apply</Button>
+            <label className="min-w-0 space-y-1 text-sm font-medium"><span>Add-on Category</span>
+              <span className="relative block">
+                <select className={`${fieldClass} appearance-none truncate pr-8`} value={filters.category}
+                  onChange={(event) => setFilters({ ...filters, category: event.target.value })}>
+                  <option value="">All Categories</option>
+                  {categories.map((category) => <option key={category}>{category}</option>)}
+                </select>
+                <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2" />
+              </span>
+            </label>
+            <div className="flex gap-2 sm:col-span-3 sm:justify-end xl:col-span-1">
+              <Button type="button" variant="ghost" className="h-10 font-semibold text-violet-700 dark:text-violet-300"
+                onClick={() => { setFilters(emptyFilters); setApplied(emptyFilters); setSearch(''); }}>Reset</Button>
+              <Button type="submit" className={`${primaryClass} px-5`}>Apply</Button>
+            </div>
           </form>
           <section className={`${cardClass} overflow-hidden`} aria-busy={loading}>
             <div className="flex flex-wrap items-center justify-between gap-3 p-4">
@@ -381,6 +455,11 @@ export function ProductCompatibilityScreen() {
                 <FileDown /> Export
               </Button>
             </div>
+            {tab === 'Conflicts' && (
+              <p className="px-4 pb-3 text-sm text-muted-foreground">
+                These are active rules explicitly marked Not compatible. Each entry shows which add-on is unsupported on which product and the reason recorded on the rule.
+              </p>
+            )}
             {failedQuery ? (
               <div role="alert" className="flex flex-wrap items-center gap-3 border-t border-border p-4 text-sm">
                 {apiError(failedQuery.error, 'Unable to load compatibility data.')}
@@ -390,9 +469,8 @@ export function ProductCompatibilityScreen() {
               <>
                 <div className="flex flex-wrap gap-3 px-4 pb-3 text-xs text-muted-foreground">
                   <span><Check aria-hidden="true" className="mr-1 inline size-4 text-green-700" /> Compatible</span>
-                  <span><X aria-hidden="true" className="mr-1 inline size-4 text-red-600" /> Not compatible</span>
+                  <span><X aria-hidden="true" className="mr-1 inline size-4 text-red-600" /> Not compatible or no rule</span>
                   <span><Link2 aria-hidden="true" className="mr-1 inline size-4 text-violet-700" /> Requires dependency</span>
-                  <span>— No rule</span>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
@@ -411,19 +489,31 @@ export function ProductCompatibilityScreen() {
                       {!matrixAddons.length && <tr><td colSpan={matrixProducts.length + 2} className="p-4 text-muted-foreground">No matching add-ons.</td></tr>}
                       {matrixAddons.map((addon) => (
                         <tr key={addon.id} className="hover:bg-purple-50/60 dark:hover:bg-purple-950/40">
-                          <th scope="row" className="p-3 font-semibold text-violet-700 dark:text-violet-300">{addon.name}</th>
-                          <td className="p-3">{addon.category && <span className="inline-flex items-center gap-1 rounded-lg bg-purple-100 px-2 py-1 text-xs text-violet-900 dark:bg-purple-900 dark:text-purple-100"><CategoryIcon categoryName={addon.category} />{addon.category}</span>}</td>
+                          <th scope="row" className="p-3 font-semibold text-violet-700 dark:text-violet-300">
+                            <button type="button" className="text-left hover:underline"
+                              aria-pressed={selection?.addon === addon.id}
+                              onClick={() => setSelection({ addon: addon.id })}>{addon.name}</button>
+                          </th>
+                          <td className="p-3">{addon.category && <span className="inline-flex items-center gap-1 rounded-lg bg-purple-100 px-2 py-1 text-xs text-violet-900 dark:bg-purple-900 dark:text-purple-100"><CategoryIcon value={addon.categoryIcon} categoryName={addon.category} />{addon.category}</span>}</td>
                           {matrixProducts.map((product) => {
                             const rule = ruleByPair.get(`${addon.id}:${product.id}`);
-                            const selected = Boolean(selection && (rule && 'id' in selection ? selection.id === rule.id
-                              : 'addon' in selection && selection.addon === addon.id && selection.product === product.id));
+                            const supportsProduct = addon.supportedProducts?.includes(product.id);
+                            const selected = selection?.addon === addon.id && selection.product === product.id;
                             return (
                               <td key={product.id} className={`p-1 text-center ${selected ? 'bg-purple-100 dark:bg-purple-900' : ''}`}>
                                 <button type="button" aria-pressed={selected}
-                                  aria-label={`${addon.name}, ${product.name}, ${rule ? rule.Is_Active ? compatibilityLabels[ruleType(rule)] : 'Inactive rule' : 'Create rule'}`}
+                                  aria-label={`${addon.name}, ${product.name}, ${rule ? rule.Is_Active ? compatibilityLabels[ruleType(rule)] : 'Inactive rule' : supportsProduct ? 'Supported by Add-on Master. Edit add-on compatibility' : 'No rule configured. Edit add-on compatibility'}`}
                                   className="inline-grid size-9 place-items-center rounded-md hover:bg-purple-100 focus-visible:ring-2 focus-visible:ring-violet-600 dark:hover:bg-purple-900"
-                                  onClick={() => setSelection(rule ? { id: rule.id } : { addon: addon.id, product: product.id })}>
-                                  {rule ? <RuleStatus rule={rule} /> : <span className="text-muted-foreground">—</span>}
+                                  onClick={() => setSelection({ addon: addon.id, product: product.id })}>
+                                  {rule ? <RuleStatus rule={rule} /> : supportsProduct ? (
+                                    <span title="Supported by Add-on Master" className={statusColors.compatible}>
+                                      <Check aria-hidden="true" className="size-5" strokeWidth={2.5} />
+                                    </span>
+                                  ) : (
+                                    <span title="No rule configured" className={statusColors.incompatible}>
+                                      <X aria-hidden="true" className="size-5" strokeWidth={2.5} />
+                                    </span>
+                                  )}
                                 </button>
                               </td>
                             );
@@ -438,14 +528,15 @@ export function ProductCompatibilityScreen() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-[#f3eefb] dark:bg-purple-950/60"><tr>
-                    {['Add-on', 'Product', 'Rule type', 'Dependencies', 'Version range'].map((heading) => <th scope="col" key={heading} className="p-3">{heading}</th>)}
+                    {(tab === 'Conflicts' ? ['Add-on', 'Product', 'Rule type', 'Reason', 'Version range']
+                      : ['Add-on', 'Product', 'Rule type', 'Dependencies', 'Version range']).map((heading) => <th scope="col" key={heading} className="p-3">{heading}</th>)}
                   </tr></thead>
                   <tbody className="divide-y divide-border">
-                    {!rules.length && <tr><td colSpan={5} className="p-4 text-muted-foreground">No matching rules.</td></tr>}
+                    {!rules.length && <tr><td colSpan={5} className="p-4 text-muted-foreground">{tab === 'Conflicts' ? 'No active incompatible rules match these filters.' : 'No matching rules.'}</td></tr>}
                     {rules.map((rule) => (
                       <tr key={rule.id}>
                         <th scope="row" className="p-3"><button type="button" className="text-left text-violet-700 hover:underline dark:text-violet-300"
-                          onClick={() => setSelection({ id: rule.id })}>{addonOptions.get(rule.Addon)?.name}</button></th>
+                          onClick={() => setSelection({ addon: rule.Addon, product: rule.Product })}>{addonOptions.get(rule.Addon)?.name}</button></th>
                         <td className="p-3">{productOptions.get(rule.Product)?.name}</td>
                         <td className="p-3">{compatibilityLabels[ruleType(rule)]}{!rule.Is_Active && ' (inactive)'}</td>
                         <td className="p-3">{rule.Dependencies?.map((id) => addonOptions.get(id)?.name || `#${id}`).join(', ') || '—'}</td>
@@ -458,25 +549,17 @@ export function ProductCompatibilityScreen() {
             )}
           </section>
         </div>
-        {selection && 'id' in selection && !detail.currentData ? (
-          <div className={`${cardClass} p-4 text-sm`}>
-            {detail.isError ? (
-              <div role="alert" className="space-y-2">
-                <p>{apiError(detail.error, 'Unable to load the rule.')}</p>
-                <Button type="button" variant="outline" onClick={() => detail.refetch()}>Retry</Button>
-              </div>
-            ) : <p role="status">Loading rule details…</p>}
-            <Button type="button" variant="ghost" onClick={() => setSelection(null)}>Cancel</Button>
-          </div>
-        ) : selection ? (
-          <RuleEditor key={'id' in selection ? selection.id : `new:${selection.addon ?? ''}:${selection.product ?? ''}`}
-            rule={'id' in selection ? detail.currentData : undefined} selection={selection} addons={addons} products={products}
-            onClose={() => setSelection((current) => current === selection ? null : current)}
-            onSaved={(rule) => setSelection((current) => current === selection ? { id: rule.id } : current)} />
+        {selection ? (
+          <RuleEditor key={`addon:${selection.addon ?? ''}:${selection.product ?? ''}`}
+            selection={selection} addons={addons} products={products} existingRules={allRules}
+            onSelectAddon={(addon) => setSelection(addon ? { addon } : {})}
+            onClose={() => setSelection((current) => current === selection ? null : current)} />
         ) : (
           <aside className={`${cardClass} overflow-hidden`}>
             <h2 className="bg-[#f3eafa] p-4 text-lg font-semibold dark:bg-purple-950/65">Compatibility Rule Details</h2>
-            <p className="p-4 text-sm text-muted-foreground">Select a rule to edit it, or choose an empty matrix cell to create one.</p>
+            <p className="p-4 text-sm text-muted-foreground">Select an add-on to edit its applicable products and compatibility settings.</p>
+
+
           </aside>
         )}
       </div>

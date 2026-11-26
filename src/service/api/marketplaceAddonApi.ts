@@ -1,5 +1,6 @@
 import { baseApi } from '../baseApi';
 import { loadResultPages } from './loadResultPages';
+import { broadcastCompatibilityChange, compatibilityTags } from '../compatibilitySync';
 
 export const billingCycles = {
   monthly: 'Monthly', quarterly: 'Quarterly', half_yearly: 'Half yearly', yearly: 'Yearly', one_time: 'One time',
@@ -131,6 +132,7 @@ export const marketplaceAddonApi = baseApi.injectEndpoints({
     }),
     getMarketplaceAddon: builder.query<MarketplaceAddon, number>({
       query: (id) => ({ url: crudUrl, params: { id } }),
+      providesTags: tags,
       keepUnusedDataFor: 0,
       extraOptions,
     }),
@@ -148,12 +150,14 @@ export const marketplaceAddonApi = baseApi.injectEndpoints({
       Product_Compatibility_Type?: InitialCompatibility;
     }>({
       query: (body) => ({ url: crudUrl, method: body.id ? 'PUT' : 'POST', body }),
-      invalidatesTags: (_result, error) => error ? [] : [...tags, 'AddonProductCompatibility'],
+      invalidatesTags: (_result, error) => error ? [] : compatibilityTags,
+      onQueryStarted: broadcastCompatibilityChange,
       extraOptions,
     }),
     deleteMarketplaceAddon: builder.mutation<{ message: string }, number>({
       query: (id) => ({ url: crudUrl, method: 'DELETE', params: { id } }),
-      invalidatesTags: (_result, error) => error ? [] : [...tags, 'AddonProductCompatibility'],
+      invalidatesTags: (_result, error) => error ? [] : compatibilityTags,
+      onQueryStarted: broadcastCompatibilityChange,
       extraOptions,
     }),
   }),
