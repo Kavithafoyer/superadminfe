@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { NavLink } from './NavLink';
 import {
   LayoutDashboard,
@@ -583,6 +583,28 @@ export function isRouteActive(targetPath: string, currentPath: string | null): b
   return false;
 }
 
+const productWorkspaceRoutes = new Set([
+  '/products/editions', '/products/features-modules', '/products/modules', '/products/features', '/products/feature-mapping',
+]);
+
+type SidebarLinkProps = React.ComponentProps<typeof NavLink> & { href: string };
+
+function ProductScopedNavLink(props: SidebarLinkProps) {
+  const pathname = usePathname();
+  const product = useSearchParams().get('product');
+  const href = product && productWorkspaceRoutes.has(pathname)
+    ? props.href + '?' + new URLSearchParams({ product })
+    : props.href;
+  return <NavLink {...props} href={href} />;
+}
+
+function SidebarLink(props: SidebarLinkProps) {
+  if (!productWorkspaceRoutes.has(props.href)) return <NavLink {...props} />;
+  return <React.Suspense fallback={<NavLink {...props} />}>
+    <ProductScopedNavLink {...props} />
+  </React.Suspense>;
+}
+
 export function Navigation({ collapsed = false, onNavigate }: { collapsed?: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
   const { primaryColor } = useStore();
@@ -680,7 +702,7 @@ export function Navigation({ collapsed = false, onNavigate }: { collapsed?: bool
                           {item.subItems?.map((sub, subIdx) => {
                             const isSubActive = isRouteActive(sub.path, pathname);
                             return (
-                              <NavLink
+                              <SidebarLink
                                 key={`${item.label}-${sub.label}-${subIdx}`}
                                 href={sub.path}
                                 onClick={onNavigate}
@@ -698,7 +720,7 @@ export function Navigation({ collapsed = false, onNavigate }: { collapsed?: bool
                                   <span className="w-1.5 h-1.5 rounded-full bg-transparent shrink-0" />
                                 )}
                                 <span>{sub.label}</span>
-                              </NavLink>
+                              </SidebarLink>
                             );
                           })}
                         </motion.div>

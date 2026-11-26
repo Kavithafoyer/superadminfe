@@ -90,6 +90,7 @@ export const baseApi = createApi({
     "Tickets",
     "ProductCategories",
     "ProductMasters",
+    "ProductEditions",
     "ProductMenus",
     "CompanyDetails",
     "Roles",
