@@ -120,10 +120,10 @@ export const getMenuGroups = (): MenuSection[] => [
             label: 'Module Master',
             path: '/products/modules',
           },
-          {
-            label: 'Feature Master',
-            path: '/products/features',
-          },
+          // {
+          //   label: 'Feature Master',
+          //   path: '/products/features',
+          // },
           {
             label: 'Plans & Pricing',
             path: '/products/plans-pricing',
