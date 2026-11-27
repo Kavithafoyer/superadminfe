@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { NavLink } from './NavLink';
 import {
   LayoutDashboard,
@@ -113,28 +113,12 @@ export const getMenuGroups = (): MenuSection[] => [
             path: '/products/master',
           },
           {
-            label: 'Editions & Versions',
+            label: 'Product Editions',
             path: '/products/editions',
           },
           {
-            label: 'Module Master',
-            path: '/products/modules',
-          },
-          {
-            label: 'Feature Master',
-            path: '/products/features',
-          },
-          {
-            label: 'Free Core Configuration',
-            path: '/products/configuration',
-          },
-          {
-            label: 'Trial Configuration',
-            path: '/products/trial-configuration',
-          },
-          {
-            label: 'Product Releases',
-            path: '/products/releases',
+            label: 'Modules & Features',
+            path: '/products/features-modules',
           },
           {
             label: 'Feature Mapping',
@@ -147,6 +131,18 @@ export const getMenuGroups = (): MenuSection[] => [
           {
             label: 'Free & Paid Plans',
             path: '/products/free-paid-plans',
+          },
+          {
+            label: 'Free Core Configuration',
+            path: '/products/configuration',
+          },
+          {
+            label: 'Trial Configuration',
+            path: '/products/trial-configuration',
+          },
+          {
+            label: 'Product Releases',
+            path: '/products/releases',
           },
           {
             label: 'License & Entitlements',
@@ -536,6 +532,10 @@ export function isRouteActive(targetPath: string, currentPath: string | null): b
     return currentPath.startsWith('/products/master');
   }
 
+  if (targetPath === '/products/features-modules') {
+    return [targetPath, '/products/modules', '/products/features'].includes(currentPath);
+  }
+
   // Tenant Management aliases & deep routes
   if (targetPath === '/tenant-management/onboarding') {
     return currentPath === '/tenant-management';
@@ -581,6 +581,33 @@ export function isRouteActive(targetPath: string, currentPath: string | null): b
   }
 
   return false;
+}
+
+const productWorkspaceRoutes = new Set([
+  '/products/editions', '/products/features-modules', '/products/modules', '/products/features', '/products/feature-mapping',
+]);
+
+type SidebarLinkProps = React.ComponentProps<typeof NavLink> & { href: string };
+
+function workspaceSidebarHref(path: string, product?: string | null) {
+  const params = new URLSearchParams();
+  if (product) params.set('product', product);
+  if (path === '/products/editions' || path === '/products/features-modules') params.set('mode', 'create');
+  return params.size ? path + '?' + params.toString() : path;
+}
+
+function ProductScopedNavLink(props: SidebarLinkProps) {
+  const pathname = usePathname();
+  const product = useSearchParams().get('product');
+  const preserveProduct = productWorkspaceRoutes.has(pathname) || pathname === '/products/master';
+  return <NavLink {...props} href={workspaceSidebarHref(props.href, preserveProduct ? product : null)} />;
+}
+
+function SidebarLink(props: SidebarLinkProps) {
+  if (!productWorkspaceRoutes.has(props.href)) return <NavLink {...props} />;
+  return <React.Suspense fallback={<NavLink {...props} href={workspaceSidebarHref(props.href)} />}>
+    <ProductScopedNavLink {...props} />
+  </React.Suspense>;
 }
 
 export function Navigation({ collapsed = false, onNavigate }: { collapsed?: boolean; onNavigate?: () => void }) {
@@ -680,7 +707,7 @@ export function Navigation({ collapsed = false, onNavigate }: { collapsed?: bool
                           {item.subItems?.map((sub, subIdx) => {
                             const isSubActive = isRouteActive(sub.path, pathname);
                             return (
-                              <NavLink
+                              <SidebarLink
                                 key={`${item.label}-${sub.label}-${subIdx}`}
                                 href={sub.path}
                                 onClick={onNavigate}
@@ -698,7 +725,7 @@ export function Navigation({ collapsed = false, onNavigate }: { collapsed?: bool
                                   <span className="w-1.5 h-1.5 rounded-full bg-transparent shrink-0" />
                                 )}
                                 <span>{sub.label}</span>
-                              </NavLink>
+                              </SidebarLink>
                             );
                           })}
                         </motion.div>

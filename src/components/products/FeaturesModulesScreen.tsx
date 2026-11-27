@@ -1,864 +1,553 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import {
-  Users,
-  GraduationCap,
-  CreditCard,
-  Calendar,
-  ClipboardList,
-  BookOpen,
-  BarChart2,
-  Megaphone,
-  Layers,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Upload,
-  HelpCircle,
-  Edit2,
-  Copy,
-  Trash2,
-  X,
-  Check,
-  CheckCircle2,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { Suspense, useState, type ReactNode } from 'react';
+import Link from 'next/link';
+import { skipToken } from '@reduxjs/toolkit/query';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { BarChart3, BookOpen, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, ClipboardList, Copy, CreditCard, GraduationCap, HelpCircle, Layers, Megaphone, Pencil, Plus, Trash2, Upload, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { IsometricBoxIcon } from './ProductIcons';
+import {
+  useDeleteProductFeatureMutation, useDeleteProductModuleMutation, useGetProductEditionsQuery,
+  useGetProductFeaturesQuery, useGetProductModulesQuery, useSaveProductFeatureMutation,
+  useSaveProductModuleMutation,
+} from '@/service/api/productEditionApi';
+import { apiError, Field } from '../addons/PricingWorkspace';
+import { ProductHeader, ProductSummary, ProductTabs, ProductWorkspace, productHref, productPrimary, type ProductWorkspaceSelection } from './ProductWorkspace';
 
-export interface ModuleItem {
-  id: string;
-  name: string;
-  category: string;
-  featureCount: number;
-  editionsAvailability: string;
-  status: 'Active' | 'Inactive';
-  iconType: 'users' | 'grad' | 'card' | 'calendar' | 'clipboard' | 'book' | 'chart' | 'megaphone';
-  description: string;
-  features: {
-    id: string;
-    name: string;
-    description: string;
-    core: boolean;
-    standard: boolean;
-    enterprise: boolean;
-    status: 'Active' | 'Inactive';
-  }[];
+type Tab = 'details' | 'features' | 'mapping';
+type FeatureDraft = { name: string; description: string; active: boolean; editionIds?: number[] };
+type Draft = FeatureDraft & { id?: number; type?: string; features?: FeatureDraft[] };
+type Record = Draft & { id: number; code: string | null; featureCount?: number; editionCount?: number };
+const modulesHeading = { title: 'Modules & Features', description: 'Manage modules for each product and features for each module.' };
+
+function moduleFeaturesHref(productId: number, moduleId?: number, create = false) {
+  return productHref('/products/features-modules', productId) + '&tab=features'
+    + (moduleId ? '&module=' + moduleId : '') + (create ? '&mode=add' : '');
 }
 
-const INITIAL_MODULES: ModuleItem[] = [
-  {
-    id: 'mod-1',
-    name: 'Admission & Enquiry',
-    category: 'Admissions',
-    featureCount: 6,
-    editionsAvailability: 'Core, Standard, Enterprise',
-    status: 'Active',
-    iconType: 'users',
-    description: 'Manage end-to-end lead capture, counselling, shortlisting, admission and enrollment process.',
-    features: [
-      {
-        id: 'f-1',
-        name: 'Lead Capture',
-        description: 'Capture enquiries from web, social, WhatsApp, walk-in',
-        core: true,
-        standard: true,
-        enterprise: true,
-        status: 'Active',
-      },
-      {
-        id: 'f-2',
-        name: 'Enquiry Management',
-        description: 'Track and manage enquiries',
-        core: true,
-        standard: true,
-        enterprise: true,
-        status: 'Active',
-      },
-      {
-        id: 'f-3',
-        name: 'Counselling',
-        description: 'Schedule and track counselling sessions',
-        core: false,
-        standard: true,
-        enterprise: true,
-        status: 'Active',
-      },
-      {
-        id: 'f-4',
-        name: 'Shortlisting',
-        description: 'Evaluate and shortlist applicants',
-        core: false,
-        standard: true,
-        enterprise: true,
-        status: 'Active',
-      },
-      {
-        id: 'f-5',
-        name: 'Admission & Enrolment',
-        description: 'Convert shortlisted leads to students and enrol',
-        core: false,
-        standard: true,
-        enterprise: true,
-        status: 'Active',
-      },
-      {
-        id: 'f-6',
-        name: 'Application Management',
-        description: 'Online application form and document collection',
-        core: true,
-        standard: true,
-        enterprise: true,
-        status: 'Active',
-      },
-    ],
-  },
-  {
-    id: 'mod-2',
-    name: 'Student Management',
-    category: 'Academics',
-    featureCount: 8,
-    editionsAvailability: 'Core, Standard, Enterprise',
-    status: 'Active',
-    iconType: 'grad',
-    description: 'Student profiles, roll number generation, section allocation, and guardian records.',
-    features: [
-      { id: 'f-21', name: 'Student Profile & KYC', description: 'Central student bio-data and records', core: true, standard: true, enterprise: true, status: 'Active' },
-      { id: 'f-22', name: 'Roll & Section Allocation', description: 'Smart classroom division rules', core: true, standard: true, enterprise: true, status: 'Active' },
-      { id: 'f-23', name: 'House & Club Assignments', description: 'Extracurricular tracking', core: false, standard: true, enterprise: true, status: 'Active' },
-    ],
-  },
-  {
-    id: 'mod-3',
-    name: 'Fees & Payments',
-    category: 'Finance',
-    featureCount: 6,
-    editionsAvailability: 'Standard, Enterprise',
-    status: 'Active',
-    iconType: 'card',
-    description: 'Installment scheduling, online payment gateway, concession policies, and tax receipts.',
-    features: [
-      { id: 'f-31', name: 'Fee Structure Builder', description: 'Category and standard specific tuition', core: false, standard: true, enterprise: true, status: 'Active' },
-      { id: 'f-32', name: 'Payment Gateway Integration', description: 'Razorpay, PayU, Stripe collection', core: false, standard: true, enterprise: true, status: 'Active' },
-    ],
-  },
-  {
-    id: 'mod-4',
-    name: 'Attendance',
-    category: 'Academics',
-    featureCount: 5,
-    editionsAvailability: 'Core, Standard, Enterprise',
-    status: 'Active',
-    iconType: 'calendar',
-    description: 'Biometric device sync, subject-wise attendance, and automated SMS alerts for absentees.',
-    features: [
-      { id: 'f-41', name: 'Daily Period Attendance', description: 'Class teacher attendance registers', core: true, standard: true, enterprise: true, status: 'Active' },
-    ],
-  },
-  {
-    id: 'mod-5',
-    name: 'Timetable',
-    category: 'Academics',
-    featureCount: 4,
-    editionsAvailability: 'Standard, Enterprise',
-    status: 'Active',
-    iconType: 'calendar',
-    description: 'Automatic clash-free timetable generator, teacher substitutions, and room allocations.',
-    features: [
-      { id: 'f-51', name: 'Schedule Matrix', description: 'Period grid and teacher workload tracker', core: false, standard: true, enterprise: true, status: 'Active' },
-    ],
-  },
-  {
-    id: 'mod-6',
-    name: 'Assessment & Exams',
-    category: 'Academics',
-    featureCount: 7,
-    editionsAvailability: 'Standard, Enterprise',
-    status: 'Active',
-    iconType: 'clipboard',
-    description: 'Exam scheduling, hall tickets, mark sheets, grading scales, and ranking.',
-    features: [
-      { id: 'f-61', name: 'Grade Book Engine', description: 'Summative & formative exam evaluation', core: false, standard: true, enterprise: true, status: 'Active' },
-    ],
-  },
-  {
-    id: 'mod-7',
-    name: 'Homework & Assignments',
-    category: 'Academics',
-    featureCount: 4,
-    editionsAvailability: 'Core, Standard, Enterprise',
-    status: 'Active',
-    iconType: 'book',
-    description: 'Digital homework dispatch, attachment submissions, teacher remarks, and deadline trackers.',
-    features: [
-      { id: 'f-71', name: 'Homework Diary', description: 'Daily syllabus homework and assignments', core: true, standard: true, enterprise: true, status: 'Active' },
-    ],
-  },
-  {
-    id: 'mod-8',
-    name: 'Progress & Report Card',
-    category: 'Analytics',
-    featureCount: 5,
-    editionsAvailability: 'Standard, Enterprise',
-    status: 'Active',
-    iconType: 'chart',
-    description: 'Customizable report card templates, digital signatures, PDF export, and parent downloads.',
-    features: [
-      { id: 'f-81', name: 'Report Card Generator', description: 'CBSE / ICSE / IB compliant report templates', core: false, standard: true, enterprise: true, status: 'Active' },
-    ],
-  },
-  {
-    id: 'mod-9',
-    name: 'Communication',
-    category: 'Engagement',
-    featureCount: 6,
-    editionsAvailability: 'Core, Standard, Enterprise',
-    status: 'Active',
-    iconType: 'megaphone',
-    description: 'Broadcast notices, circulars, automated SMS/WhatsApp alerts, and email notifications.',
-    features: [
-      { id: 'f-91', name: 'Notice Board Circulars', description: 'School-wide and section broadcast circulars', core: true, standard: true, enterprise: true, status: 'Active' },
-    ],
-  },
-  {
-    id: 'mod-10',
-    name: 'Portals (Student/Parent/Teacher)',
-    category: 'Collaboration',
-    featureCount: 8,
-    editionsAvailability: 'Standard, Enterprise',
-    status: 'Active',
-    iconType: 'users',
-    description: 'Dedicated web & mobile portals with single sign-on, dashboard metrics, and document downloads.',
-    features: [
-      { id: 'f-101', name: 'Parent Mobile App Sync', description: 'Real-time notifications and fee receipts', core: false, standard: true, enterprise: true, status: 'Active' },
-    ],
-  },
-];
+const blank: Draft = { name: '', description: '', active: true };
+const categories = ['Admissions', 'Academics', 'Finance', 'Analytics', 'Engagement', 'Collaboration'];
+const outline = 'border-[#d9d7f7] bg-[#f4f2ff] text-[#16105c] hover:bg-[#ece7ff]';
+const control = 'h-9 w-full rounded-md border border-[#d7def0] bg-[#fcfdff] px-3 text-sm text-[#101433]';
 
-export function FeaturesModulesScreen({
-  initialTab = 'details',
-}: {
-  initialTab?: 'details' | 'features' | 'mapping';
+function toggleEdition(ids: number[] | undefined, id: number, selected: boolean) {
+  return selected ? [...(ids ?? []), id] : (ids ?? []).filter(value => value !== id);
+}
+
+function ModuleIcon({ name, className }: { name: string; className: string }) {
+  const key = name.toLowerCase();
+  const Icon = key.includes('student') ? GraduationCap
+    : /fees|payment/.test(key) ? CreditCard
+    : /attendance|timetable/.test(key) ? CalendarDays
+    : /assessment|exam/.test(key) ? ClipboardList
+    : /homework|assignment/.test(key) ? BookOpen
+    : /progress|report/.test(key) ? BarChart3
+    : /communication/.test(key) ? Megaphone
+    : /admission|enquiry|portal/.test(key) ? Users : Layers;
+  return <Icon className={className} />;
+}
+
+export function FeaturesModulesScreen({ initialTab = 'details' }: { initialTab?: Tab }) {
+  return <Suspense fallback={null}><FeaturesModulesWorkspace initialTab={initialTab} /></Suspense>;
+}
+
+function FeaturesModulesWorkspace({ initialTab }: { initialTab: Tab }) {
+  const search = useSearchParams();
+  const showFeatures = search.get('tab') === 'features';
+  const create = !showFeatures && search.get('mode') === 'create';
+  return <ProductWorkspace heading={modulesHeading} productScopedParams={['module', 'mode']}>
+    {selection => {
+      const { product } = selection;
+      if (initialTab === 'mapping') return <WorkspaceFrame key={product.id} selection={selection} active="mapping"><EditionMapping productId={product.id} /></WorkspaceFrame>;
+      return <Modules key={product.id + ':' + create} selection={selection} showFeatures={showFeatures} initialCreate={create} />;
+    }}
+  </ProductWorkspace>;
+}
+
+function RecordTabs({ id, active, moduleId, onLocalTab }: {
+  id: number;
+  active: Tab;
+  moduleId?: number;
+  onLocalTab?: (tab: Tab) => void;
+}) {
+  const tabs: { key: Tab; label: string; path: string }[] = [
+    { key: 'details', label: 'Module Details', path: '/products/features-modules' },
+    { key: 'features', label: 'Features', path: '/products/features-modules' },
+    { key: 'mapping', label: 'Edition Mapping', path: '/products/feature-mapping' },
+  ];
+  return <nav aria-label="Catalog record types" className="grid grid-cols-3 gap-1.5 border-b border-indigo-100">
+    {tabs.map(tab => {
+      const className = 'rounded-t-lg px-2 py-3 text-center text-xs font-semibold ' +
+        (active === tab.key ? productPrimary : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-100');
+      if (onLocalTab && (tab.key !== 'features' || !moduleId)) {
+        const key = tab.key;
+        return <button type="button" key={key} className={className}
+          aria-current={active === key ? 'page' : undefined} onClick={() => onLocalTab(key)}>{tab.label}</button>;
+      }
+      return <Link key={tab.key} href={tab.key === 'features' ? moduleFeaturesHref(id, moduleId) : productHref(tab.path, id)}
+        aria-current={active === tab.key ? 'page' : undefined} className={className}>{tab.label}</Link>;
+    })}
+  </nav>;
+}
+
+function WorkspaceFrame({ selection, active, children, editor, actions }: {
+  selection: ProductWorkspaceSelection;
+  active: Tab;
+  children: ReactNode;
+  editor?: ReactNode;
+  actions?: ReactNode;
+}) {
+  const { product, picker, addProduct } = selection;
+  const moduleView = active === 'details';
+  return <div className="space-y-3 text-[#101433]">
+    <ProductHeader addProduct={addProduct} heading={modulesHeading}>{actions}</ProductHeader>
+    <div className={'grid items-stretch gap-2 ' + (editor ? 'xl:grid-cols-[minmax(0,1.06fr)_minmax(0,1fr)]' : '')}>
+      <section className="min-w-0">
+        <div className="space-y-3 px-3">
+          <ProductSummary product={product} picker={picker} />
+          <ProductTabs product={product} active="features" />
+        </div>
+        <div className="space-y-3 rounded-xl border border-[#e0e5f5] bg-white p-3 shadow-sm">
+          {!editor && <RecordTabs id={product.id} active={active} />}
+          {children}
+        </div>
+      </section>
+      {editor && <div className={moduleView ? 'min-w-0 xl:pt-3' : 'min-w-0'}>{editor}</div>}
+    </div>
+  </div>;
+}
+
+function Modules({ selection, showFeatures, initialCreate }: { selection: ProductWorkspaceSelection; showFeatures: boolean; initialCreate: boolean }) {
+  const productId = selection.product.id;
+  const query = useGetProductModulesQuery(productId, { refetchOnMountOrArgChange: true });
+  const [save] = useSaveProductModuleMutation();
+  const [remove] = useDeleteProductModuleMutation();
+  const rows = query.currentData?.map(row => ({
+    id: row.id, name: row.Module_name ?? '', code: row.Module_Code, type: row.Module_Type ?? '',
+    description: row.Description ?? '', active: row.Is_active,
+    featureCount: row.feature_count, editionCount: row.edition_count,
+  }));
+  return <Records selection={selection} showFeatures={showFeatures} initialCreate={initialCreate} label="Module" rows={rows} failed={query.isError} retry={() => void query.refetch()}
+    save={async draft => {
+      const saved = await save({
+        id: draft.id, Product_Id: productId, Module_name: draft.name, Module_Type: draft.type?.trim() ?? '',
+        Description: draft.description, Status: draft.active ? 'Active' : 'Inactive',
+        features: draft.id ? undefined : draft.features?.map(feature => ({
+          Feature_Name: feature.name.trim(), Description: feature.description.trim(), Is_Active: feature.active,
+          Edition_Ids: feature.editionIds,
+        })),
+      }).unwrap();
+      return saved.id;
+    }} remove={id => remove({ id, Product_Id: productId }).unwrap()} />;
+}
+
+function Features({ selection, module }: { selection: ProductWorkspaceSelection; module?: Record }) {
+  const productId = selection.product.id;
+  const initialCreate = useSearchParams().get('mode') === 'add';
+  const scope = { Product_Id: productId, Module_Id: module?.id };
+  const query = useGetProductFeaturesQuery(scope);
+  const [save] = useSaveProductFeatureMutation();
+  const [remove] = useDeleteProductFeatureMutation();
+  const rows = query.currentData?.map(row => ({
+    id: row.id, name: row.Feature_Name ?? '', code: row.Feature_Code,
+    description: row.Description ?? '', active: row.Is_Active, editionIds: row.Edition_Ids,
+  }));
+  return <Records key={String(initialCreate)} selection={selection} initialCreate={initialCreate} embedded label="Feature" rows={rows} failed={query.isError} retry={() => void query.refetch()}
+    save={async draft => {
+      await save({
+        id: draft.id, ...scope, Feature_Name: draft.name,
+        Description: draft.description, Is_Active: draft.active, Edition_Ids: draft.editionIds,
+      }).unwrap();
+    }} remove={id => remove({ id, ...scope }).unwrap()} />;
+}
+
+function Records({ selection, label, rows, failed, retry, save, remove, initialCreate = false, embedded = false, showFeatures = false }: {
+  embedded?: boolean;
+  showFeatures?: boolean;
+  initialCreate?: boolean;
+  selection: ProductWorkspaceSelection;
+  label: 'Module' | 'Feature';
+  rows: Record[] | undefined;
+  failed: boolean;
+  retry: () => void;
+  save: (draft: Draft) => Promise<number | void>;
+  remove: (id: number) => Promise<unknown>;
 }) {
   const router = useRouter();
-  const [modules, setModules] = useState<ModuleItem[]>(INITIAL_MODULES);
-  const [selectedModuleId, setSelectedModuleId] = useState<string>('mod-1');
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
-  const [rightActiveTab, setRightActiveTab] = useState<'details' | 'features' | 'mapping'>(initialTab);
+  const requestedModule = useSearchParams().get('module');
+  const [editing, setDraft] = useState<Draft | null | undefined>(initialCreate ? blank : embedded ? null : undefined);
+  const draft = editing === undefined ? rows?.[0] ?? (label === 'Module' ? blank : null) : editing;
+  const [busy, setBusy] = useState(false);
+  const [editorTab, setEditorTab] = useState<Tab>('details');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [dialog, setDialog] = useState<'transfer' | 'help' | null>(null);
+  const count = rows?.length ?? 0;
+  const currentPage = Math.min(page, Math.max(0, Math.ceil(count / pageSize) - 1));
+  const visible = rows?.slice(currentPage * pageSize, (currentPage + 1) * pageSize) ?? [];
+  const plural = label + 's';
 
-  const selectedModule = modules.find((m) => m.id === selectedModuleId) || modules[0];
+  function open(value: Draft | null) {
+    setDraft(value);
+    setEditorTab('details');
+    if (showFeatures) router.push(productHref('/products/features-modules', selection.product.id), { scroll: false });
+    setError('');
+    setMessage('');
+  }
 
-  const [formState, setFormState] = useState<Partial<ModuleItem>>({
-    name: selectedModule.name,
-    category: selectedModule.category,
-    status: selectedModule.status,
-    description: selectedModule.description,
-  });
-
-  const handleSelectModule = (mod: ModuleItem) => {
-    setSelectedModuleId(mod.id);
-    setFormState({
-      name: mod.name,
-      category: mod.category,
-      status: mod.status,
-      description: mod.description,
-    });
-    setIsDrawerOpen(true);
-  };
-
-  const handleToggleFeature = (featureId: string, editionKey: 'core' | 'standard' | 'enterprise') => {
-    const updated = modules.map((m) => {
-      if (m.id === selectedModuleId) {
-        return {
-          ...m,
-          features: m.features.map((f) => {
-            if (f.id === featureId) {
-              return {
-                ...f,
-                [editionKey]: !f[editionKey],
-              };
-            }
-            return f;
-          }),
-        };
-      }
-      return m;
-    });
-    setModules(updated);
-    toast.success('Updated feature edition availability');
-  };
-
-  const handleSaveModule = (e: React.FormEvent) => {
-    e.preventDefault();
-    const updated = modules.map((m) => {
-      if (m.id === selectedModuleId) {
-        return {
-          ...m,
-          ...formState,
-        } as ModuleItem;
-      }
-      return m;
-    });
-    setModules(updated);
-    toast.success(`Module "${formState.name}" updated successfully!`);
-  };
-
-  const renderModuleIcon = (iconType: string) => {
-    switch (iconType) {
-      case 'users':
-        return <Users className="h-4 w-4 text-[#6222cc]" />;
-      case 'grad':
-        return <GraduationCap className="h-4 w-4 text-[#6222cc]" />;
-      case 'card':
-        return <CreditCard className="h-4 w-4 text-[#6222cc]" />;
-      case 'calendar':
-        return <Calendar className="h-4 w-4 text-[#6222cc]" />;
-      case 'clipboard':
-        return <ClipboardList className="h-4 w-4 text-[#6222cc]" />;
-      case 'book':
-        return <BookOpen className="h-4 w-4 text-[#6222cc]" />;
-      case 'chart':
-        return <BarChart2 className="h-4 w-4 text-[#6222cc]" />;
-      case 'megaphone':
-        return <Megaphone className="h-4 w-4 text-[#6222cc]" />;
-      default:
-        return <Layers className="h-4 w-4 text-[#6222cc]" />;
+  async function saveDraft() {
+    if (!draft || busy) return;
+    const name = draft.name.trim();
+    if (!name) {
+      setError('Enter a ' + label.toLowerCase() + ' name.');
+      return;
     }
-  };
+    if (label === 'Module' && !draft.description.trim()) {
+      setError('Enter a module description.');
+      return;
+    }
+    if (draft.features?.some(feature => !feature.name.trim())) {
+      setError('Enter a name for every feature.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      const updated = { ...draft, name, description: draft.description.trim() };
+      const savedId = await save(updated);
+      setDraft(typeof savedId === 'number' ? { ...updated, id: savedId, features: undefined } : null);
+      if (!draft.id) setPage(0);
+      setMessage(label + ' saved.');
+    } catch (failure) {
+      setError(apiError(failure));
+    } finally {
+      setBusy(false);
+    }
+  }
 
-  return (
-    <div className="space-y-5 max-w-[1600px] mx-auto">
-      {/* 1. Top Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
-        <div className="flex items-center gap-3.5">
-          <div className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl shadow-xs">
-            <IsometricBoxIcon className="h-8 w-8 text-[#6222cc]" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              {rightActiveTab === 'features'
-                ? 'Feature Master'
-                : rightActiveTab === 'mapping'
-                ? 'Feature Mapping'
-                : 'Module Master'}
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              {rightActiveTab === 'features'
-                ? 'Manage, configure, and assign product features across modules'
-                : rightActiveTab === 'mapping'
-                ? 'Map modules and feature sets to editions and tier packages'
-                : 'Configure and manage functional modules, feature counts, and edition assignments'}
-            </p>
+  async function deleteRecord(row: Record) {
+    if (busy || !window.confirm('Delete ' + (row.name || label.toLowerCase()) + '?')) return;
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      await remove(row.id);
+      if (draft?.id === row.id) setDraft(null);
+      setMessage(label + ' deleted.');
+    } catch (failure) {
+      setError(apiError(failure));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function exportRecords() {
+    const data = (rows ?? []).map(({ name, description, type, active }) => ({ name, description, type, active }));
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = selection.product.id + '-' + plural.toLowerCase() + '.json';
+    anchor.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function importRecords(file: File) {
+    if (busy) return;
+    setBusy(true);
+    setError('');
+    let imported = 0;
+    try {
+      const entries: unknown = JSON.parse(await file.text());
+      if (!Array.isArray(entries) || !entries.length || !entries.every(row =>
+        row && typeof row.name === 'string' && row.name.trim() && row.name.trim().length <= 250 &&
+        typeof row.description === 'string' && typeof row.active === 'boolean' &&
+        (row.type === undefined || (typeof row.type === 'string' && row.type.length <= 100))
+      )) throw new Error('Choose a valid ' + label.toLowerCase() + ' export.');
+      for (const { name, description, type, active } of entries) {
+        await save({ name: name.trim(), description: description.trim(), type, active });
+        imported++;
+      }
+      setPage(0);
+      setDialog(null);
+      setMessage(imported + ' ' + plural.toLowerCase() + ' imported.');
+    } catch (failure) {
+      setError((imported ? imported + ' records imported before the error. ' : '') + (failure instanceof Error ? failure.message : apiError(failure)));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const isModule = label === 'Module';
+  const active = isModule ? editorTab : 'features';
+  const categoryOptions = draft?.type && !categories.includes(draft.type) ? [...categories, draft.type] : categories;
+  const productId = selection.product.id;
+  const editorClass = "h-full min-w-0 space-y-4 rounded-xl border border-[#e0e5f5] bg-white p-4 shadow-sm";
+  const form = draft && <form onSubmit={event => { event.preventDefault(); void saveDraft(); }}>
+      <fieldset disabled={busy} className="space-y-3">
+        <div className={'grid gap-3 ' + (isModule ? 'sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,0.7fr)]' : 'sm:grid-cols-2')}>
+          <Field label={label + ' Name *'}><Input className={control} required maxLength={250} value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })} /></Field>
+          {isModule && <Field label="Category *"><span className="relative">
+            <select className={control + ' appearance-none pr-8'} required value={draft.type ?? ''} onChange={event => setDraft({ ...draft, type: event.target.value })}>
+              <option value="">Select category</option>
+              {categoryOptions.map(category => <option key={category}>{category}</option>)}
+            </select><ChevronDown aria-hidden="true" className="pointer-events-none absolute right-2.5 top-3 size-4" />
+          </span></Field>}
+          <Field label="Status"><span className="relative">
+            <span aria-hidden="true" className={'pointer-events-none absolute left-3 top-3.5 size-2 rounded-full ' + (draft.active ? 'bg-[#00860d]' : 'bg-slate-400')} />
+            <select className={control + ' appearance-none pl-7 pr-7'} value={draft.active ? 'active' : 'inactive'} onChange={event => setDraft({ ...draft, active: event.target.value === 'active' })}>
+              <option value="active">Active</option><option value="inactive">Inactive</option>
+            </select><ChevronDown aria-hidden="true" className="pointer-events-none absolute right-2.5 top-3 size-4" />
+          </span></Field>
+        </div>
+        <Field label={isModule ? 'Description *' : 'Description'}><Textarea required={isModule} rows={2} className="min-h-16 rounded-md border-[#d7def0] bg-[#fcfdff] text-sm" value={draft.description} onChange={event => setDraft({ ...draft, description: event.target.value })} /></Field>
+        {!isModule && <FeatureEditionPicker productId={productId} selected={draft.editionIds ?? []}
+          onChange={editionIds => setDraft({ ...draft, editionIds })} />}
+      </fieldset>
+      {isModule && <ModuleFeatureTable productId={productId} moduleId={draft.id} busy={busy}
+        drafts={draft.features ?? []} onDraftsChange={features => setDraft({ ...draft, features })} />}
+      <div className="mt-3 flex gap-3 border-t border-[#e0e5f5] pt-4">
+        <Button type="submit" className={productPrimary} disabled={busy}><Check />{draft.id ? 'Update' : 'Save'} {label}</Button>
+        <Button type="button" variant="outline" className={outline} disabled={busy} onClick={() => open(null)}>Cancel</Button>
+      </div>
+    </form>
+  const savedDraft = draft?.id ? { ...draft, id: draft.id, code: null } : undefined;
+  const selectedModule = requestedModule
+    ? rows?.find(row => String(row.id) === requestedModule)
+      ?? (String(savedDraft?.id) === requestedModule ? savedDraft : undefined)
+    : rows?.find(row => row.id === draft?.id);
+  const editor = showFeatures ? <section className={editorClass}>
+    <h3 className="flex items-center gap-2 text-lg font-bold"><Layers className="size-6 text-[#075bff]" />{selectedModule?.name || 'Product Features'}</h3>
+    <RecordTabs id={productId} active="features" moduleId={selectedModule?.id} />
+    <Field label="Module (optional)">
+      <select className={control} value={selectedModule?.id ?? ''}
+        onChange={event => router.push(moduleFeaturesHref(productId, Number(event.target.value) || undefined), { scroll: false })}>
+        <option value="">All product features</option>
+        {rows?.map(row => <option key={row.id} value={row.id}>{row.name || row.code || 'Unnamed module'}</option>)}
+      </select>
+    </Field>
+    {requestedModule && !selectedModule ? (
+      <p role="status" className="text-sm text-muted-foreground">
+        {failed ? 'Could not load the selected module.' : rows ? 'This module is unavailable for this product.' : 'Loading modules...'}
+      </p>
+    ) : <>
+      <p className="text-sm text-muted-foreground">
+        {selectedModule ? 'New features will belong to this module.' : 'New features will belong directly to this product.'}
+      </p>
+      <Features key={selectedModule?.id ?? 'product'} selection={selection} module={selectedModule} />
+    </>}
+  </section> : draft && <section className={editorClass}>
+    <header className="flex items-center justify-between gap-2">
+      <h3 className="flex items-center gap-3 text-lg font-bold"><ModuleIcon name={draft.name} className="size-7 shrink-0 text-[#075bff]" />{draft.id ? draft.name || 'Edit ' + label : 'Create ' + label}</h3>
+      <Button variant="ghost" size="icon-sm" disabled={busy} aria-label={'Close ' + label.toLowerCase() + ' editor'} onClick={() => open(null)}><X /></Button>
+    </header>
+    <RecordTabs id={productId} active={active} moduleId={draft.id} onLocalTab={isModule ? setEditorTab : undefined} />
+    {active === 'mapping' ? <>
+      <ModuleFeatureTable productId={productId} moduleId={draft.id} busy={busy}
+        drafts={draft.features ?? []} mappingOnly />
+      {draft.id ? <Link className="text-sm font-semibold text-violet-700" href={moduleFeaturesHref(productId, draft.id)}>Edit feature editions</Link> :
+        <Button type="button" variant="outline" onClick={() => setEditorTab('details')}>Back to module details</Button>}
+    </> : form}
+  </section>;
+
+  const list = <>
+      <header className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-3">
+          <Layers className="size-8 shrink-0 text-[#5024e8]" />
+          <div><h2 className="text-lg font-bold">{isModule ? 'Features & Modules' : 'Features (' + count + ')'}</h2>
+            {isModule && <p className="text-xs">Manage modules, features, and edition availability.</p>}
           </div>
         </div>
-
-        <div className="flex items-center gap-2.5">
-          <Button
-            onClick={() => router.push('/products/master')}
-            className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-sm px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition-all"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Add Product</span>
-          </Button>
-
-          <Button
-            variant="outline"
-            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium text-sm px-3.5 py-2 rounded-lg flex items-center gap-1.5 shadow-xs"
-          >
-            <Upload className="h-4 w-4 text-slate-600" />
-            <span>Import / Export</span>
-          </Button>
-
-          <Button
-            variant="outline"
-            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium text-sm px-3 py-2 rounded-lg flex items-center gap-1.5 shadow-xs"
-          >
-            <HelpCircle className="h-4 w-4 text-slate-600" />
-            <span>Help</span>
-          </Button>
+        <div className="flex flex-wrap justify-end gap-2">
+          {embedded && <Button variant="outline" size="sm" className={outline} disabled={!rows || busy} onClick={() => { setError(''); setDialog('transfer'); }}><Upload />Import / Export</Button>}
+          <Button className={productPrimary} disabled={busy} onClick={() => open(blank)}><Plus />Add {label}</Button>
         </div>
+      </header>
+      {embedded && form}
+      {message && <p role="status" className="text-sm text-green-700">{message}</p>}
+      {error && !dialog && <p role="alert" className="text-sm text-destructive">{error}</p>}
+      {failed && <p role="alert" className="text-sm text-destructive">Could not load {plural.toLowerCase()}. <button className="underline" onClick={retry}>Retry</button></p>}
+      {!failed && !rows && <p role="status">Loading {plural.toLowerCase()}...</p>}
+    {rows && <>
+      <div className="overflow-x-auto rounded-lg border border-[#edf0fa]">
+        <table className="w-full text-left text-xs">
+          <thead className="bg-[#f1f3fc] text-[#101433]">
+            <tr>{['#', ...(label === 'Module' ? ['Module / Feature', 'Category', 'Features', 'Editions Availability'] : ['Feature Name', 'Code', 'Description']), 'Status', 'Actions'].map(heading => <th key={heading} scope="col" className="p-2">{heading}</th>)}</tr>
+          </thead>
+          <tbody className="divide-y divide-[#edf0fa]">
+            {!visible.length && <tr><td colSpan={label === 'Module' ? 7 : 6} className="p-4 text-muted-foreground">{isModule ? 'No modules for this product.' : 'No features for this module.'}</td></tr>}
+            {visible.map((row, index) => <tr key={row.id} className={draft?.id === row.id ? 'bg-[#eee2ff]' : 'hover:bg-[#f7f8ff]'}>
+              <td className="p-2 text-center text-muted-foreground">{currentPage * pageSize + index + 1}</td>
+              <th scope="row" className="p-2 font-medium"><button type="button" disabled={busy} className="flex items-center gap-2 text-left" onClick={() => open(row)}><ModuleIcon name={row.name} className="size-5 shrink-0 text-[#075bff]" />{row.name || row.code || 'Unnamed'}</button></th>
+              {label === 'Module' ? <>
+                <td className="p-2">{row.type}</td>
+                <td className="p-2 text-center">{row.featureCount ?? 0}</td>
+                <td className="p-2">{row.editionCount ?? 0}</td>
+              </> : <><td className="p-2">{row.code}</td><td className="p-2">{row.description}</td></>}
+              <td className="p-2"><span className={'rounded-full px-2.5 py-1 text-xs font-bold ' + (row.active ? 'bg-[#b7eeb7] text-[#093d12]' : 'bg-slate-100 text-slate-700')}>{row.active ? 'Active' : 'Inactive'}</span></td>
+              <td className="p-2"><div className="flex gap-1">
+                <Button size="icon-sm" variant="ghost" className="text-violet-700" aria-label={'Edit ' + row.name} disabled={busy} onClick={() => open(row)}><Pencil /></Button>
+                {label === 'Module' && <Button size="icon-sm" variant="ghost" className="text-violet-700" aria-label={'Duplicate ' + row.name} disabled={busy} onClick={() => open({ ...row, id: undefined, name: row.name + ' (Copy)' })}><Copy /></Button>}
+                <Button size="icon-sm" variant="ghost" className="text-destructive" aria-label={'Delete ' + row.name} disabled={busy} onClick={() => void deleteRecord(row)}><Trash2 /></Button>
+              </div></td>
+            </tr>)}
+          </tbody>
+        </table>
       </div>
-
-      {/* 2. Breadcrumb */}
-      <div>
-        <button
-          type="button"
-          onClick={() => router.push('/products/master')}
-          className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-[#6222cc] hover:text-[#521cb0] transition-colors"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          <span>Back to Product List</span>
-        </button>
-      </div>
-
-      {/* 3. Product Summary Banner */}
-      <div className="flex items-start justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs">
-        <div className="flex items-start gap-3">
-          <div className="w-11 h-11 p-2.5 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#6222cc]">
-            <GraduationCap className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-slate-900">Pegatto Education</h2>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                Active
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1 max-w-xl">
-              Education management platform for admissions, academics, fees, communication and analytics.
-            </p>
-          </div>
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1 py-2 text-xs font-medium">
+        <span>Showing {count ? currentPage * pageSize + 1 : 0} - {Math.min(count, (currentPage + 1) * pageSize)} of {count} {plural.toLowerCase()}</span>
+        <div className="flex items-center gap-1">
+          <Button size="icon-sm" variant="outline" aria-label="Previous page" disabled={!currentPage} onClick={() => setPage(currentPage - 1)}><ChevronLeft /></Button>
+          <span className="rounded bg-[#5024e8] px-2 py-1 text-white">{currentPage + 1}</span>
+          <Button size="icon-sm" variant="outline" aria-label="Next page" disabled={(currentPage + 1) * pageSize >= count} onClick={() => setPage(currentPage + 1)}><ChevronRight /></Button>
         </div>
+        <label className="flex items-center gap-2">Items per page <select className="rounded-md border bg-background px-2 py-1" value={pageSize} onChange={event => { setPageSize(Number(event.target.value)); setPage(0); }}><option>10</option><option>20</option></select></label>
       </div>
+    </>}
+  </>;
+  const recordDialog = <Dialog open={!!dialog} onOpenChange={open => { if (!open && !busy) setDialog(null); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{dialog === 'help' ? 'Modules & Features' : 'Import / Export'}</DialogTitle>
+          <DialogDescription>{dialog === 'help' ? 'Use the product picker to manage records for a product.' : 'Transfer records for the selected product as JSON.'}</DialogDescription>
+        </DialogHeader>
+        {dialog === 'help' ? <p className="text-sm">Features are saved under the selected module. Edition Mapping shows the editions available for the selected product.</p> : <>
+          <Button variant="outline" disabled={busy} onClick={exportRecords}>Export {plural}</Button>
+          <Field label={'Import ' + plural}><Input type="file" accept=".json,application/json" disabled={busy} onChange={event => { const file = event.target.files?.[0]; if (file) void importRecords(file); }} /></Field>
+          {busy && <p role="status">Importing...</p>}
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+        </>}
+      </DialogContent>
+    </Dialog>;
 
-      {/* 4. Navigation Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <button
-          type="button"
-          onClick={() => router.push('/products/master')}
-          className="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-all"
-        >
-          Product Details
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push('/products/editions')}
-          className="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-all"
-        >
-          Editions (3)
-        </button>
-        <button
-          type="button"
-          className="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-[#6222cc] text-white shadow-xs"
-        >
-          Features & Modules
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push('/products/plans-pricing')}
-          className="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-all"
-        >
-          Plans & Pricing
-        </button>
-      </div>
+  if (embedded) return <div className="space-y-3">{list}{recordDialog}</div>;
 
-      {/* 5. Main Split Screen (Image 1) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left Side: Features & Modules Table */}
-        <div className={cn('space-y-3 transition-all', isDrawerOpen ? 'lg:col-span-7' : 'lg:col-span-12')}>
-          {/* Section Header */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="p-1 rounded-md bg-blue-50 text-[#6222cc]">
-                <Layers className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900">Features & Modules</h3>
-                <p className="text-xs text-slate-500">
-                  Define and manage modules, features and their edition availability.
-                </p>
-              </div>
-            </div>
+  return <>
+    <WorkspaceFrame selection={selection} active={active} editor={editor} actions={<>
+      <Button variant="outline" className={outline} disabled={!rows || busy} onClick={() => { setError(''); setDialog('transfer'); }}><Upload />Import / Export</Button>
+      <Button variant="outline" className={outline} onClick={() => setDialog('help')}><HelpCircle />Help</Button>
+    </>}>{list}</WorkspaceFrame>
+    {recordDialog}
+  </>;
+}
 
-            <Button
-              onClick={() => {
-                const newMod: ModuleItem = {
-                  id: `mod-${Date.now()}`,
-                  name: 'New Custom Module',
-                  category: 'Admissions',
-                  featureCount: 1,
-                  editionsAvailability: 'Standard, Enterprise',
-                  status: 'Active',
-                  iconType: 'layers' as any,
-                  description: 'Custom capability module description',
-                  features: [
-                    { id: `f-${Date.now()}`, name: 'Base Feature', description: 'Core feature capability', core: true, standard: true, enterprise: true, status: 'Active' },
-                  ],
-                };
-                setModules([...modules, newMod]);
-                setSelectedModuleId(newMod.id);
-                toast.success('Added new module');
-              }}
-              className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-xs sm:text-sm px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Add Module</span>
-            </Button>
-          </div>
+function FeatureEditionPicker({ productId, selected, onChange }: {
+  productId: number;
+  selected: number[];
+  onChange: (ids: number[]) => void;
+}) {
+  const editions = useGetProductEditionsQuery(productId);
+  return <fieldset className="space-y-2">
+    <legend className="font-medium">Editions</legend>
+    {editions.isError ? <p role="alert">Could not load editions. <Button type="button" variant="ghost" onClick={() => void editions.refetch()}>Retry</Button></p> :
+      !editions.currentData ? <p role="status">Loading editions...</p> :
+      !editions.currentData.length ? <p>No editions for this product.</p> :
+      editions.currentData.map(edition => <label key={edition.id} className="flex items-center gap-2">
+        <input type="checkbox" checked={selected.includes(edition.id)}
+          onChange={event => onChange(toggleEdition(selected, edition.id, event.target.checked))} />
+        {edition.Edition_Name || edition.Edition_Code || edition.Edition_Id}
+      </label>)}
+  </fieldset>;
+}
 
-          {/* Modules Table */}
-          <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs sm:text-sm">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/60 text-slate-600 font-semibold text-[11px] uppercase tracking-wider">
-                    <th className="py-3 px-3 text-center w-8">#</th>
-                    <th className="py-3 px-4">Module / Feature</th>
-                    <th className="py-3 px-3">Category</th>
-                    <th className="py-3 px-3 text-center">Features</th>
-                    <th className="py-3 px-4">Editions Availability</th>
-                    <th className="py-3 px-3">Status</th>
-                    <th className="py-3 px-4 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {modules.map((mod, index) => {
-                    const isSelected = selectedModuleId === mod.id && isDrawerOpen;
-                    return (
-                      <tr
-                        key={mod.id}
-                        onClick={() => handleSelectModule(mod)}
-                        className={cn(
-                          'cursor-pointer transition-colors',
-                          isSelected ? 'bg-blue-50/60 font-medium' : 'hover:bg-slate-50/70'
-                        )}
-                      >
-                        <td className="py-3 px-3 text-center text-slate-500 text-xs font-semibold">
-                          {index + 1}
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2.5">
-                            <div className="p-1 rounded-md bg-blue-50 text-[#6222cc]">
-                              {renderModuleIcon(mod.iconType)}
-                            </div>
-                            <span className="font-semibold text-slate-900">{mod.name}</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-3 text-slate-600 text-xs">{mod.category}</td>
-                        <td className="py-3 px-3 text-center font-semibold text-slate-800">
-                          {mod.features.length || mod.featureCount}
-                        </td>
-                        <td className="py-3 px-4 text-slate-600 text-xs">{mod.editionsAvailability}</td>
-                        <td className="py-3 px-3">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                            {mod.status}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <div className="flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                            <button
-                              type="button"
-                              onClick={() => handleSelectModule(mod)}
-                              title="Edit Module"
-                              className="p-1 rounded-md text-[#6222cc] hover:bg-blue-50 transition-colors"
-                            >
-                              <Edit2 className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const cloned: ModuleItem = {
-                                  ...mod,
-                                  id: `mod-${Date.now()}`,
-                                  name: `${mod.name} (Copy)`,
-                                };
-                                setModules([...modules, cloned]);
-                                toast.success(`Cloned ${mod.name}`);
-                              }}
-                              title="Duplicate Module"
-                              className="p-1 rounded-md text-[#6222cc] hover:bg-blue-50 transition-colors"
-                            >
-                              <Copy className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setModules(modules.filter((m) => m.id !== mod.id));
-                                toast.success(`Deleted ${mod.name}`);
-                              }}
-                              title="Delete Module"
-                              className="p-1 rounded-md text-red-500 hover:bg-red-50 transition-colors"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+function ModuleFeatureTable({ productId, moduleId, busy, drafts, onDraftsChange, mappingOnly = false }: {
+  productId: number;
+  moduleId?: number;
+  busy: boolean;
+  drafts: FeatureDraft[];
+  onDraftsChange?: (drafts: FeatureDraft[]) => void;
+  mappingOnly?: boolean;
+}) {
+  const editions = useGetProductEditionsQuery(productId);
+  const features = useGetProductFeaturesQuery(moduleId ? { Product_Id: productId, Module_Id: moduleId } : skipToken);
+  const selectedEditionIds = mappingOnly
+    ? new Set((moduleId ? features.currentData?.flatMap(row => row.Edition_Ids ?? []) : drafts.flatMap(draft => draft.editionIds ?? [])) ?? [])
+    : undefined;
+  const columns = (editions.currentData ?? []).filter(edition => !selectedEditionIds || selectedEditionIds.has(edition.id));
+  const rows = features.currentData ?? [];
+  const featuresHref = moduleFeaturesHref(productId, moduleId, true);
 
-            {/* Pagination */}
-            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-slate-100 bg-white text-xs text-slate-600">
-              <div>Showing 1 - {modules.length} of {modules.length} modules</div>
-              <div className="flex items-center gap-1.5">
-                <button type="button" disabled className="p-1.5 rounded-md border border-slate-200 text-slate-400 opacity-50">
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </button>
-                <button type="button" className="w-7 h-7 flex items-center justify-center rounded-md bg-[#6222cc] text-white font-semibold shadow-xs">
-                  1
-                </button>
-                <button type="button" disabled className="p-1.5 rounded-md border border-slate-200 text-slate-400 opacity-50">
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span>Items per page</span>
-                <select defaultValue="10" className="h-7 px-2 border border-slate-200 rounded-md bg-white text-slate-700 outline-hidden">
-                  <option value="10">10</option>
-                  <option value="20">20</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
+  function updateDraft(index: number, changes: Partial<FeatureDraft>) {
+    onDraftsChange?.(drafts.map((draft, i) => i === index ? { ...draft, ...changes } : draft));
+  }
 
-        {/* Right Side: Module Details Panel (Image 1) */}
-        {isDrawerOpen && (
-          <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/90 shadow-sm p-5 space-y-4">
-            {/* Header */}
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <div className="p-1 rounded-md bg-blue-50 text-[#6222cc]">
-                  {renderModuleIcon(selectedModule.iconType)}
-                </div>
-                <h3 className="text-base font-bold text-slate-900">{selectedModule.name}</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsDrawerOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Right Tabs */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-              <button
-                type="button"
-                onClick={() => setRightActiveTab('details')}
-                className={cn(
-                  'px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all',
-                  rightActiveTab === 'details'
-                    ? 'bg-[#6222cc] text-white shadow-xs'
-                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
-                )}
-              >
-                Module Details
-              </button>
-              <button
-                type="button"
-                onClick={() => setRightActiveTab('features')}
-                className={cn(
-                  'px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all',
-                  rightActiveTab === 'features'
-                    ? 'bg-[#6222cc] text-white shadow-xs'
-                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
-                )}
-              >
-                Features ({selectedModule.features.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setRightActiveTab('mapping')}
-                className={cn(
-                  'px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all',
-                  rightActiveTab === 'mapping'
-                    ? 'bg-[#6222cc] text-white shadow-xs'
-                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
-                )}
-              >
-                Edition Mapping
-              </button>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSaveModule} className="space-y-3.5">
-              {/* Row 1: Module Name, Category, Status */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div className="space-y-1 sm:col-span-1">
-                  <label className="text-[11px] font-semibold text-slate-700">
-                    Module Name <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    value={formState.name || ''}
-                    onChange={(e) => setFormState({ ...formState, name: e.target.value })}
-                    className="h-8.5 text-xs bg-white border-slate-200 rounded-lg"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-700">
-                    Category <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={formState.category || 'Admissions'}
-                    onChange={(e) => setFormState({ ...formState, category: e.target.value })}
-                    className="w-full h-8.5 px-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 outline-hidden"
-                  >
-                    <option value="Admissions">Admissions</option>
-                    <option value="Academics">Academics</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Analytics">Analytics</option>
-                    <option value="Engagement">Engagement</option>
-                    <option value="Collaboration">Collaboration</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-700">Status</label>
-                  <div className="relative">
-                    <select
-                      value={formState.status || 'Active'}
-                      onChange={(e) => setFormState({ ...formState, status: e.target.value as any })}
-                      className="w-full h-8.5 pl-6 pr-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 outline-hidden"
-                    >
-                      <option value="Active">Active</option>
-                      <option value="Inactive">Inactive</option>
-                    </select>
-                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-emerald-500" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Row 2: Description */}
-              <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-700">
-                  Description <span className="text-red-500">*</span>
-                </label>
-                <Textarea
-                  rows={2}
-                  value={formState.description || ''}
-                  onChange={(e) => setFormState({ ...formState, description: e.target.value })}
-                  className="text-xs bg-white border-slate-200 rounded-lg resize-none"
-                  required
-                />
-              </div>
-
-              {/* Section: Features in this Module */}
-              <div className="pt-2">
-                <div className="flex items-center justify-between pb-2">
-                  <h4 className="text-xs font-bold text-slate-900">
-                    Features in this Module ({selectedModule.features.length})
-                  </h4>
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      const newFeature = {
-                        id: `f-${Date.now()}`,
-                        name: 'New Feature',
-                        description: 'Custom capability within this module',
-                        core: false,
-                        standard: true,
-                        enterprise: true,
-                        status: 'Active' as const,
-                      };
-                      const updated = modules.map((m) => {
-                        if (m.id === selectedModuleId) {
-                          return {
-                            ...m,
-                            features: [...m.features, newFeature],
-                          };
-                        }
-                        return m;
-                      });
-                      setModules(updated);
-                      toast.success('Added new feature');
-                    }}
-                    className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-[11px] px-2.5 py-1 h-7 rounded-md flex items-center gap-1 shadow-xs"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    <span>Add Feature</span>
-                  </Button>
-                </div>
-
-                {/* Features Table */}
-                <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="bg-slate-50/80 text-slate-700 font-semibold border-b border-slate-200 text-[11px]">
-                        <th className="py-2 px-2 text-center w-6">#</th>
-                        <th className="py-2 px-3">Feature Name</th>
-                        <th className="py-2 px-3">Description</th>
-                        <th className="py-2 px-2 text-center w-12">Core</th>
-                        <th className="py-2 px-2 text-center w-14">Standard</th>
-                        <th className="py-2 px-2 text-center w-16">Enterprise</th>
-                        <th className="py-2 px-2 text-center">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {selectedModule.features.map((feat, fIdx) => (
-                        <tr key={feat.id} className="hover:bg-slate-50/60 transition-colors">
-                          <td className="py-2 px-2 text-center text-slate-500 text-[11px]">
-                            {fIdx + 1}
-                          </td>
-                          <td className="py-2 px-3 font-semibold text-slate-900 text-xs">
-                            {feat.name}
-                          </td>
-                          <td className="py-2 px-3 text-[11px] text-slate-500 max-w-[140px] truncate">
-                            {feat.description}
-                          </td>
-                          {/* Core Checkbox */}
-                          <td className="py-2 px-2 text-center">
-                            <input
-                              type="checkbox"
-                              checked={feat.core}
-                              onChange={() => handleToggleFeature(feat.id, 'core')}
-                              className="rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] cursor-pointer h-3.5 w-3.5"
-                            />
-                          </td>
-                          {/* Standard Checkbox */}
-                          <td className="py-2 px-2 text-center">
-                            <input
-                              type="checkbox"
-                              checked={feat.standard}
-                              onChange={() => handleToggleFeature(feat.id, 'standard')}
-                              className="rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] cursor-pointer h-3.5 w-3.5"
-                            />
-                          </td>
-                          {/* Enterprise Checkbox */}
-                          <td className="py-2 px-2 text-center">
-                            <input
-                              type="checkbox"
-                              checked={feat.enterprise}
-                              onChange={() => handleToggleFeature(feat.id, 'enterprise')}
-                              className="rounded border-slate-300 text-[#6222cc] focus:ring-[#6222cc] cursor-pointer h-3.5 w-3.5"
-                            />
-                          </td>
-                          {/* Status Pill */}
-                          <td className="py-2 px-2 text-center">
-                            <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">
-                              {feat.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2.5 pt-3">
-                <Button
-                  type="submit"
-                  className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all"
-                >
-                  <Check className="h-4 w-4" />
-                  <span>Update Module</span>
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDrawerOpen(false)}
-                  className="bg-slate-100 hover:bg-slate-200 border-none text-slate-700 font-medium text-xs px-4 py-2 rounded-lg"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </div>
-        )}
-      </div>
+  return <section className="space-y-2 pb-2 pt-2">
+    <header className="flex flex-wrap items-center justify-between gap-2">
+      <h4 className="text-base font-bold">Features in this Module{moduleId ? features.currentData && ' (' + rows.length + ')' : ' (' + drafts.length + ')'}</h4>
+      {!mappingOnly && (moduleId ? <Button render={<Link href={featuresHref} />} nativeButton={false} size="sm" className={productPrimary}><Plus />Add Feature</Button> :
+        <Button type="button" size="sm" className={productPrimary} disabled={busy} onClick={() => onDraftsChange?.([...drafts, { name: '', description: '', active: true }])}><Plus />Add Feature</Button>)}
+    </header>
+    {editions.isError && <p role="alert" className="text-sm">Could not load product editions. <Button type="button" variant="ghost" onClick={() => void editions.refetch()}>Retry</Button></p>}
+    {mappingOnly && editions.currentData && (!moduleId || features.currentData) && !columns.length &&
+      <p className="text-sm text-muted-foreground">No editions are selected for these features.</p>}
+    <div className="overflow-x-auto rounded-md border border-[#edf0fa]">
+      <table className="w-full text-left text-xs">
+        <thead className="bg-[#e9edfa]">
+          <tr>
+            <th scope="col" className="p-2">#</th><th scope="col" className="p-2">Feature Name</th><th scope="col" className="p-2">Description</th>
+            {columns.map(edition => <th scope="col" key={edition.id} className="p-2 text-center">{edition.Edition_Name || edition.Edition_Code || edition.Edition_Id}</th>)}
+            <th scope="col" className="p-2">Status</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[#edf0fa]">
+          {!rows.length && !drafts.length && <tr><td colSpan={columns.length + 4} className="p-3 text-slate-600">
+            {!moduleId ? 'Features added here are saved with the module.' : features.isError ? 'Could not load module features.' :
+              !features.currentData ? 'Loading features...' : 'No features for this module.'}
+          </td></tr>}
+          {!moduleId && mappingOnly && drafts.map((draft, index) => <tr key={index}>
+            <td className="p-2">{index + 1}</td>
+            <th scope="row" className="p-2">{draft.name || 'Untitled feature'}</th>
+            <td className="p-2">{draft.description}</td>
+            {columns.map(edition => <td key={edition.id} className="p-2 text-center">
+              {draft.editionIds?.includes(edition.id) ? 'Included' : 'Not included'}
+            </td>)}
+            <td className="p-2">{draft.active ? 'Active' : 'Inactive'}</td>
+          </tr>)}
+          {!moduleId && !mappingOnly && drafts.map((draft, index) => <tr key={index}>
+            <td className="p-2">{index + 1}</td>
+            <td className="p-2"><Input aria-label={'Feature ' + (index + 1) + ' name'} required maxLength={250}
+              value={draft.name} disabled={busy} onChange={event => updateDraft(index, { name: event.target.value })} /></td>
+            <td className="p-2"><Textarea aria-label={'Feature ' + (index + 1) + ' description'} rows={1}
+              value={draft.description} disabled={busy} onChange={event => updateDraft(index, { description: event.target.value })} /></td>
+            {columns.map(edition => <td key={edition.id} className="p-2 text-center">
+              <input type="checkbox" disabled={busy} checked={draft.editionIds?.includes(edition.id) ?? false}
+                aria-label={(edition.Edition_Name || edition.Edition_Code || edition.Edition_Id) + ' for feature ' + (index + 1)}
+                onChange={event => updateDraft(index, { editionIds: toggleEdition(draft.editionIds, edition.id, event.target.checked) })} />
+            </td>)}
+            <td className="p-2"><div className="flex items-center gap-1">
+              <select aria-label={'Feature ' + (index + 1) + ' status'} className={control} disabled={busy}
+                value={draft.active ? 'active' : 'inactive'} onChange={event => updateDraft(index, { active: event.target.value === 'active' })}>
+                <option value="active">Active</option><option value="inactive">Inactive</option>
+              </select>
+              <Button type="button" size="icon-sm" variant="ghost" aria-label={'Remove feature ' + (index + 1)} disabled={busy}
+                onClick={() => onDraftsChange?.(drafts.filter((_, i) => i !== index))}><Trash2 /></Button>
+            </div></td>
+          </tr>)}
+          {rows.map((row, index) => <tr key={row.id}>
+            <td className="p-2">{index + 1}</td><th scope="row" className="p-2">{row.Feature_Name || row.Feature_Code}</th>
+            <td className="p-2">{row.Description}</td>
+            {columns.map(edition => <td key={edition.id} className="p-2 text-center">{row.Edition_Ids?.includes(edition.id) ? 'Included' : 'Not included'}</td>)}
+            <td className="p-2">{row.Is_Active ? 'Active' : 'Inactive'}</td>
+          </tr>)}
+        </tbody>
+      </table>
     </div>
-  );
+  </section>;
+}
+
+function EditionMapping({ productId }: { productId: number }) {
+  const editions = useGetProductEditionsQuery(productId, { refetchOnMountOrArgChange: true });
+  return <section className="space-y-3 rounded-xl border border-indigo-100 bg-card p-4">
+    <h2 className="text-lg font-semibold">Product editions</h2>
+    {editions.isError ? <p role="alert" className="text-destructive">Could not load editions. <button className="underline" onClick={() => void editions.refetch()}>Retry</button></p> :
+      !editions.currentData ? <p role="status">Loading editions…</p> :
+      editions.currentData.length ? <ul className="list-disc pl-5">{editions.currentData.map(row => <li key={row.id}>{row.Edition_Name || row.Edition_Code || row.Edition_Id}</li>)}</ul> :
+      <p>No editions for this product.</p>}
+    <p className="text-sm text-muted-foreground">Use the Features tab to select editions for each feature.</p>
+    <Link href={productHref('/products/editions', productId)} className="inline-block text-sm font-semibold text-violet-700">Manage editions</Link>
+  </section>;
 }
