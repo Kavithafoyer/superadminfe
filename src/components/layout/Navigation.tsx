@@ -117,20 +117,16 @@ export const getMenuGroups = (): MenuSection[] => [
             path: '/products/editions',
           },
           {
-            label: 'Modules & Features',
-            path: '/products/features-modules',
+            label: 'Module Master',
+            path: '/products/modules',
           },
           {
-            label: 'Feature Mapping',
-            path: '/products/feature-mapping',
+            label: 'Feature Master',
+            path: '/products/features',
           },
           {
-            label: 'Product Pricing',
-            path: '/products/pricing',
-          },
-          {
-            label: 'Free & Paid Plans',
-            path: '/products/free-paid-plans',
+            label: 'Plans & Pricing',
+            path: '/products/plans-pricing',
           },
           {
             label: 'Free Core Configuration',
@@ -140,9 +136,21 @@ export const getMenuGroups = (): MenuSection[] => [
             label: 'Trial Configuration',
             path: '/products/trial-configuration',
           },
+          // {
+          //   label: 'Product Releases',
+          //   path: '/products/releases',
+          // },
+          // {
+          //   label: 'Feature Mapping',
+          //   path: '/products/feature-mapping',
+          // },
           {
-            label: 'Product Releases',
-            path: '/products/releases',
+            label: 'Product Pricing',
+            path: '/products/pricing',
+          },
+          {
+            label: 'Free & Paid Plans',
+            path: '/products/free-paid-plans',
           },
           {
             label: 'License & Entitlements',
@@ -243,18 +251,18 @@ export const getMenuGroups = (): MenuSection[] => [
             label: 'Customer Overview',
             path: '/customer/overview',
           },
-          {
-            label: 'Subscription Management',
-            path: '/customer/subscription-management',
-          },
-          {
-            label: 'Customer Usage',
-            path: '/customer/usage',
-          },
-          {
-            label: 'Renewals & Expiry',
-            path: '/customer/renewals-expiry',
-          },
+          // {
+          //   label: 'Subscription Management',
+          //   path: '/customer/subscription-management',
+          // },
+          // {
+          //   label: 'Customer Usage',
+          //   path: '/customer/usage',
+          // },
+          // {
+          //   label: 'Renewals & Expiry',
+          //   path: '/customer/renewals-expiry',
+          // },
         ],
       },
       {

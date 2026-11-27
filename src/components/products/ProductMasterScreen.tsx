@@ -526,12 +526,21 @@ export function ProductMasterScreen({
       return;
     }
 
+    const rawCategories = Array.isArray(categoryApiResponse)
+      ? categoryApiResponse
+      : categoryApiResponse?.results ?? [];
+    const matchedCat = rawCategories.find(
+      (c: any) =>
+        (c.Category_Name || c.Category_Code) === (productForm.category || 'Education')
+    );
+
     const baseFields: Record<string, any> = {
       Product_Name: productForm.product_name.trim(),
       Product_Code: productForm.product_code.trim().toUpperCase(),
       Category: productForm.category || 'Education',
+      ...(matchedCat?.id ? { Category_id: matchedCat.id } : {}),
       Status: productForm.status || 'Active',
-      Is_Active: productForm.status !== 'Inactive',
+      Is_Active: true,
       Description: productForm.short_description || '',
       Detailed_Description: productForm.description || '',
       Current_version: productForm.current_version || 'v1.0.0',

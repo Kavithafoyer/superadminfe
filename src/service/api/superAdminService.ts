@@ -2592,44 +2592,70 @@ export const superAdminApi = baseApi.injectEndpoints({
     }),
 
     // Sales Module - Plans Endpoints
-    getPlansList: builder.query<PlanRecord[], void>({
-      query: () => "superadmin/planlist/?page=1",
+    getPlansList: builder.query<
+      PlanRecord[],
+      {
+        Product?: string | number;
+        Plantype?: string;
+        status?: string;
+        search?: string;
+      } | void
+    >({
+      query: (params) => {
+        const sp = new URLSearchParams();
+        if (params?.Product !== undefined && String(params.Product).trim() && String(params.Product) !== "ALL") {
+          sp.set("Product", String(params.Product));
+        }
+        if (params?.Plantype && params.Plantype !== "All") {
+          sp.set("Plantype", params.Plantype);
+        }
+        if (params?.status && params.status !== "All") {
+          sp.set("status", params.status);
+        }
+        if (params?.search?.trim()) {
+          sp.set("search", params.search.trim());
+        }
+        const qs = sp.toString();
+        return `superadmin/planCRUD/${qs ? `?${qs}` : ""}`;
+      },
       transformResponse: (res: any) => {
-        const raw = res?.data || res?.results || res;
-        const list = Array.isArray(raw) && raw.length > 0 ? raw : MOCK_PLANS;
+        const raw = res?.results || res?.data || res;
+        const list = Array.isArray(raw) ? raw : [];
         return list.map((item: any) => ({
           ...item,
-          id: item.id || item.Plan_Id,
+          id: item.id ?? item.Plan_Id,
           name: item.name || item.Plan_Name || item.planname || "Unnamed Plan",
           Plan_Name: item.Plan_Name || item.name || "Unnamed Plan",
-          code: item.code || item.Plan_Id || `PLAN-${item.id}`,
+          code: item.Plan_Code || item.code || item.Plan_Id || `PLAN-${item.id}`,
           Plan_Id: item.Plan_Id || item.code || `PLAN-${item.id}`,
-          Producttype: item.Producttype || item.Product || "SuperAdmin Cloud",
-          plantype: item.plantype || item.Plantype || "Paid",
+          Producttype: item.Product_name || item.Producttype || item.Product || "SuperAdmin Cloud",
+          Product_id: item.Product_id ?? null,
+          Product_code: item.Product_code ?? null,
+          plantype: item.plantype || item.Plantype || (item.is_free ? "Free" : "Paid"),
           price:
             item.price !== undefined
               ? item.price
-              : item.UnitPrice || item.Planmonth_price || 0,
+              : item.Planmonth_price ?? item.UnitPrice ?? 0,
           monthly_price:
             item.monthly_price !== undefined
               ? item.monthly_price
-              : item.Planmonth_price || item.UnitPrice || 0,
+              : item.Planmonth_price ?? item.UnitPrice ?? 0,
           yearly_price:
             item.yearly_price !== undefined
               ? item.yearly_price
-              : item.Planyear_price || 0,
-          currency: item.currency || item.Currency_Type || "USD",
-          noofuser: item.noofuser || item.No_Of_Users || 10,
-          max_users: item.max_users || item.No_Of_Users || 10,
-          noofcontact: item.noofcontact || item.Noofcontacts || 0,
-          storage: item.storage || item.AllocatedStorage || 50,
-          max_storage_gb: item.max_storage_gb || item.AllocatedStorage || 50,
+              : item.Planyear_price ?? 0,
+          currency: item.currency || item.Currency_Type || "INR",
+          noofuser: item.noofuser ?? item.No_Of_Users ?? 10,
+          max_users: item.max_users ?? item.No_Of_Users ?? 10,
+          noofcontact: item.noofcontact ?? item.Noofcontacts ?? 0,
+          storage: item.storage ?? item.AllocatedStorage ?? 50,
+          max_storage_gb: item.max_storage_gb ?? item.AllocatedStorage ?? 50,
           trailperiod:
             item.trailperiod !== undefined
               ? item.trailperiod
-              : item.Trialperiod || 0,
+              : item.Trialperiod ?? 0,
           billing_cycle:
-            item.billing_cycle || (item.Plan_per_month ? "Monthly" : "Yearly"),
+            item.billing_cycle || (item.Plan_per_month ? "monthly" : "yearly"),
           description:
             item.description || item.PlanDetails || item.Description || "",
           is_active:
@@ -2637,9 +2663,233 @@ export const superAdminApi = baseApi.injectEndpoints({
               ? item.is_active
               : item.Is_Active_Flg !== false,
           features: Array.isArray(item.features) ? item.features : [],
+          limits: Array.isArray(item.limits) ? item.limits : [],
         }));
       },
       providesTags: ["Plans"],
+    }),
+    filterPlans: builder.query<
+      PlanRecord[],
+      {
+        Product?: string | number;
+        Plantype?: string;
+        status?: string;
+        billing_cycle?: string;
+        Currency_Type?: string;
+        search?: string;
+      }
+    >({
+      query: (body) => ({
+        url: "superadmin/PlanFilter/",
+        method: "POST",
+        body,
+      }),
+      transformResponse: (res: any) => {
+        const raw = res?.results || res?.data || res;
+        return Array.isArray(raw) ? raw : [];
+      },
+      providesTags: ["Plans"],
+    }),
+    getPlanComparisonMatrix: builder.query<
+      {
+        status: boolean;
+        product: string;
+        product_id: number | null;
+        plans: any[];
+        catalog_features: any[];
+        features_matrix: Array<{
+          feature_name: string;
+          feature_id: number | null;
+          cells: Record<string, { included: boolean; price: number; plan_feature_id: number | null }>;
+        }>;
+        usage_limits: Array<{
+          id: number;
+          PlanLimit_Id: string;
+          Plan_Id: number;
+          Plan_Name: string | null;
+          Limit_Name: string;
+          Limit_Code: string;
+          Limit_Value: number | null;
+          Unit: string | null;
+          Is_Unlimited: boolean;
+        }>;
+      },
+      { product?: string | number; Plantype?: string; status?: string; search?: string } | void
+    >({
+      query: (params) => {
+        const sp = new URLSearchParams();
+        if (params?.product && String(params.product) !== "ALL") {
+          sp.set("product", String(params.product));
+        }
+        if (params?.Plantype && params.Plantype !== "All") {
+          sp.set("Plantype", params.Plantype);
+        }
+        if (params?.status && params.status !== "All") {
+          sp.set("status", params.status);
+        }
+        if (params?.search?.trim()) {
+          sp.set("search", params.search.trim());
+        }
+        const qs = sp.toString();
+        return `superadmin/PlanComparisonMatrix/${qs ? `?${qs}` : ""}`;
+      },
+      providesTags: ["Plans"],
+    }),
+    mutatePlanComparisonMatrix: builder.mutation<any, Record<string, any>>({
+      query: (payload) => ({
+        url: "superadmin/PlanComparisonMatrix/",
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["Plans"],
+    }),
+    publishPlans: builder.mutation<
+      { status: boolean; published_count: number; published_plan_ids: number[]; message: string },
+      { product?: string | number; plan_ids?: number[] }
+    >({
+      query: (payload) => ({
+        url: "superadmin/PlanPublish/",
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["Plans"],
+    }),
+    getProductConfigurations: builder.query<any[], { product?: string | number } | void>({
+      query: (params) => {
+        const q = params?.product && String(params.product) !== "ALL"
+          ? `?product=${encodeURIComponent(String(params.product))}`
+          : "";
+        return `superadmin/ProductConfigurationlistwithoutpaginaton/${q}`;
+      },
+      transformResponse: (res: any) => {
+        const raw = res?.results || res?.data || res;
+        return Array.isArray(raw) ? raw : [];
+      },
+      providesTags: ["ProductMasters", "Plans"],
+    }),
+    getPlanLimitsList: builder.query<any[], { planId?: string | number } | void>({
+      query: (params) => {
+        const q = params?.planId ? `?Plan_Id=${encodeURIComponent(String(params.planId))}` : "";
+        return `superadmin/PlanLimitlistwithoutpaginaton/${q}`;
+      },
+      transformResponse: (res: any) => {
+        const raw = res?.results || res?.data || res;
+        return Array.isArray(raw) ? raw : [];
+      },
+      providesTags: ["Plans"],
+    }),
+    getProductFeaturesList: builder.query<any[], { product?: string | number } | void>({
+      query: (params) => {
+        const q = params?.product && String(params.product) !== "ALL"
+          ? `?product=${encodeURIComponent(String(params.product))}`
+          : "";
+        return `superadmin/ProductFeaturelistwithoutpaginaton/${q}`;
+      },
+      transformResponse: (res: any) => {
+        const raw = res?.results || res?.data || res;
+        return Array.isArray(raw) ? raw : [];
+      },
+      providesTags: ["Plans", "ProductMasters"],
+    }),
+    saveProductConfiguration: builder.mutation<any, Record<string, any>>({
+      query: (payload) => ({
+        url: "superadmin/ProductConfigurationCRUD/",
+        method: payload.id ? "PATCH" : "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["ProductMasters", "Plans"],
+    }),
+    // Product Pricing Endpoints
+    getProductPricingList: builder.query<any[], Record<string, any> | void>({
+      query: (params) => {
+        const sp = new URLSearchParams();
+        if (params) {
+          Object.entries(params).forEach(([k, v]) => {
+            if (v !== undefined && v !== null && String(v).trim() && !String(v).startsWith("All")) {
+              sp.set(k, String(v));
+            }
+          });
+        }
+        const qs = sp.toString();
+        return `superadmin/ProductPricingCRUD/${qs ? `?${qs}` : ""}`;
+      },
+      transformResponse: (res: any) => {
+        const raw = res?.results || res?.data || res;
+        return Array.isArray(raw) ? raw : [];
+      },
+      providesTags: ["Plans"],
+    }),
+    getProductPricingKpi: builder.query<any, void>({
+      query: () => "superadmin/ProductPricingKPI/",
+      providesTags: ["Plans"],
+    }),
+    getProductPriceMatrix: builder.query<any[], Record<string, any> | void>({
+      query: (params) => {
+        const sp = new URLSearchParams();
+        if (params?.Product && params.Product !== "All") sp.set("Product", String(params.Product));
+        const qs = sp.toString();
+        return `superadmin/ProductPriceMatrix/${qs ? `?${qs}` : ""}`;
+      },
+      transformResponse: (res: any) => (Array.isArray(res?.results) ? res.results : []),
+      providesTags: ["Plans"],
+    }),
+    getProductPriceHistory: builder.query<any[], { Pricing_Id?: string } | void>({
+      query: (params) =>
+        params?.Pricing_Id
+          ? `superadmin/ProductPriceHistory/?Pricing_Id=${encodeURIComponent(params.Pricing_Id)}`
+          : "superadmin/ProductPriceHistory/",
+      transformResponse: (res: any) => (Array.isArray(res?.results) ? res.results : []),
+      providesTags: ["Plans"],
+    }),
+    getProductEditionsList: builder.query<any[], { product?: string | number } | void>({
+      query: (params) =>
+        params?.product && params.product !== "All"
+          ? `superadmin/ProductEditionlistwithoutpaginaton/?product=${encodeURIComponent(String(params.product))}`
+          : "superadmin/ProductEditionlistwithoutpaginaton/",
+      transformResponse: (res: any) => {
+        const raw = res?.results || res?.data || res;
+        return Array.isArray(raw) ? raw : [];
+      },
+      providesTags: ["ProductMasters"],
+    }),
+    createProductPricing: builder.mutation<any, Record<string, any>>({
+      query: (payload) => ({
+        url: "superadmin/ProductPricingCRUD/",
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["Plans"],
+    }),
+    updateProductPricing: builder.mutation<any, Record<string, any>>({
+      query: (payload) => ({
+        url: "superadmin/ProductPricingCRUD/",
+        method: "PUT",
+        body: payload,
+      }),
+      invalidatesTags: ["Plans"],
+    }),
+    deleteProductPricing: builder.mutation<any, { id: string | number }>({
+      query: ({ id }) => ({
+        url: `superadmin/ProductPricingCRUD/?id=${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Plans"],
+    }),
+    bulkUpdateProductPricing: builder.mutation<any, Record<string, any>>({
+      query: (payload) => ({
+        url: "superadmin/ProductPricingBulkUpdate/",
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["Plans"],
+    }),
+    scheduleProductPricing: builder.mutation<any, Record<string, any>>({
+      query: (payload) => ({
+        url: "superadmin/ProductPricingSchedule/",
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["Plans"],
     }),
     createPlan: builder.mutation<any, Partial<PlanRecord>>({
       query: (payload) => ({
@@ -2659,7 +2909,7 @@ export const superAdminApi = baseApi.injectEndpoints({
     }),
     deletePlan: builder.mutation<any, { id: string | number }>({
       query: ({ id }) => ({
-        url: `superadmin/plan/?id=${id}`,
+        url: `superadmin/planCRUD/?id=${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Plans"],
@@ -3812,6 +4062,47 @@ export const superAdminApi = baseApi.injectEndpoints({
       },
       providesTags: ["ProductMasters"],
     }),
+    getProductEditionLookups: builder.query<
+      Array<{
+        id: number;
+        Edition_Id?: string;
+        Edition_Code?: string;
+        Edition_Name: string;
+        Product_Id?: number;
+      }>,
+      { Product_Id?: number | string } | void
+    >({
+      query: (params) => {
+        const pid = params && typeof params === "object" ? params.Product_Id : undefined;
+        return pid ? `superadmin/ProductEditionLookups/?Product_Id=${pid}` : "superadmin/ProductEditionLookups/";
+      },
+      transformResponse: (res: any) => {
+        const raw = res?.results || res?.data || res;
+        return Array.isArray(raw) ? raw : [];
+      },
+      providesTags: ["ProductEditions"],
+    }),
+    getPlanLookups: builder.query<
+      Array<{
+        id: number;
+        Plan_Id?: string;
+        Plan_Code?: string;
+        Plan_Name: string;
+        Edition_Id?: number;
+        Product_Id?: number;
+      }>,
+      { Edition_Id?: number | string } | void
+    >({
+      query: (params) => {
+        const eid = params && typeof params === "object" ? params.Edition_Id : undefined;
+        return eid ? `superadmin/PlanLookups/?Edition_Id=${eid}` : "superadmin/PlanLookups/";
+      },
+      transformResponse: (res: any) => {
+        const raw = res?.results || res?.data || res;
+        return Array.isArray(raw) ? raw : [];
+      },
+      providesTags: ["Plans"],
+    }),
     filterProductMaster: builder.query<
       any[],
       {
@@ -3952,6 +4243,27 @@ export const {
   useUpdateAccountMutation,
   useDeleteAccountMutation,
   useGetPlansListQuery,
+  useFilterPlansQuery,
+  useLazyFilterPlansQuery,
+  useGetPlanComparisonMatrixQuery,
+  useMutatePlanComparisonMatrixMutation,
+  usePublishPlansMutation,
+  useGetProductConfigurationsQuery,
+  useGetPlanLimitsListQuery,
+  useLazyGetPlanLimitsListQuery,
+  useGetProductFeaturesListQuery,
+  useLazyGetProductFeaturesListQuery,
+  useSaveProductConfigurationMutation,
+  useGetProductPricingListQuery,
+  useGetProductPricingKpiQuery,
+  useGetProductPriceMatrixQuery,
+  useGetProductPriceHistoryQuery,
+  useGetProductEditionsListQuery,
+  useCreateProductPricingMutation,
+  useUpdateProductPricingMutation,
+  useDeleteProductPricingMutation,
+  useBulkUpdateProductPricingMutation,
+  useScheduleProductPricingMutation,
   useCreatePlanMutation,
   useUpdatePlanMutation,
   useDeletePlanMutation,
@@ -4063,6 +4375,8 @@ export const {
   useGetProductMasterListQuery,
   useGetProductMasterPaginatedQuery,
   useGetProductMasterLookupsQuery,
+  useGetProductEditionLookupsQuery,
+  useGetPlanLookupsQuery,
   useFilterProductMasterQuery,
   useLazyFilterProductMasterQuery,
   useGetProductMasterByIdQuery,
@@ -4175,6 +4489,48 @@ export const downloadProductMasterExportCsv = (params?: {
       ids: params?.ids && params.ids.length > 0 ? params.ids.join(",") : undefined,
     },
     defaultFilename: `product_master_export_${new Date().toISOString().split("T")[0]}.csv`,
+  });
+
+export const downloadPlanComparisonExportCsv = (params?: {
+  product?: string | number;
+  Plantype?: string;
+  status?: string;
+  search?: string;
+}): Promise<boolean> =>
+  downloadSuperAdminExportCsv({
+    endpoint: "PlanComparisonExport/",
+    query: {
+      product: params?.product && String(params.product) !== "ALL" ? String(params.product) : undefined,
+      Plantype: params?.Plantype && params.Plantype !== "All" ? params.Plantype : undefined,
+      status: params?.status && params.status !== "All" ? params.status : undefined,
+      search: params?.search?.trim() || undefined,
+    },
+    defaultFilename: `plans_comparison_${new Date().toISOString().split("T")[0]}.csv`,
+  });
+
+export const downloadProductPricingExportCsv = (params?: {
+  Product?: string;
+  Edition?: string;
+  Plan?: string;
+  Country?: string;
+  Currency?: string;
+  Status?: string;
+  search?: string;
+  ids?: Array<string | number>;
+}): Promise<boolean> =>
+  downloadSuperAdminExportCsv({
+    endpoint: "ProductPricingExport/",
+    query: {
+      Product: params?.Product && params.Product !== "All" ? params.Product : undefined,
+      Edition: params?.Edition && params.Edition !== "All" ? params.Edition : undefined,
+      Plan: params?.Plan && params.Plan !== "All Plans" ? params.Plan : undefined,
+      Country: params?.Country && params.Country !== "All Countries" ? params.Country : undefined,
+      Currency: params?.Currency && params.Currency !== "All Currencies" ? params.Currency : undefined,
+      Status: params?.Status && params.Status !== "All" ? params.Status : undefined,
+      search: params?.search?.trim() || undefined,
+      ids: params?.ids && params.ids.length > 0 ? params.ids.join(",") : undefined,
+    },
+    defaultFilename: `product_pricing_export_${new Date().toISOString().split("T")[0]}.csv`,
   });
 
 // Re-export Add-on Price Template API hooks and types
