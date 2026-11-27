@@ -125,8 +125,8 @@ function mapProductMasterDto(dto: any): InitialProductConfig {
     dto.Status && ['Active', 'Inactive', 'Draft', 'Under Review', 'Archived'].includes(dto.Status)
       ? dto.Status
       : dto.Is_Active === false
-      ? 'Inactive'
-      : 'Active';
+        ? 'Inactive'
+        : 'Active';
 
   return {
     id: String(dto.id),
@@ -165,6 +165,39 @@ interface ProductMasterScreenProps {
   initialTab?: 'details' | 'editions' | 'features' | 'plans';
 }
 
+function newProductDraft(): Partial<InitialProductConfig> {
+  return {
+    id: `prd-${Date.now().toString(36)}`,
+    product_name: '',
+    product_code: '',
+    category: 'Education',
+    status: 'Draft',
+    short_description: '',
+    description: '',
+    current_version: 'v1.0.0',
+    release_date: '22 Nov 2026',
+    lifecycle_stage: 'General Availability',
+    logo_file: 'new-product-logo.svg',
+    logo_dimensions: '(120 × 120)',
+    icon_file: 'new-product-icon.svg',
+    icon_dimensions: '(32 × 32)',
+    icon_type: 'education',
+    editions_count: 1,
+    editions: ['Standard'],
+    editions_details: [
+      {
+        id: `ed-${Date.now()}`,
+        name: 'Standard',
+        code: 'STD',
+        description: 'Standard product edition',
+        status: 'Active',
+        displayOrder: 1,
+        capabilities: {},
+      },
+    ],
+  };
+}
+
 export function ProductMasterScreen({
   initialMode = 'edit_product',
   initialProductId,
@@ -201,10 +234,10 @@ export function ProductMasterScreen({
   } = useFilterProductMasterQuery(
     hasServerFilter
       ? {
-          search: debouncedSearch || undefined,
-          Status: statusFilter !== 'All' ? statusFilter : undefined,
-          Category: categoryFilter !== 'All' ? categoryFilter : undefined,
-        }
+        search: debouncedSearch || undefined,
+        Status: statusFilter !== 'All' ? statusFilter : undefined,
+        Category: categoryFilter !== 'All' ? categoryFilter : undefined,
+      }
       : skipToken
   );
 
@@ -233,6 +266,11 @@ export function ProductMasterScreen({
     return products.find((p) => p.id === selectedProductId) || products[0] || INITIAL_PRODUCTS[0];
   }, [products, selectedProductId]);
 
+  function openProductSection(path: string) {
+    if (!selectedProduct) return;
+    router.push(path + '?product=' + encodeURIComponent(selectedProduct.product_code || selectedProduct.id));
+  }
+
   // Is right side drawer open? (Default open as per Screenshot 1)
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(true);
 
@@ -257,9 +295,7 @@ export function ProductMasterScreen({
   }, [categoryApiResponse]);
 
   // Product Form state for right side
-  const [productForm, setProductForm] = useState<Partial<InitialProductConfig>>({
-    ...INITIAL_PRODUCTS[0],
-  });
+  const [productForm, setProductForm] = useState<Partial<InitialProductConfig>>(() => initialMode === 'add_product' ? newProductDraft() : { ...selectedProduct });
 
   // Edition Form state
   const [editionForm, setEditionForm] = useState<Partial<EditionRecord>>({});
@@ -848,7 +884,7 @@ export function ProductMasterScreen({
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredProducts.map((p, index) => {
-                    const isSelected = selectedProductId === p.id && isDrawerOpen;
+                    const isSelected = selectedProduct?.id === p.id && isDrawerOpen;
 
                     return (
                       <tr
@@ -901,8 +937,8 @@ export function ProductMasterScreen({
                               p.status === 'Active'
                                 ? 'bg-[#dcfce7] text-[#15803d]'
                                 : p.status === 'Draft'
-                                ? 'bg-[#e0e7ff] text-[#4338ca]'
-                                : 'bg-slate-100 text-slate-700'
+                                  ? 'bg-[#e0e7ff] text-[#4338ca]'
+                                  : 'bg-slate-100 text-slate-700'
                             )}
                           >
                             {p.status}
@@ -1017,7 +1053,10 @@ export function ProductMasterScreen({
             RIGHT COLUMN: CREATE / EDIT DRAWER PANEL (~42% width)
             EXACT MATCH WITH media_1795366877487_39e86412.jpg
            ============================================================ */}
-        {isDrawerOpen && (
+        {isDrawerOpen && !selectedProduct && drawerMode !== 'add_product' && (
+          <p className="lg:col-span-5 rounded-xl border p-4 text-sm text-muted-foreground">This product is not available in the Product Master list. Choose a product from the list.</p>
+        )}
+        {isDrawerOpen && (selectedProduct || drawerMode === 'add_product') && (
           <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-4">
             {/* Header: Product Icon + Name + Badge + Close Button */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -1080,7 +1119,8 @@ export function ProductMasterScreen({
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('editions')}
+                disabled={drawerMode === 'add_product'}
+                onClick={() => openProductSection('/products/editions')}
                 className={cn(
                   'px-3.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer whitespace-nowrap',
                   activeTab === 'editions'
@@ -1088,11 +1128,12 @@ export function ProductMasterScreen({
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
                 )}
               >
-                Editions ({selectedProduct.editions_count || selectedProduct.editions_details?.length || 3})
+                Editions
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('features')}
+                disabled={drawerMode === 'add_product'}
+                onClick={() => openProductSection('/products/features-modules')}
                 className={cn(
                   'px-3.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer whitespace-nowrap',
                   activeTab === 'features'
@@ -1104,7 +1145,8 @@ export function ProductMasterScreen({
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('plans')}
+                disabled={drawerMode === 'add_product'}
+                onClick={() => openProductSection('/products/plans-pricing')}
                 className={cn(
                   'px-3.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer whitespace-nowrap',
                   activeTab === 'plans'
@@ -1189,14 +1231,14 @@ export function ProductMasterScreen({
                             liveCategoryNames.length > 0
                               ? liveCategoryNames
                               : [
-                                  'Education',
-                                  'IT / Services',
-                                  'HRMS',
-                                  'Retail',
-                                  'Real Estate',
-                                  'CRM (Generic)',
-                                  'Platform',
-                                ];
+                                'Education',
+                                'IT / Services',
+                                'HRMS',
+                                'Retail',
+                                'Real Estate',
+                                'CRM (Generic)',
+                                'Platform',
+                              ];
                           const allOptions =
                             productForm.category && !baseOptions.includes(productForm.category)
                               ? [productForm.category, ...baseOptions]
@@ -1465,8 +1507,8 @@ export function ProductMasterScreen({
                       {isCreating || isUpdating
                         ? 'Saving...'
                         : drawerMode === 'add_product'
-                        ? 'Create Product'
-                        : 'Update Product'}
+                          ? 'Create Product'
+                          : 'Update Product'}
                     </span>
                   </Button>
                   <Button
