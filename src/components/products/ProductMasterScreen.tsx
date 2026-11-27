@@ -265,11 +265,10 @@ export function ProductMasterScreen({
   const selectedProduct = useMemo(() => {
     return products.find((p) => p.id === selectedProductId) || products[0] || INITIAL_PRODUCTS[0];
   }, [products, selectedProductId]);
-  const selectedProduct = matchedProduct ?? products[0];
 
   function openProductSection(path: string) {
-    if (!matchedProduct) return;
-    router.push(path + '?product=' + encodeURIComponent(matchedProduct.product_code || matchedProduct.id));
+    if (!selectedProduct) return;
+    router.push(path + '?product=' + encodeURIComponent(selectedProduct.product_code || selectedProduct.id));
   }
 
   // Is right side drawer open? (Default open as per Screenshot 1)
@@ -885,7 +884,7 @@ export function ProductMasterScreen({
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredProducts.map((p, index) => {
-                    const isSelected = matchedProduct?.id === p.id && isDrawerOpen;
+                    const isSelected = selectedProduct?.id === p.id && isDrawerOpen;
 
                     return (
                       <tr
@@ -1054,10 +1053,10 @@ export function ProductMasterScreen({
             RIGHT COLUMN: CREATE / EDIT DRAWER PANEL (~42% width)
             EXACT MATCH WITH media_1795366877487_39e86412.jpg
            ============================================================ */}
-        {isDrawerOpen && !matchedProduct && drawerMode !== 'add_product' && (
-          <p className="lg:col-span-5 rounded-xl border p-4 text-sm text-muted-foreground">This product isn?t available in the Product Master list. Choose a product from the list.</p>
+        {isDrawerOpen && !selectedProduct && drawerMode !== 'add_product' && (
+          <p className="lg:col-span-5 rounded-xl border p-4 text-sm text-muted-foreground">This product is not available in the Product Master list. Choose a product from the list.</p>
         )}
-        {isDrawerOpen && (matchedProduct || drawerMode === 'add_product') && (
+        {isDrawerOpen && (selectedProduct || drawerMode === 'add_product') && (
           <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-4">
             {/* Header: Product Icon + Name + Badge + Close Button */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
