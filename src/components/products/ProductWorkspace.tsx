@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useCreateEditionProductMutation, useGetEditionProductQuery, useGetEditionProductsQuery, useGetProductEditionsQuery, type EditionProduct } from '@/service/api/productEditionApi';
+import { useCreateEditionProductMutation, useGetEditionProductCategoriesQuery, useGetEditionProductQuery, useGetEditionProductsQuery, useGetProductEditionsQuery, type EditionProduct, type EditionProductCategory } from '@/service/api/productEditionApi';
 import { Field, apiError } from '../addons/PricingWorkspace';
 import { INITIAL_PRODUCTS } from './productData';
 import { IsometricBoxIcon } from './ProductIcons';
@@ -34,6 +34,12 @@ function resolveProduct(products: EditionProduct[], requested: string | null) {
   if (codeMatches.length === 1) return codeMatches[0];
   const nameMatches = products.filter(item => item.Product_Name && names.includes(normalize(item.Product_Name)));
   if (nameMatches.length === 1) return nameMatches[0];
+}
+
+function inCategory(product: EditionProduct, category: EditionProductCategory) {
+  if (product.Category_id != null) return product.Category_id === category.id;
+  const legacy = normalize(product.Category);
+  return !!legacy && [normalize(category.Category_Name), normalize(category.Category_Code)].includes(legacy);
 }
 
 export const productPrimary = 'bg-[#5024e8] text-white hover:bg-[#4218ce]';
@@ -81,17 +87,17 @@ export function ProductSummary({ product, picker }: { product: EditionProduct; p
   </div>;
 }
 
-export function ProductTabs({ product, active }: { product: EditionProduct; active: 'editions' | 'features' }) {
-  const editions = useGetProductEditionsQuery(product.id);
+export function ProductTabs({ product, active }: { product?: EditionProduct; active: 'editions' | 'features' }) {
+  const editions = useGetProductEditionsQuery(product?.id ?? skipToken);
   const destinations = [
-    { label: 'Product Details', path: '/products/master', key: 'details', id: product.Product_Code || product.Product_Name || product.id },
-    { label: editions.currentData ? 'Editions (' + editions.currentData.length + ')' : 'Editions', path: '/products/editions', key: 'editions', id: product.id },
-    { label: 'Features & Modules', path: '/products/features-modules', key: 'features', id: product.id },
-    { label: 'Plans & Pricing', path: '/products/plans-pricing', key: 'plans', id: product.Product_Code || product.id },
+    { label: 'Product Details', path: '/products/master', key: 'details', id: product?.Product_Code || product?.Product_Name || product?.id },
+    { label: editions.currentData ? 'Editions (' + editions.currentData.length + ')' : 'Editions', path: '/products/editions', key: 'editions', id: product?.id },
+    { label: 'Features & Modules', path: '/products/features-modules', key: 'features', id: product?.id },
+    { label: 'Plans & Pricing', path: '/products/plans-pricing', key: 'plans', id: product?.Product_Code || product?.id },
   ];
 
   return <nav aria-label="Product sections" className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-    {destinations.map(({ label, path, key, id }) => <Link key={key} href={productHref(path, id)} aria-current={key === active ? 'page' : undefined}
+    {destinations.map(({ label, path, key, id }) => <Link key={key} href={id === undefined ? path : productHref(path, id)} aria-current={key === active ? 'page' : undefined}
       className={'rounded-t-md border px-2 py-2.5 text-center text-xs font-semibold ' + (key === active ? 'border-transparent ' + productPrimary : 'border-indigo-100 bg-indigo-50/70 text-indigo-950 hover:bg-indigo-100')}>{label}</Link>)}
   </nav>;
 }
@@ -100,9 +106,11 @@ export interface ProductWorkspaceSelection {
   product: EditionProduct;
   addProduct: () => void;
   picker: ReactNode;
+  createPicker?: ReactNode;
 }
 
-export function ProductWorkspace({ heading = defaultHeading, productScopedParams, children }: {
+export function ProductWorkspace({ heading = defaultHeading, productScopedParams, showCategory = false, children }: {
+  showCategory?: boolean;
   productScopedParams?: readonly string[];
   heading?: typeof defaultHeading;
   children: (selection: ProductWorkspaceSelection) => ReactNode;
@@ -112,23 +120,40 @@ export function ProductWorkspace({ heading = defaultHeading, productScopedParams
   const search = useSearchParams();
   const requested = search.get('product');
   const catalog = useGetEditionProductsQuery();
-  const listedProduct = resolveProduct(catalog.currentData ?? [], requested);
+  const categories = useGetEditionProductCategoriesQuery(undefined, { skip: !showCategory });
+  const [categoryId, setCategoryId] = useState('');
+  const category = categories.currentData?.find(item => String(item.id) === categoryId);
+  const products = (catalog.currentData ?? []).filter(item => !category || inCategory(item, category));
+  const listedProduct = resolveProduct(products, requested);
   const detail = useGetEditionProductQuery(!listedProduct && requested && /^[1-9]\d*$/.test(requested) ? requested : skipToken);
-  const product = listedProduct ?? detail.currentData;
-  const products = catalog.currentData ?? [];
+  const matchingDetail = detail.currentData && (!category || inCategory(detail.currentData, category)) ? detail.currentData : undefined;
+  const product = listedProduct ?? matchingDetail;
   const options = product && !listedProduct ? [product, ...products] : products;
   const loading = catalog.isLoading || catalog.isFetching || detail.isFetching;
   const [dialog, setDialog] = useState<'create' | 'help' | null>(null);
   const [create, creatingProduct] = useCreateEditionProductMutation();
   const [error, setError] = useState('');
 
-  function destination(id: string | number) {
+  function destination(id?: string | number, createMode = false) {
     const params = new URLSearchParams(search.toString());
-    params.set('product', String(id));
+    if (id == null) params.delete('product');
+    else params.set('product', String(id));
     for (const key of productScopedParams ?? []) {
       if (key !== 'mode' || params.get('mode') !== 'create') params.delete(key);
     }
-    return pathname + '?' + params.toString();
+    if (createMode) {
+      params.delete('tab');
+      params.set('mode', 'create');
+    }
+    return params.size ? pathname + '?' + params.toString() : pathname;
+  }
+
+  function changeCategory(id: string, createMode = false) {
+    setCategoryId(id);
+    const nextCategory = categories.currentData?.find(item => String(item.id) === id);
+    if (product && (!nextCategory || inCategory(product, nextCategory))) return;
+    const nextProduct = catalog.currentData?.find(item => !nextCategory || inCategory(item, nextCategory));
+    router.push(destination(nextProduct?.id, createMode), { scroll: false });
   }
 
   useEffect(() => {
@@ -151,7 +176,7 @@ export function ProductWorkspace({ heading = defaultHeading, productScopedParams
     }
     setError('');
     try {
-      const saved = await create({ Product_Name: name, Product_Code: code, Description: String(form.get('description')).trim() }).unwrap();
+      const saved = await create({ Product_Name: name, Product_Code: code, Description: String(form.get('description')).trim(), Category_id: category?.id }).unwrap();
       setDialog(null);
       router.push(destination(saved.id), { scroll: false });
     } catch (failure) {
@@ -164,26 +189,50 @@ export function ProductWorkspace({ heading = defaultHeading, productScopedParams
     setDialog('create');
   }
 
-  const picker = !!options.length && <select aria-label="Switch product" className={productField + (product ? ' w-auto max-w-full' : ' mt-2 max-w-xs')} value={product?.id ?? ''} onChange={event => router.push(destination(event.target.value), { scroll: false })}>
-    <option value="" disabled>Select product</option>
-    {options.map(item => <option key={item.id} value={item.id}>{item.Product_Name || item.Product_Code || `Product ${item.id}`}{item.Product_Name && item.Product_Code ? ` (${item.Product_Code})` : ''}</option>)}
-  </select>;
+  function renderPicker(createMode = false) {
+    const productPicker = (showCategory || !!options.length) && <select aria-label="Switch product"
+      className={productField + (showCategory ? '' : product ? ' w-auto max-w-full' : ' mt-2 max-w-xs')}
+      value={product?.id ?? ''} disabled={!options.length}
+      onChange={event => router.push(destination(event.target.value, createMode), { scroll: false })}>
+      <option value="" disabled>{category && !options.length && !loading && !catalog.isError ? 'No products in this category' : 'Select product'}</option>
+      {options.map(item => <option key={item.id} value={item.id}>{item.Product_Name || item.Product_Code || `Product ${item.id}`}{item.Product_Name && item.Product_Code ? ` (${item.Product_Code})` : ''}</option>)}
+    </select>;
+
+    return showCategory ? <div className={createMode ? 'grid min-w-0 gap-3 sm:grid-cols-2' : 'grid w-full gap-2 sm:grid-cols-2'}>
+      <Field label="Product Category">
+        <select className={productField} value={categoryId} onChange={event => changeCategory(event.target.value, createMode)}
+          disabled={categories.isLoading || categories.isError}>
+          <option value="">{categories.isLoading ? 'Loading categories...' : 'All categories'}</option>
+          {categories.currentData?.map(item => <option key={item.id} value={item.id}>
+            {item.Category_Name || item.Category_Code || `Category ${item.id}`}
+          </option>)}
+        </select>
+      </Field>
+      <Field label="Product">{productPicker}</Field>
+      {categories.isError && <p role="alert" className="text-xs text-destructive">Could not load product categories. <button type="button" className="underline" onClick={() => void categories.refetch()}>Retry</button></p>}
+    </div> : productPicker;
+  }
+
+  const picker = renderPicker();
 
   return <section className="space-y-3 text-foreground" aria-busy={!product && loading}>
-    {product ? children({ product, addProduct, picker }) : <>
+    {product ? children({ product, addProduct, picker, createPicker: showCategory ? renderPicker(true) : undefined }) : <>
       <ProductHeader addProduct={addProduct} heading={heading}>
         <Button variant="outline" className="border-indigo-200 bg-indigo-50 text-indigo-950" disabled><Upload />Import / Export</Button>
         <Button variant="outline" className="border-indigo-200 bg-indigo-50 text-indigo-950" onClick={() => setDialog('help')}><HelpCircle />Help</Button>
       </ProductHeader>
-      {(loading || catalog.isError || detail.isError || catalog.currentData) && (
+      {(showCategory || loading || catalog.isError || detail.isError || catalog.currentData) && (
         <div className="rounded-xl border border-indigo-100 bg-card p-4 text-sm">
           {loading ? <p role="status">Loading products...</p> :
             catalog.isError ? <p role="alert" className="text-destructive">Could not load products. <button className="underline" onClick={() => {
               void catalog.refetch();
               if (detail.isError) void detail.refetch();
             }}>Retry</button></p> :
-            <p role="status">{products.length ? 'The requested product was not found.' : 'No products are available.'}</p>}
+            <p role="status">{category ? (options.length ? 'Select a product to manage its modules and features.' : 'No products are available in this category.') : products.length ? 'The requested product was not found.' : 'No products are available.'}</p>}
           {picker}
+          {category && !options.length && !loading && !catalog.isError && (
+            <Button type="button" variant="outline" className="mt-3" onClick={() => changeCategory('')}>Show all categories</Button>
+          )}
         </div>
       )}
     </>}

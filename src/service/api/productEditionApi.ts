@@ -1,4 +1,3 @@
-import { nanoid } from '@reduxjs/toolkit';
 import { baseApi } from '../baseApi';
 import { loadResultPages } from './loadResultPages';
 
@@ -8,11 +7,22 @@ export interface EditionProduct {
   Product_Code: string | null;
   Description: string | null;
   Is_Active: boolean;
+  Category_id?: number | null;
+  Category?: string | null;
+}
+
+export interface EditionProductCategory {
+  id: number;
+  Category_Name: string | null;
+  Category_Code: string | null;
 }
 
 export interface ProductEdition {
   id: number;
   Product_Id: number;
+  Category_id?: number | null;
+  Category_Name?: string | null;
+  product_name?: string | null;
   Edition_Id: string;
   Is_Deleted: boolean;
   Edition_Name: string | null;
@@ -47,11 +57,11 @@ export interface ProductFeature {
 }
 
 type EditionInput = Pick<ProductEdition, 'Product_Id' | 'Edition_Name' | 'Edition_Code' | 'Description' | 'Is_Active'>;
-type EditionFilter = { Product_Id: number; Edition_Name?: string; Edition_Code?: string; Is_Active?: boolean };
+type EditionFilter = { Product_Id?: number; Edition_Name?: string; Edition_Code?: string; Is_Active?: boolean };
 type EditionPage = { count: number; results: ProductEdition[] };
-type EditionWrite = EditionInput & ({ id: number; Edition_Id: string } | { id?: undefined; Edition_Id?: undefined });
+type EditionWrite = EditionInput & { id?: number };
 
-function editionTag(id: number) {
+function editionTag(id: number | 'ALL' = 'ALL') {
   return [{ type: 'ProductEditions' as const, id }];
 }
 
@@ -69,10 +79,13 @@ const tags = ['ProductMasters'] as const;
 export const productEditionApi = baseApi.injectEndpoints({
   endpoints: builder => ({
     getEditionProducts: builder.query<EditionProduct[], void>({
-      queryFn: (_, { signal }, __, baseQuery) => loadResultPages<EditionProduct>(
-        page => baseQuery({ url: 'superadmin/ProductMasterList/', params: { page } }), signal,
-      ),
+      query: () => 'superadmin/ProductMasterdropdownlist/',
       providesTags: tags,
+      extraOptions,
+    }),
+    getEditionProductCategories: builder.query<EditionProductCategory[], void>({
+      query: () => 'superadmin/ProductCategorylistwithoutpaginaton/',
+      providesTags: ['ProductCategories'],
       extraOptions,
     }),
     getEditionProduct: builder.query<EditionProduct, string>({
@@ -80,7 +93,7 @@ export const productEditionApi = baseApi.injectEndpoints({
       providesTags: tags,
       extraOptions,
     }),
-    createEditionProduct: builder.mutation<EditionProduct, Pick<EditionProduct, 'Product_Name' | 'Product_Code' | 'Description'>>({
+    createEditionProduct: builder.mutation<EditionProduct, Pick<EditionProduct, 'Product_Name' | 'Product_Code' | 'Description' | 'Category_id'>>({
       query: body => ({ url: 'superadmin/ProductMasterCRUD/', method: 'POST', body }),
       invalidatesTags: (_, error) => error ? [] : tags,
       extraOptions,
@@ -102,8 +115,8 @@ export const productEditionApi = baseApi.injectEndpoints({
       providesTags: (_, __, { Product_Id }) => editionTag(Product_Id),
       extraOptions,
     }),
-    getProductModules: builder.query<ProductModule[], number>({
-      query: Product_Id => ({ url: 'superadmin/ModuleMasterlistwithoutpaginaton/', params: { Product_Id } }),
+    getProductModules: builder.query<ProductModule[], number | null>({
+      query: Product_Id => ({ url: 'superadmin/ModuleMasterlistwithoutpaginaton/', params: Product_Id == null ? undefined : { Product_Id } }),
       providesTags: tags,
       extraOptions,
     }),
@@ -116,19 +129,18 @@ export const productEditionApi = baseApi.injectEndpoints({
       query: body => ({
         url: editionCrud,
         method: body.id ? 'PATCH' : 'POST',
-        // The serializer otherwise uses Edition_Code as a globally unique Edition_Id.
-        body: body.id ? body : { ...body, Edition_Id: 'PED-' + nanoid() },
+        body,
       }),
-      invalidatesTags: (_, error, body) => error ? [] : editionTag(body.Product_Id),
+      invalidatesTags: (_, error, body) => error ? [] : [...editionTag(body.Product_Id), ...editionTag()],
       extraOptions,
     }),
     deleteProductEdition: builder.mutation<ProductEdition, Pick<ProductEdition, 'id' | 'Product_Id'>>({
       // DELETE passes only Is_Deleted to the serializer, which can reset Product_Id.
       query: body => ({ url: editionCrud, method: 'PATCH', body: { ...body, Is_Deleted: true } }),
-      invalidatesTags: (_, error, body) => error ? [] : editionTag(body.Product_Id),
+      invalidatesTags: (_, error, body) => error ? [] : [...editionTag(body.Product_Id), ...editionTag()],
       extraOptions,
     }),
-    saveProductModule: builder.mutation<ProductModule, ModuleInput & { Product_Id: number; id?: number; features?: FeatureFields[] }>({
+    saveProductModule: builder.mutation<ProductModule, ModuleInput & { Product_Id: number; id?: number; features?: FeatureFields[]; feature_editions?: Record<number, number[]> }>({
       query: body => ({ url: moduleCrud, method: body.id ? 'PATCH' : 'POST', body }),
       invalidatesTags: (_, error) => error ? [] : tags,
       extraOptions,
@@ -152,7 +164,7 @@ export const productEditionApi = baseApi.injectEndpoints({
 });
 
 export const {
-  useGetEditionProductsQuery, useGetEditionProductQuery, useCreateEditionProductMutation, useGetProductEditionsQuery,
+  useGetEditionProductsQuery, useGetEditionProductCategoriesQuery, useGetEditionProductQuery, useCreateEditionProductMutation, useGetProductEditionsQuery,
   useGetProductModulesQuery, useGetProductFeaturesQuery,
   useGetProductEditionPageQuery, useLazyGetProductEditionQuery, useSaveProductEditionMutation, useDeleteProductEditionMutation,
   useSaveProductModuleMutation, useDeleteProductModuleMutation,

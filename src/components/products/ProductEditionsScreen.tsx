@@ -2,23 +2,26 @@
 
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import { skipToken } from '@reduxjs/toolkit/query';
 import { useSearchParams } from 'next/navigation';
-import { Check, ChevronLeft, ChevronRight, Copy, GraduationCap, HelpCircle, Layers, Pencil, Plus, Trash2, Upload, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Copy, GraduationCap, HelpCircle, Layers, Pencil, Plus, Trash2, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useDeleteProductEditionMutation, useGetProductEditionsQuery, useGetProductEditionPageQuery, useLazyGetProductEditionQuery, useSaveProductEditionMutation, type ProductEdition } from '@/service/api/productEditionApi';
+import { useDeleteProductEditionMutation, useGetProductEditionsQuery, useGetEditionProductsQuery, useGetEditionProductCategoriesQuery, useGetEditionProductQuery, useGetProductEditionPageQuery, useLazyGetProductEditionQuery, useSaveProductEditionMutation, type ProductEdition } from '@/service/api/productEditionApi';
+import { useGetProductMasterLookupsQuery } from '@/service/api/superAdminService';
 import { apiError, Field } from '../addons/PricingWorkspace';
 import { ProductHeader, ProductStatus as Status, ProductSummary, ProductTabs, ProductWorkspace, productHref, type ProductWorkspaceSelection } from './ProductWorkspace';
 
 const primary = 'bg-[#5024e8] text-white hover:bg-[#4218ce]';
 const panel = 'min-w-0 rounded-xl border border-indigo-100 bg-card';
 const field = 'h-9 w-full min-w-0 rounded-md border border-input bg-background px-2 text-sm';
-type Draft = ({ id: number; editionId: string } | { id?: undefined; editionId?: undefined }) & { name: string; code: string; description: string; active: boolean };
+type Draft = ({ id: number; productId: number; categoryId?: number | null; categoryName?: string | null; productName?: string | null } | { id?: undefined; productId?: undefined }) & { name: string; code: string; description: string; active: boolean };
 const blank: Draft = { name: '', code: '', description: '', active: true };
 const toDraft = (edition: ProductEdition): Draft => ({
-  id: edition.id, editionId: edition.Edition_Id, name: edition.Edition_Name ?? '', code: edition.Edition_Code ?? '',
+  id: edition.id, productId: edition.Product_Id, categoryId: edition.Category_id, categoryName: edition.Category_Name, productName: edition.product_name, name: edition.Edition_Name ?? '', code: edition.Edition_Code ?? '',
   description: edition.Description ?? '', active: !!edition.Is_Active,
 });
 
@@ -29,38 +32,67 @@ const editionHeading = {
 
 export function ProductEditionsScreen() {
   const create = useSearchParams().get('mode') === 'create';
-  return <ProductWorkspace heading={editionHeading}>
-    {selection => <EditionEditor key={selection.product.id + ':' + create} {...selection} initialCreate={create} />}
+  const [filterProduct, setFilterProduct] = useState<number>();
+  const [page, setPaging] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  return <ProductWorkspace heading={editionHeading} showCategory>
+    {selection => <EditionEditor key={selection.product.id + ':' + create} {...selection}
+      filterProduct={filterProduct} setFilterProduct={setFilterProduct}
+      page={page} setPaging={setPaging} pageSize={pageSize} setPageSize={setPageSize} />}
   </ProductWorkspace>;
 }
 
-function EditionEditor({ product, picker, addProduct, initialCreate }: ProductWorkspaceSelection & { initialCreate: boolean }) {
-  const editions = useGetProductEditionsQuery(product.id, { refetchOnMountOrArgChange: true });
+function EditionEditor({
+  product, picker, addProduct, filterProduct, setFilterProduct, page, setPaging, pageSize, setPageSize,
+}: ProductWorkspaceSelection & {
+  filterProduct?: number;
+  setFilterProduct: (id?: number) => void;
+  page: number;
+  setPaging: (page: number) => void;
+  pageSize: number;
+  setPageSize: (size: number) => void;
+}) {
+  const products = useGetEditionProductsQuery();
   const [loadEdition, detail] = useLazyGetProductEditionQuery();
   const [save, saving] = useSaveProductEditionMutation();
   const [remove, deleting] = useDeleteProductEditionMutation();
-  const [editing, setEditing] = useState<Draft | null | undefined>(initialCreate ? blank : undefined);
-  const [paging, setPaging] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  const page = paging;
+  const [draft, setEditing] = useState<Draft | null>(blank);
+  const [createProductId, setCreateProductId] = useState<number>();
+  const [categoryId, setCategoryId] = useState('');
+  const categories = useGetEditionProductCategoriesQuery();
+  const catalog = products.currentData ?? [];
+  const productLookups = useGetProductMasterLookupsQuery(
+    !draft || draft.id ? skipToken : categoryId ? { Category_id: Number(categoryId) } : undefined,
+  );
+  const createProducts = productLookups.currentData ?? [];
+  const listProduct = catalog.find(item => item.id === filterProduct);
+  const editorProductId = draft?.productId ?? createProductId;
+  const listedOwner = products.currentData?.find(item => item.id === editorProductId);
+  const owner = useGetEditionProductQuery(editorProductId && editorProductId !== product.id && !listedOwner ? String(editorProductId) : skipToken);
+  const editorProduct = editorProductId === product.id ? product : listedOwner ?? owner.currentData;
+  const editCategoryId = draft?.id ? draft.categoryId ?? editorProduct?.Category_id : undefined;
+  const editCategory = (draft?.id ? draft.categoryName : undefined)
+    || categories.currentData?.find(item => item.id === editCategoryId)?.Category_Name || editorProduct?.Category;
+  const editions = useGetProductEditionsQuery(product.id, { refetchOnMountOrArgChange: true });
+  const editorEditions = useGetProductEditionsQuery(editorProductId && editorProductId !== product.id ? editorProductId : skipToken);
   const list = useGetProductEditionPageQuery({
-    Product_Id: product.id, page: page + 1, page_size: pageSize,
-  }, { refetchOnMountOrArgChange: true });
+    Product_Id: filterProduct, page: page + 1, page_size: pageSize,
+  });
   const [dialog, setDialog] = useState<'transfer' | 'help' | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [importing, setImporting] = useState(false);
   const busy = detail.isFetching || saving.isLoading || deleting.isLoading || importing;
   const records = editions.currentData ?? [];
-  const draft = editing === undefined && editions.currentData ? (records[0] ? toDraft(records[0]) : blank) : editing;
+  const capabilityEditions = editorProductId === product.id ? records : editorEditions.currentData ?? [];
   const visible = list.currentData?.results ?? [];
   const total = list.currentData?.count ?? 0;
 
   async function edit(row: ProductEdition) {
     setError('');
     try {
-      const latest = await loadEdition({ id: row.id, Product_Id: product.id }).unwrap();
-      if (latest.Product_Id !== product.id || latest.Is_Deleted) {
+      const latest = await loadEdition({ id: row.id, Product_Id: row.Product_Id }).unwrap();
+      if (latest.Product_Id !== row.Product_Id || latest.Is_Deleted) {
         setError('This edition is no longer available for this product.');
         void list.refetch();
         return;
@@ -76,9 +108,21 @@ function EditionEditor({ product, picker, addProduct, initialCreate }: ProductWo
     setError('');
   }
 
+  function startCreate(value: Draft = blank) {
+    setCategoryId('');
+    setCreateProductId(undefined);
+    open(value);
+  }
+
+  function changeCategory(value: string) {
+    setCategoryId(value);
+    setCreateProductId(undefined);
+    setError('');
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!draft || busy) return;
+    if (!draft || !editorProductId || busy) return;
     if (!draft.name.trim() || !draft.code.trim()) {
       setError('Enter an edition name and code.');
       return;
@@ -86,18 +130,23 @@ function EditionEditor({ product, picker, addProduct, initialCreate }: ProductWo
     setError('');
     try {
       const details = {
-        Product_Id: product.id,
+        Product_Id: editorProductId,
         Edition_Name: draft.name.trim(),
         Edition_Code: draft.code.trim(),
         Description: draft.description.trim(),
         Is_Active: draft.active,
       };
       const saved = await save(draft.id === undefined ? details : {
-        ...details, id: draft.id, Edition_Id: draft.editionId,
+        ...details, id: draft.id,
       }).unwrap();
-      open(toDraft(saved));
-      if (!draft.id) setPaging(0);
-      setMessage('Edition saved.');
+      if (draft.id) {
+        open(toDraft(saved));
+        toast.success('Edition updated successfully.');
+      } else {
+        startCreate();
+        setPaging(0);
+        toast.success('Edition created successfully.');
+      }
     } catch (failure) {
       setError(apiError(failure));
     }
@@ -107,7 +156,7 @@ function EditionEditor({ product, picker, addProduct, initialCreate }: ProductWo
     if (busy || !window.confirm('Delete ' + row.Edition_Name + '?')) return;
     setError('');
     try {
-      await remove({ id: row.id, Product_Id: product.id }).unwrap();
+      await remove({ id: row.id, Product_Id: row.Product_Id }).unwrap();
       if (draft?.id === row.id) open(null);
       if (page > 0 && visible.length === 1) setPaging(page - 1);
       setMessage('Edition deleted.');
@@ -165,13 +214,32 @@ function EditionEditor({ product, picker, addProduct, initialCreate }: ProductWo
     <div className={'grid gap-3 ' + (draft ? 'xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]' : '')}>
       <section className={panel}>
         <div className="space-y-3 px-4 pt-3">
-          <ProductSummary product={product} picker={picker} />
-          <ProductTabs product={product} active="editions" />
+          {listProduct ? <ProductSummary product={listProduct} picker={null} /> : <div className="space-y-3">
+            <Link href="/products/master" className="inline-flex items-center gap-1 text-xs font-semibold text-violet-700">
+              <ArrowLeft className="size-4" />Back to Product List
+            </Link>
+            <h2 className="flex items-center gap-3 text-xl font-bold">
+              <GraduationCap className="size-8 shrink-0 text-violet-700" />All Products
+            </h2>
+          </div>}
+          <ProductTabs product={listProduct} active="editions" />
         </div>
         <div className="space-y-3 border-t border-indigo-100 p-4">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-lg font-bold"><Layers className="size-6 text-violet-700" />Edition Master</h2>
-            <Button className={primary} disabled={busy} onClick={() => open(blank)}><Plus />Add Edition</Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <select aria-label="Filter by product" className={field + ' w-auto max-w-48'} value={filterProduct ?? ''}
+                onChange={event => {
+                  setFilterProduct(event.target.value ? Number(event.target.value) : undefined);
+                  setPaging(0);
+                }}>
+                <option value="">All Products</option>
+                {products.currentData?.map(item => <option key={item.id} value={item.id}>
+                  {item.Product_Name || item.Product_Code || `Product ${item.id}`}
+                </option>)}
+              </select>
+              <Button className={primary} disabled={busy} onClick={() => startCreate()}><Plus />Add Edition</Button>
+            </div>
           </div>
           {list.isError ? <p role="alert" className="text-sm text-destructive">Could not load editions. <button type="button" className="underline" onClick={() => void list.refetch()}>Retry</button></p> : !list.currentData ? (
             <p role="status" className="text-sm text-muted-foreground">Loading editions...</p>
@@ -179,7 +247,7 @@ function EditionEditor({ product, picker, addProduct, initialCreate }: ProductWo
             <table className="w-full text-left text-xs">
               <thead className="bg-indigo-50 text-slate-900"><tr>{['#', 'Edition Code', 'Edition Name', 'Description', 'Status', 'Actions'].map(label => <th scope="col" key={label} className="p-2">{label}</th>)}</tr></thead>
               <tbody className="divide-y divide-indigo-50">
-                {!visible.length && <tr><td colSpan={6} className="p-4 text-muted-foreground">No editions for this product.</td></tr>}
+                {!visible.length && <tr><td colSpan={6} className="p-4 text-muted-foreground">{filterProduct ? 'No editions for this product.' : 'No product editions yet.'}</td></tr>}
                 {visible.map((row, index) => <tr key={row.id} className={draft?.id === row.id ? 'bg-violet-100/70' : 'hover:bg-indigo-50/50'}>
                   <td className="p-2">{page * pageSize + index + 1}</td>
                   <td className="p-2 font-medium">{row.Edition_Code}</td>
@@ -187,7 +255,7 @@ function EditionEditor({ product, picker, addProduct, initialCreate }: ProductWo
                   <td className="p-2">{row.Description}</td><td className="p-2"><Status active={row.Is_Active} /></td>
                   <td className="p-2"><div className="flex">
                     <Button type="button" size="icon-sm" variant="ghost" disabled={busy} aria-label={'Edit ' + row.Edition_Name} className="text-violet-700" onClick={() => void edit(row)}><Pencil /></Button>
-                    <Button type="button" size="icon-sm" variant="ghost" disabled={busy} aria-label={'Duplicate ' + row.Edition_Name} className="text-violet-700" onClick={() => open({ ...toDraft(row), id: undefined, editionId: undefined, name: (row.Edition_Name ?? '') + ' (Copy)', code: '' })}><Copy /></Button>
+                    <Button type="button" size="icon-sm" variant="ghost" disabled={busy} aria-label={'Duplicate ' + row.Edition_Name} className="text-violet-700" onClick={() => startCreate({ ...toDraft(row), id: undefined, productId: undefined, name: (row.Edition_Name ?? '') + ' (Copy)', code: '' })}><Copy /></Button>
                     <Button type="button" size="icon-sm" variant="ghost" disabled={busy} aria-label={'Delete ' + row.Edition_Name} className="text-destructive" onClick={() => void deleteEdition(row)}><Trash2 /></Button>
                   </div></td>
                 </tr>)}
@@ -203,12 +271,38 @@ function EditionEditor({ product, picker, addProduct, initialCreate }: ProductWo
       </section>
       {draft && <section className={panel}>
         <div className="space-y-3 px-4 pt-3">
-          <header className="flex flex-wrap items-center gap-2"><GraduationCap className="size-7 text-violet-700" /><h2 className="text-xl font-bold">{product.Product_Name || product.Product_Code}</h2><Status active={product.Is_Active} /><Button type="button" variant="ghost" size="icon-sm" className="ml-auto" disabled={busy} aria-label="Close edition editor" onClick={() => open(null)}><X /></Button></header>
-          <ProductTabs product={product} active="editions" />
+          <header className="flex flex-wrap items-center gap-2"><GraduationCap className="size-7 text-violet-700" /><h2 className="text-xl font-bold">{editorProduct?.Product_Name || editorProduct?.Product_Code || (editorProductId ? `Product ${editorProductId}` : 'Create Edition')}</h2>{editorProduct && <Status active={editorProduct.Is_Active} />}<Button type="button" variant="ghost" size="icon-sm" className="ml-auto" disabled={busy} aria-label="Close edition editor" onClick={() => open(null)}><X /></Button></header>
+          <ProductTabs product={editorProduct} active="editions" />
         </div>
         <form className="space-y-4 border-t border-indigo-100 p-4" onSubmit={submit}>
-          <h3 className="text-lg font-bold">{draft.id ? 'Edition Details - ' + draft.name : 'Create Edition'}</h3>
+          {draft.id && <h3 className="text-lg font-bold">Edition Details - {draft.name}</h3>}
           <fieldset className="space-y-3" disabled={busy}>
+            {draft.id ? <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Product Category"><Input readOnly value={editCategory || 'No category'} /></Field>
+              <Field label="Product"><Input readOnly value={editorProduct?.Product_Name || draft.productName || editorProduct?.Product_Code || `Product ${draft.productId}`} /></Field>
+            </div> : <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Product Category">
+                <select className={field} disabled={categories.isLoading} value={categoryId} onChange={event => changeCategory(event.target.value)}>
+                  <option value="">{categories.isLoading ? 'Loading categories...' : 'All categories'}</option>
+                  {categories.currentData?.map(item => <option key={item.id} value={item.id}>
+                    {item.Category_Name || item.Category_Code || `Category ${item.id}`}
+                  </option>)}
+                </select>
+              </Field>
+              <Field label="Product">
+                <select className={field} required disabled={productLookups.isFetching || productLookups.isError || !createProducts.length} value={createProductId ?? ''}
+                  onChange={event => setCreateProductId(event.target.value ? Number(event.target.value) : undefined)}>
+                  <option value="">
+                    {productLookups.isFetching ? 'Loading products...' : productLookups.isError ? 'Could not load products' : createProducts.length ? 'Select product' : 'No products available'}
+                  </option>
+                  {createProducts.map(item => <option key={item.id} value={item.id}>
+                    {item.Product_Name || item.Product_Code || `Product ${item.id}`}{item.Product_Name && item.Product_Code ? ` (${item.Product_Code})` : ''}
+                  </option>)}
+                </select>
+              </Field>
+              {categories.isError && <p role="alert" className="text-xs text-destructive">Could not load categories. <button type="button" className="underline" onClick={() => void categories.refetch()}>Retry</button></p>}
+              {productLookups.isError && <p role="alert" className="text-xs text-destructive">Could not load products. <button type="button" className="underline" onClick={() => void productLookups.refetch()}>Retry</button></p>}
+            </div>}
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Edition Code"><Input required maxLength={100} value={draft.code} onChange={event => open({ ...draft, code: event.target.value })} /></Field>
               <Field label="Edition Name"><Input required maxLength={250} value={draft.name} onChange={event => open({ ...draft, name: event.target.value })} /></Field>
@@ -222,16 +316,16 @@ function EditionEditor({ product, picker, addProduct, initialCreate }: ProductWo
             <h4 className="font-bold">Key Capabilities (Features Included)</h4>
             <div className="overflow-x-auto rounded-md border border-indigo-50">
               <table className="w-full text-xs">
-                <thead className="bg-indigo-50"><tr><th scope="col" className="p-2 text-left">Feature / Module</th>{records.map(row => <th scope="col" key={row.id} className="p-2">{row.Edition_Name}</th>)}</tr></thead>
-                <tbody><tr><td colSpan={records.length + 1} className="p-3 text-muted-foreground">
-                  <Link className="font-semibold text-violet-700" href={productHref('/products/feature-mapping', product.id)}>View edition mapping</Link>
+                <thead className="bg-indigo-50"><tr><th scope="col" className="p-2 text-left">Feature / Module</th>{capabilityEditions.map(row => <th scope="col" key={row.id} className="p-2">{row.Edition_Name}</th>)}</tr></thead>
+                <tbody><tr><td colSpan={capabilityEditions.length + 1} className="p-3 text-muted-foreground">
+                  {editorProductId ? <Link className="font-semibold text-violet-700" href={productHref('/products/feature-mapping', editorProductId)}>View edition mapping</Link> : 'Select a product to view edition mapping.'}
                 </td></tr></tbody>
               </table>
             </div>
           </section>
           <div className="flex gap-2 border-t border-indigo-100 pt-3">
-            <Button type="submit" className={primary} disabled={busy}><Check />{draft.id ? 'Update Edition' : 'Save Edition'}</Button>
-            <Button type="button" variant="outline" disabled={busy} onClick={() => open(null)}>Cancel</Button>
+            <Button type="submit" className={primary} disabled={busy || !editorProductId}><Check />{draft.id ? 'Update Edition' : 'Save Edition'}</Button>
+            <Button type="button" variant="outline" disabled={busy} onClick={() => startCreate()}>Cancel</Button>
           </div>
         </form>
       </section>}
@@ -240,6 +334,7 @@ function EditionEditor({ product, picker, addProduct, initialCreate }: ProductWo
       {dialog && <DialogContent className="max-w-lg">
         <DialogHeader><DialogTitle>{dialog === 'help' ? 'Product Editions' : 'Import / Export'}</DialogTitle><DialogDescription>{dialog === 'help' ? 'How editions and capabilities fit together' : 'Exchange edition records for the selected product as JSON.'}</DialogDescription></DialogHeader>
         {dialog === 'help' ? <p className="text-sm">An edition belongs to the product selected above. Use Modules &amp; Features to manage the product catalog.</p> : <>
+          {picker}
           <Button type="button" variant="outline" disabled={busy || !editions.currentData} onClick={exportEditions}>Export Editions</Button>
           <label className="grid gap-2 text-sm">Import Editions<Input type="file" accept=".json,application/json" disabled={busy || !editions.currentData} onChange={event => { const file = event.target.files?.[0]; if (file) void importEditions(file); }} /></label>
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
