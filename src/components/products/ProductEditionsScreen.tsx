@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Check, ChevronLeft, ChevronRight, Copy, GraduationCap, HelpCircle, Layers, Pencil, Plus, Trash2, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,23 +28,23 @@ const editionHeading = {
 };
 
 export function ProductEditionsScreen() {
+  const create = useSearchParams().get('mode') === 'create';
   return <ProductWorkspace heading={editionHeading}>
-    {selection => <EditionEditor key={selection.product.id} {...selection} />}
+    {selection => <EditionEditor key={selection.product.id + ':' + create} {...selection} initialCreate={create} />}
   </ProductWorkspace>;
 }
 
-function EditionEditor({ product, picker, addProduct }: ProductWorkspaceSelection) {
+function EditionEditor({ product, picker, addProduct, initialCreate }: ProductWorkspaceSelection & { initialCreate: boolean }) {
   const editions = useGetProductEditionsQuery(product.id, { refetchOnMountOrArgChange: true });
-  const [filters, setFilters] = useState<{ Edition_Name?: string; Edition_Code?: string; Is_Active?: boolean } | null>(null);
   const [loadEdition, detail] = useLazyGetProductEditionQuery();
   const [save, saving] = useSaveProductEditionMutation();
   const [remove, deleting] = useDeleteProductEditionMutation();
-  const [editing, setEditing] = useState<Draft | null | undefined>(undefined);
+  const [editing, setEditing] = useState<Draft | null | undefined>(initialCreate ? blank : undefined);
   const [paging, setPaging] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const page = paging;
   const list = useGetProductEditionPageQuery({
-    Product_Id: product.id, ...filters, page: page + 1, page_size: pageSize,
+    Product_Id: product.id, page: page + 1, page_size: pageSize,
   }, { refetchOnMountOrArgChange: true });
   const [dialog, setDialog] = useState<'transfer' | 'help' | null>(null);
   const [message, setMessage] = useState('');
@@ -54,19 +55,6 @@ function EditionEditor({ product, picker, addProduct }: ProductWorkspaceSelectio
   const draft = editing === undefined && editions.currentData ? (records[0] ? toDraft(records[0]) : blank) : editing;
   const visible = list.currentData?.results ?? [];
   const total = list.currentData?.count ?? 0;
-
-  function applyFilters(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const values = new FormData(event.currentTarget);
-    const name = String(values.get('name')).trim();
-    const code = String(values.get('code')).trim();
-    const status = values.get('status');
-    setFilters(name || code || status ? {
-      Edition_Name: name || undefined, Edition_Code: code || undefined,
-      Is_Active: status ? status === 'active' : undefined,
-    } : null);
-    setPaging(0);
-  }
 
   async function edit(row: ProductEdition) {
     setError('');
@@ -185,24 +173,18 @@ function EditionEditor({ product, picker, addProduct }: ProductWorkspaceSelectio
             <h2 className="flex items-center gap-2 text-lg font-bold"><Layers className="size-6 text-violet-700" />Edition Master</h2>
             <Button className={primary} disabled={busy} onClick={() => open(blank)}><Plus />Add Edition</Button>
           </div>
-          <form onSubmit={applyFilters} onReset={() => { setFilters(null); setPaging(0); }} className="flex flex-wrap items-end gap-2">
-            <Field label="Edition Name"><Input name="name" maxLength={250} className="h-9" /></Field>
-            <Field label="Edition Code"><Input name="code" maxLength={100} className="h-9" /></Field>
-            <Field label="Status"><select name="status" className={field}><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select></Field>
-            <Button type="submit" variant="outline">Filter</Button>
-            {filters && <Button type="reset" variant="ghost">Clear</Button>}
-          </form>
           {list.isError ? <p role="alert" className="text-sm text-destructive">Could not load editions. <button type="button" className="underline" onClick={() => void list.refetch()}>Retry</button></p> : !list.currentData ? (
             <p role="status" className="text-sm text-muted-foreground">Loading editions...</p>
           ) : <div className="overflow-x-auto rounded-md border border-indigo-50">
             <table className="w-full text-left text-xs">
-              <thead className="bg-indigo-50 text-slate-900"><tr>{['#', 'Edition Name', 'Edition Code', 'Description', 'Status', 'Actions'].map(label => <th scope="col" key={label} className="p-2">{label}</th>)}</tr></thead>
+              <thead className="bg-indigo-50 text-slate-900"><tr>{['#', 'Edition Code', 'Edition Name', 'Description', 'Status', 'Actions'].map(label => <th scope="col" key={label} className="p-2">{label}</th>)}</tr></thead>
               <tbody className="divide-y divide-indigo-50">
-                {!visible.length && <tr><td colSpan={6} className="p-4 text-muted-foreground">{filters ? 'No editions match these filters.' : 'No editions for this product.'}</td></tr>}
+                {!visible.length && <tr><td colSpan={6} className="p-4 text-muted-foreground">No editions for this product.</td></tr>}
                 {visible.map((row, index) => <tr key={row.id} className={draft?.id === row.id ? 'bg-violet-100/70' : 'hover:bg-indigo-50/50'}>
                   <td className="p-2">{page * pageSize + index + 1}</td>
+                  <td className="p-2 font-medium">{row.Edition_Code}</td>
                   <td className="p-2"><button type="button" disabled={busy} onClick={() => void edit(row)} className="flex items-center gap-2 text-left font-semibold"><Layers className="size-4 shrink-0 text-violet-700" />{row.Edition_Name}</button></td>
-                  <td className="p-2 font-medium">{row.Edition_Code}</td><td className="p-2">{row.Description}</td><td className="p-2"><Status active={row.Is_Active} /></td>
+                  <td className="p-2">{row.Description}</td><td className="p-2"><Status active={row.Is_Active} /></td>
                   <td className="p-2"><div className="flex">
                     <Button type="button" size="icon-sm" variant="ghost" disabled={busy} aria-label={'Edit ' + row.Edition_Name} className="text-violet-700" onClick={() => void edit(row)}><Pencil /></Button>
                     <Button type="button" size="icon-sm" variant="ghost" disabled={busy} aria-label={'Duplicate ' + row.Edition_Name} className="text-violet-700" onClick={() => open({ ...toDraft(row), id: undefined, editionId: undefined, name: (row.Edition_Name ?? '') + ' (Copy)', code: '' })}><Copy /></Button>
@@ -228,8 +210,8 @@ function EditionEditor({ product, picker, addProduct }: ProductWorkspaceSelectio
           <h3 className="text-lg font-bold">{draft.id ? 'Edition Details - ' + draft.name : 'Create Edition'}</h3>
           <fieldset className="space-y-3" disabled={busy}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Edition Name"><Input required maxLength={250} value={draft.name} onChange={event => open({ ...draft, name: event.target.value })} /></Field>
               <Field label="Edition Code"><Input required maxLength={100} value={draft.code} onChange={event => open({ ...draft, code: event.target.value })} /></Field>
+              <Field label="Edition Name"><Input required maxLength={250} value={draft.name} onChange={event => open({ ...draft, name: event.target.value })} /></Field>
             </div>
             <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
               <Field label="Description"><Textarea rows={2} value={draft.description} onChange={event => open({ ...draft, description: event.target.value })} /></Field>

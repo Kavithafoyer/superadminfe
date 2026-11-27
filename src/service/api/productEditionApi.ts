@@ -23,7 +23,10 @@ export interface ProductEdition {
 
 export interface ProductModule {
   id: number;
-  Product_Id: number | null;
+  Product_Id: number;
+  Product_Edition_id: number[];
+  feature_count: number;
+  edition_count: number;
   Module_name: string | null;
   Module_Code: string | null;
   Module_Type: string | null;
@@ -36,6 +39,7 @@ export interface ProductFeature {
   id: number;
   Module_Id: number | null;
   Product_Id: number;
+  Edition_Ids: number[];
   Feature_Name: string | null;
   Feature_Code: string | null;
   Description: string | null;
@@ -52,8 +56,9 @@ function editionTag(id: number) {
 }
 
 type ModuleInput = Pick<ProductModule, 'Module_name' | 'Module_Type' | 'Description' | 'Status'>;
-type FeatureScope = { Product_Id: number; Module_Id: number };
-type FeatureInput = FeatureScope & Pick<ProductFeature, 'Feature_Name' | 'Description' | 'Is_Active'>;
+type FeatureScope = { Product_Id: number; Module_Id?: number };
+type FeatureFields = Pick<ProductFeature, 'Feature_Name' | 'Description' | 'Is_Active'> & { Edition_Ids?: number[] };
+type FeatureInput = FeatureScope & FeatureFields;
 const editionList = 'superadmin/ProductEditionListwithPagination/';
 const editionCrud = 'superadmin/ProductEditionCRUD/';
 const moduleCrud = 'superadmin/ModuleMasterCRUD/';
@@ -67,6 +72,11 @@ export const productEditionApi = baseApi.injectEndpoints({
       queryFn: (_, { signal }, __, baseQuery) => loadResultPages<EditionProduct>(
         page => baseQuery({ url: 'superadmin/ProductMasterList/', params: { page } }), signal,
       ),
+      providesTags: tags,
+      extraOptions,
+    }),
+    getEditionProduct: builder.query<EditionProduct, string>({
+      query: id => ({ url: 'superadmin/ProductMasterCRUD/', params: { id } }),
       providesTags: tags,
       extraOptions,
     }),
@@ -88,20 +98,17 @@ export const productEditionApi = baseApi.injectEndpoints({
       extraOptions,
     }),
     getProductEdition: builder.query<ProductEdition, { id: number; Product_Id: number }>({
-      query: ({ id }) => ({ url: editionCrud, params: { id } }),
+      query: params => ({ url: editionCrud, params }),
       providesTags: (_, __, { Product_Id }) => editionTag(Product_Id),
       extraOptions,
     }),
     getProductModules: builder.query<ProductModule[], number>({
       query: Product_Id => ({ url: 'superadmin/ModuleMasterlistwithoutpaginaton/', params: { Product_Id } }),
-      transformResponse: (rows: ProductModule[], _, productId) => rows.filter(row => row.Product_Id === productId),
       providesTags: tags,
       extraOptions,
     }),
     getProductFeatures: builder.query<ProductFeature[], FeatureScope>({
       query: params => ({ url: 'superadmin/ProductFeaturelistwithoutpaginaton/', params }),
-      transformResponse: (rows: ProductFeature[], _, scope) =>
-        rows.filter(row => row.Product_Id === scope.Product_Id && row.Module_Id === scope.Module_Id),
       providesTags: tags,
       extraOptions,
     }),
@@ -121,13 +128,13 @@ export const productEditionApi = baseApi.injectEndpoints({
       invalidatesTags: (_, error, body) => error ? [] : editionTag(body.Product_Id),
       extraOptions,
     }),
-    saveProductModule: builder.mutation<ProductModule, ModuleInput & { Product_Id: number; id?: number }>({
+    saveProductModule: builder.mutation<ProductModule, ModuleInput & { Product_Id: number; id?: number; features?: FeatureFields[] }>({
       query: body => ({ url: moduleCrud, method: body.id ? 'PATCH' : 'POST', body }),
       invalidatesTags: (_, error) => error ? [] : tags,
       extraOptions,
     }),
-    deleteProductModule: builder.mutation<ProductModule, number>({
-      query: id => ({ url: moduleCrud, method: 'DELETE', params: { id } }),
+    deleteProductModule: builder.mutation<ProductModule, { id: number; Product_Id: number }>({
+      query: params => ({ url: moduleCrud, method: 'DELETE', params }),
       invalidatesTags: (_, error) => error ? [] : tags,
       extraOptions,
     }),
@@ -136,8 +143,8 @@ export const productEditionApi = baseApi.injectEndpoints({
       invalidatesTags: (_, error) => error ? [] : tags,
       extraOptions,
     }),
-    deleteProductFeature: builder.mutation<ProductFeature, number>({
-      query: id => ({ url: featureCrud, method: 'DELETE', params: { id } }),
+    deleteProductFeature: builder.mutation<ProductFeature, FeatureScope & { id: number }>({
+      query: params => ({ url: featureCrud, method: 'DELETE', params }),
       invalidatesTags: (_, error) => error ? [] : tags,
       extraOptions,
     }),
@@ -145,7 +152,7 @@ export const productEditionApi = baseApi.injectEndpoints({
 });
 
 export const {
-  useGetEditionProductsQuery, useCreateEditionProductMutation, useGetProductEditionsQuery,
+  useGetEditionProductsQuery, useGetEditionProductQuery, useCreateEditionProductMutation, useGetProductEditionsQuery,
   useGetProductModulesQuery, useGetProductFeaturesQuery,
   useGetProductEditionPageQuery, useLazyGetProductEditionQuery, useSaveProductEditionMutation, useDeleteProductEditionMutation,
   useSaveProductModuleMutation, useDeleteProductModuleMutation,

@@ -589,18 +589,23 @@ const productWorkspaceRoutes = new Set([
 
 type SidebarLinkProps = React.ComponentProps<typeof NavLink> & { href: string };
 
+function workspaceSidebarHref(path: string, product?: string | null) {
+  const params = new URLSearchParams();
+  if (product) params.set('product', product);
+  if (path === '/products/editions' || path === '/products/features-modules') params.set('mode', 'create');
+  return params.size ? path + '?' + params.toString() : path;
+}
+
 function ProductScopedNavLink(props: SidebarLinkProps) {
   const pathname = usePathname();
   const product = useSearchParams().get('product');
-  const href = product && productWorkspaceRoutes.has(pathname)
-    ? props.href + '?' + new URLSearchParams({ product })
-    : props.href;
-  return <NavLink {...props} href={href} />;
+  const preserveProduct = productWorkspaceRoutes.has(pathname) || pathname === '/products/master';
+  return <NavLink {...props} href={workspaceSidebarHref(props.href, preserveProduct ? product : null)} />;
 }
 
 function SidebarLink(props: SidebarLinkProps) {
   if (!productWorkspaceRoutes.has(props.href)) return <NavLink {...props} />;
-  return <React.Suspense fallback={<NavLink {...props} />}>
+  return <React.Suspense fallback={<NavLink {...props} href={workspaceSidebarHref(props.href)} />}>
     <ProductScopedNavLink {...props} />
   </React.Suspense>;
 }

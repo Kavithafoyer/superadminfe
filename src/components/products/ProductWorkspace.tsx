@@ -2,13 +2,14 @@
 
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
+import { skipToken } from '@reduxjs/toolkit/query';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, GraduationCap, HelpCircle, Plus, Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useCreateEditionProductMutation, useGetEditionProductsQuery, useGetProductEditionsQuery, type EditionProduct } from '@/service/api/productEditionApi';
+import { useCreateEditionProductMutation, useGetEditionProductQuery, useGetEditionProductsQuery, useGetProductEditionsQuery, type EditionProduct } from '@/service/api/productEditionApi';
 import { Field, apiError } from '../addons/PricingWorkspace';
 import { INITIAL_PRODUCTS } from './productData';
 import { IsometricBoxIcon } from './ProductIcons';
@@ -111,8 +112,12 @@ export function ProductWorkspace({ heading = defaultHeading, productScopedParams
   const search = useSearchParams();
   const requested = search.get('product');
   const catalog = useGetEditionProductsQuery();
+  const listedProduct = resolveProduct(catalog.currentData ?? [], requested);
+  const detail = useGetEditionProductQuery(!listedProduct && requested && /^[1-9]\d*$/.test(requested) ? requested : skipToken);
+  const product = listedProduct ?? detail.currentData;
   const products = catalog.currentData ?? [];
-  const product = resolveProduct(products, requested);
+  const options = product && !listedProduct ? [product, ...products] : products;
+  const loading = catalog.isLoading || catalog.isFetching || detail.isFetching;
   const [dialog, setDialog] = useState<'create' | 'help' | null>(null);
   const [create, creatingProduct] = useCreateEditionProductMutation();
   const [error, setError] = useState('');
@@ -120,7 +125,9 @@ export function ProductWorkspace({ heading = defaultHeading, productScopedParams
   function destination(id: string | number) {
     const params = new URLSearchParams(search.toString());
     params.set('product', String(id));
-    for (const key of productScopedParams ?? []) params.delete(key);
+    for (const key of productScopedParams ?? []) {
+      if (key !== 'mode' || params.get('mode') !== 'create') params.delete(key);
+    }
     return pathname + '?' + params.toString();
   }
 
@@ -157,20 +164,24 @@ export function ProductWorkspace({ heading = defaultHeading, productScopedParams
     setDialog('create');
   }
 
-  const picker = !!products.length && <select aria-label="Switch product" className={productField + (product ? ' w-auto max-w-full' : ' mt-2 max-w-xs')} value={product?.id ?? ''} onChange={event => router.push(destination(event.target.value), { scroll: false })}>
+  const picker = !!options.length && <select aria-label="Switch product" className={productField + (product ? ' w-auto max-w-full' : ' mt-2 max-w-xs')} value={product?.id ?? ''} onChange={event => router.push(destination(event.target.value), { scroll: false })}>
     <option value="" disabled>Select product</option>
-    {products.map(item => <option key={item.id} value={item.id}>{item.Product_Name || item.Product_Code || `Product ${item.id}`}{item.Product_Name && item.Product_Code ? ` (${item.Product_Code})` : ''}</option>)}
+    {options.map(item => <option key={item.id} value={item.id}>{item.Product_Name || item.Product_Code || `Product ${item.id}`}{item.Product_Name && item.Product_Code ? ` (${item.Product_Code})` : ''}</option>)}
   </select>;
 
-  return <section className="space-y-3 text-foreground" aria-busy={!product && catalog.isFetching}>
+  return <section className="space-y-3 text-foreground" aria-busy={!product && loading}>
     {product ? children({ product, addProduct, picker }) : <>
       <ProductHeader addProduct={addProduct} heading={heading}>
         <Button variant="outline" className="border-indigo-200 bg-indigo-50 text-indigo-950" disabled><Upload />Import / Export</Button>
         <Button variant="outline" className="border-indigo-200 bg-indigo-50 text-indigo-950" onClick={() => setDialog('help')}><HelpCircle />Help</Button>
       </ProductHeader>
-      {(catalog.isError || (!catalog.isFetching && catalog.currentData)) && (
+      {(loading || catalog.isError || detail.isError || catalog.currentData) && (
         <div className="rounded-xl border border-indigo-100 bg-card p-4 text-sm">
-          {catalog.isError ? <p role="alert" className="text-destructive">Could not load products. <button className="underline" onClick={() => void catalog.refetch()}>Retry</button></p> :
+          {loading ? <p role="status">Loading products...</p> :
+            catalog.isError ? <p role="alert" className="text-destructive">Could not load products. <button className="underline" onClick={() => {
+              void catalog.refetch();
+              if (detail.isError) void detail.refetch();
+            }}>Retry</button></p> :
             <p role="status">{products.length ? 'The requested product was not found.' : 'No products are available.'}</p>}
           {picker}
         </div>
