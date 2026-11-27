@@ -1,6 +1,6 @@
-import type { PricingTier } from './addonPriceTemplateApi';
-import { baseApi } from '../baseApi';
-import { broadcastPricingChange, pricingTags } from '../compatibilitySync';
+import type { PricingTier } from "./addonPriceTemplateApi";
+import { baseApi } from "../baseApi";
+import { broadcastPricingChange, pricingTags } from "../compatibilitySync";
 
 export interface TierScheduleDetails {
   Code: string;
@@ -18,7 +18,12 @@ export interface PricingOptions {
   Marketplace_Visible?: boolean;
   Allow_Trial?: boolean;
   Annual_Discount?: string | null;
-  Edition_Rates?: { Plan: number; Rate: string; Trial_Days: number; Active: boolean }[];
+  Edition_Rates?: {
+    Plan: number;
+    Rate: string;
+    Trial_Days: number;
+    Active: boolean;
+  }[];
 }
 
 export interface AddonPricingDto {
@@ -70,24 +75,25 @@ export interface AddonPricingFilterParams {
   page?: number;
 }
 
-const prefix = 'superadmin/AddonPricing';
-const crud = prefix + 'CRUD/';
+const prefix = "superadmin/AddonPricing";
+const crud = prefix + "CRUD/";
 const extraOptions = { skipHostFallback: true };
-const tags = ['AddonPricing'] as const;
+const tags = ["AddonPricing"] as const;
 
 export const addonPricingApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // 1. KPI Charts & Metrics Endpoint
     getAddonPricingKPI: builder.query<AddonPricingKPI, void>({
-      query: () => prefix + 'KPI/',
+      query: () => prefix + "KPI/",
       providesTags: tags,
       extraOptions,
     }),
 
     // 2. List Without Pagination Endpoint
     getAddonPricingWithoutPagination: builder.query<AddonPricingDto[], void>({
-      query: () => ({ url: prefix + 'listwithoutpaginaton/', method: 'GET' }),
-      transformResponse: (response: any) => (Array.isArray(response) ? response : response?.results || []),
+      query: () => ({ url: prefix + "listwithoutpaginaton/", method: "GET" }),
+      transformResponse: (response: any) =>
+        Array.isArray(response) ? response : response?.results || [],
       providesTags: tags,
       extraOptions,
     }),
@@ -95,33 +101,42 @@ export const addonPricingApi = baseApi.injectEndpoints({
     // 4. Search Endpoint (GET superadmin/AddonPricingSearch/?search=...)
     searchAddonPricing: builder.query<AddonPricingDto[], string>({
       query: (search) => ({
-        url: prefix + 'Search/',
-        params: { search: search ? String(search).trim() : '' },
+        url: prefix + "Search/",
+        params: { search: search ? String(search).trim() : "" },
       }),
-      transformResponse: (response: any) => (Array.isArray(response) ? response : response?.results || []),
+      transformResponse: (response: any) =>
+        Array.isArray(response) ? response : response?.results || [],
       providesTags: tags,
       extraOptions,
     }),
 
     // 5. Filter Endpoint (POST superadmin/AddonPricingFilter/)
-    filterAddonPricing: builder.query<AddonPricingDto[], AddonPricingFilterParams>({
+    filterAddonPricing: builder.query<
+      AddonPricingDto[],
+      AddonPricingFilterParams
+    >({
       query: (filters) => ({
-        url: prefix + 'Filter/',
-        method: 'POST',
+        url: prefix + "Filter/",
+        method: "POST",
         body: filters,
       }),
-      transformResponse: (response: any) => (Array.isArray(response) ? response : response?.results || []),
+      transformResponse: (response: any) =>
+        Array.isArray(response) ? response : response?.results || [],
       providesTags: tags,
       extraOptions,
     }),
 
-    filterAddonPricingMutation: builder.mutation<AddonPricingDto[], AddonPricingFilterParams>({
+    filterAddonPricingMutation: builder.mutation<
+      AddonPricingDto[],
+      AddonPricingFilterParams
+    >({
       query: (filters) => ({
-        url: prefix + 'Filter/',
-        method: 'POST',
+        url: prefix + "Filter/",
+        method: "POST",
         body: filters,
       }),
-      transformResponse: (response: any) => (Array.isArray(response) ? response : response?.results || []),
+      transformResponse: (response: any) =>
+        Array.isArray(response) ? response : response?.results || [],
       extraOptions,
     }),
 
@@ -132,34 +147,43 @@ export const addonPricingApi = baseApi.injectEndpoints({
       extraOptions,
     }),
 
-    createAddonPricing: builder.mutation<AddonPricingDto, Partial<AddonPricingDto>>({
+    createAddonPricing: builder.mutation<
+      AddonPricingDto,
+      Partial<AddonPricingDto>
+    >({
       query: (body) => ({
         url: crud,
-        method: 'POST',
+        method: "POST",
         body,
       }),
-      invalidatesTags: (_result, error) => error ? [] : [...pricingTags],
+      invalidatesTags: (_result, error) => (error ? [] : [...pricingTags]),
       onQueryStarted: broadcastPricingChange,
       extraOptions,
     }),
 
-    updateAddonPricing: builder.mutation<AddonPricingDto, Partial<AddonPricingDto> & { id: number | string }>({
+    updateAddonPricing: builder.mutation<
+      AddonPricingDto,
+      Partial<AddonPricingDto> & { id: number | string }
+    >({
       query: (body) => ({
         url: crud,
-        method: 'PUT',
+        method: "PUT",
         body,
       }),
-      invalidatesTags: (_result, error) => error ? [] : [...pricingTags],
+      invalidatesTags: (_result, error) => (error ? [] : [...pricingTags]),
       onQueryStarted: broadcastPricingChange,
       extraOptions,
     }),
 
-    deleteAddonPricing: builder.mutation<{ message: string; id: number | string }, number | string>({
+    deleteAddonPricing: builder.mutation<
+      { message: string; id: number | string },
+      number | string
+    >({
       query: (id) => ({
         url: `${crud}?id=${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: (_result, error) => error ? [] : [...pricingTags],
+      invalidatesTags: (_result, error) => (error ? [] : [...pricingTags]),
       onQueryStarted: broadcastPricingChange,
       extraOptions,
     }),
@@ -193,52 +217,52 @@ export const downloadAddonPricingExportCsv = async (params?: {
 }): Promise<boolean> => {
   try {
     const primaryHost = (
-      process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
-    ).replace(/\/$/, '');
+      process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"
+    ).replace(/\/$/, "");
     const tenantName =
-      (typeof window !== 'undefined' &&
-        (localStorage.getItem('tenant') ||
-          localStorage.getItem('tenant_name') ||
-          localStorage.getItem('tenantName'))) ||
+      (typeof window !== "undefined" &&
+        (localStorage.getItem("tenant") ||
+          localStorage.getItem("tenant_name") ||
+          localStorage.getItem("tenantName"))) ||
       process.env.NEXT_PUBLIC_TENANT_NAME ||
-      'pegatto_superadmin';
+      "pegatto_superadmin";
 
     const query = new URLSearchParams();
-    if (params?.search?.trim()) query.set('search', params.search.trim());
-    if (params?.category && params.category !== 'All Categories') {
-      query.set('category', params.category);
+    if (params?.search?.trim()) query.set("search", params.search.trim());
+    if (params?.category && params.category !== "All Categories") {
+      query.set("category", params.category);
     }
-    if (params?.pricing_model && params.pricing_model !== 'All Models') {
-      query.set('pricing_model', params.pricing_model);
+    if (params?.pricing_model && params.pricing_model !== "All Models") {
+      query.set("pricing_model", params.pricing_model);
     }
-    if (params?.status && params.status !== 'All Status') {
-      query.set('status', params.status);
+    if (params?.status && params.status !== "All Status") {
+      query.set("status", params.status);
     }
     if (params?.ids && params.ids.length > 0) {
-      query.set('ids', params.ids.join(','));
+      query.set("ids", params.ids.join(","));
     }
 
     const token =
-      typeof window !== 'undefined'
-        ? localStorage.getItem('token') ||
-        localStorage.getItem('accesstoken') ||
-        localStorage.getItem('access_token') ||
-        ''
-        : '';
+      typeof window !== "undefined"
+        ? localStorage.getItem("token") ||
+          localStorage.getItem("accesstoken") ||
+          localStorage.getItem("access_token") ||
+          ""
+        : "";
     const dbName =
-      typeof window !== 'undefined'
-        ? localStorage.getItem('DBName') || 'crmuseradmin1'
-        : 'crmuseradmin1';
+      typeof window !== "undefined"
+        ? localStorage.getItem("DBName") || "crmuseradmin1"
+        : "crmuseradmin1";
 
     if (token) {
-      query.set('token', token);
+      query.set("token", token);
     }
 
     const url = `${primaryHost}/${tenantName}/superadmin/AddonPricingExport/?${query.toString()}`;
     const res = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        Accept: 'text/csv, */*',
+        Accept: "text/csv, */*",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         db: dbName,
         Db: dbName,
@@ -251,11 +275,11 @@ export const downloadAddonPricingExportCsv = async (params?: {
 
     const blob = await res.blob();
     const downloadUrl = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = downloadUrl;
-    const contentDisposition = res.headers.get('content-disposition');
-    let filename = `addon_pricing_export_${new Date().toISOString().split('T')[0]}.csv`;
-    if (contentDisposition && contentDisposition.includes('filename=')) {
+    const contentDisposition = res.headers.get("content-disposition");
+    let filename = `addon_pricing_export_${new Date().toISOString().split("T")[0]}.csv`;
+    if (contentDisposition && contentDisposition.includes("filename=")) {
       const match = contentDisposition.match(/filename="?([^";]+)"?/);
       if (match && match[1]) filename = match[1];
     }
@@ -266,7 +290,10 @@ export const downloadAddonPricingExportCsv = async (params?: {
     window.URL.revokeObjectURL(downloadUrl);
     return true;
   } catch (error) {
-    console.warn('Backend AddonPricingExport failed, falling back to local CSV export:', error);
+    console.warn(
+      "Backend AddonPricingExport failed, falling back to local CSV export:",
+      error,
+    );
     return false;
   }
 };

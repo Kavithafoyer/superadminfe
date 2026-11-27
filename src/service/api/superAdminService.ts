@@ -1,5 +1,6 @@
 import { baseApi, getTenantName, normalizeApiUrl } from "../baseApi";
 import { fetchFromApi } from "../apiClient";
+import { downloadSuperAdminExportCsv } from "./exportCsvHelper";
 
 // ----------------------------------------------------------------------
 // DATA TYPES MATCHING superadminfe API
@@ -3740,51 +3741,113 @@ export const superAdminApi = baseApi.injectEndpoints({
 
     // Product Master Endpoints
     getProductMasterList: builder.query<ProductMasterRecord[], void>({
-      query: () => "superadmin/ProductMasterAPI/",
+      query: () => "superadmin/ProductMasterCRUD/",
       transformResponse: (res: any) => {
         const raw = res?.data || res?.results || res;
-        return Array.isArray(raw) && raw.length > 0
-          ? raw
-          : MOCK_PRODUCT_MASTERS;
+        return Array.isArray(raw) ? raw : [];
       },
       providesTags: ["ProductMasters"],
     }),
-    getProductMasterById: builder.query<ProductMasterRecord, string | number>({
-      query: (id) => `superadmin/ProductMasterAPI/${id}/`,
-      transformResponse: (res: any, _meta: any, arg: string | number) => {
-        const raw = res?.data || res;
-        if (
-          raw &&
-          typeof raw === "object" &&
-          !Array.isArray(raw) &&
-          Object.keys(raw).length > 0
-        ) {
-          return raw;
-        }
-        return (
-          MOCK_PRODUCT_MASTERS.find((p) => String(p.id) === String(arg)) ||
-          MOCK_PRODUCT_MASTERS[0]
-        );
+    getProductMasterPaginated: builder.query<
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: any[];
       },
-      providesTags: ["ProductMasters"],
-    }),
-    createProductMaster: builder.mutation<
-      ProductMasterRecord,
-      Partial<ProductMasterRecord>
+      {
+        page?: number;
+        page_size?: number;
+        search?: string;
+        Category?: string;
+        Product_Name?: string;
+        Product_Code?: string;
+      } | void
     >({
+      query: (params) => {
+        const qp = new URLSearchParams();
+        if (params?.page) qp.set("page", String(params.page));
+        if (params?.page_size) qp.set("page_size", String(params.page_size));
+        if (params?.search?.trim()) qp.set("search", params.search.trim());
+        if (params?.Category && params.Category !== "All") {
+          qp.set("Category", params.Category);
+        }
+        if (params?.Product_Name) qp.set("Product_Name", params.Product_Name);
+        if (params?.Product_Code) qp.set("Product_Code", params.Product_Code);
+        const qs = qp.toString();
+        return `superadmin/ProductMasterList/${qs ? `?${qs}` : ""}`;
+      },
+      transformResponse: (res: any) => {
+        if (Array.isArray(res)) {
+          return { count: res.length, next: null, previous: null, results: res };
+        }
+        const results = Array.isArray(res?.results)
+          ? res.results
+          : Array.isArray(res?.data)
+          ? res.data
+          : [];
+        return {
+          count: typeof res?.count === "number" ? res.count : results.length,
+          next: res?.next ?? null,
+          previous: res?.previous ?? null,
+          results,
+        };
+      },
+      providesTags: ["ProductMasters"],
+    }),
+    getProductMasterLookups: builder.query<
+      Array<{
+        id: number;
+        Product_Id?: string;
+        Product_Code: string;
+        Product_Name: string;
+        Category?: string;
+      }>,
+      void
+    >({
+      query: () => "superadmin/ProductMasterLookups/",
+      transformResponse: (res: any) => {
+        const raw = res?.results || res?.data || res;
+        return Array.isArray(raw) ? raw : [];
+      },
+      providesTags: ["ProductMasters"],
+    }),
+    filterProductMaster: builder.query<
+      any[],
+      {
+        search?: string;
+        Status?: string;
+        Category?: string;
+        Lifecycle_stage?: string;
+      }
+    >({
+      query: (body) => ({
+        url: "superadmin/ProductMasterFilter/",
+        method: "POST",
+        body,
+      }),
+      transformResponse: (res: any) => {
+        const raw = res?.results || res?.data || res;
+        return Array.isArray(raw) ? raw : [];
+      },
+      providesTags: ["ProductMasters"],
+    }),
+    getProductMasterById: builder.query<any, string | number>({
+      query: (id) => `superadmin/ProductMasterCRUD/?id=${id}`,
+      transformResponse: (res: any) => res?.data || res,
+      providesTags: ["ProductMasters"],
+    }),
+    createProductMaster: builder.mutation<any, Record<string, any> | FormData>({
       query: (payload) => ({
-        url: "superadmin/ProductMasterAPI/",
+        url: "superadmin/ProductMasterCRUD/",
         method: "POST",
         body: payload,
       }),
       invalidatesTags: ["ProductMasters"],
     }),
-    updateProductMaster: builder.mutation<
-      ProductMasterRecord,
-      Partial<ProductMasterRecord>
-    >({
+    updateProductMaster: builder.mutation<any, Record<string, any> | FormData>({
       query: (payload) => ({
-        url: `superadmin/ProductMasterAPI/${payload.id}/`,
+        url: "superadmin/ProductMasterCRUD/",
         method: "PUT",
         body: payload,
       }),
@@ -3792,7 +3855,7 @@ export const superAdminApi = baseApi.injectEndpoints({
     }),
     deleteProductMaster: builder.mutation<any, string | number>({
       query: (id) => ({
-        url: `superadmin/ProductMasterAPI/${id}/`,
+        url: `superadmin/ProductMasterCRUD/?id=${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["ProductMasters"],
@@ -3998,6 +4061,10 @@ export const {
   useGetSystemPreferencesQuery,
   useSaveSystemPreferencesMutation,
   useGetProductMasterListQuery,
+  useGetProductMasterPaginatedQuery,
+  useGetProductMasterLookupsQuery,
+  useFilterProductMasterQuery,
+  useLazyFilterProductMasterQuery,
   useGetProductMasterByIdQuery,
   useCreateProductMasterMutation,
   useUpdateProductMasterMutation,
@@ -4091,6 +4158,24 @@ export const downloadAccountsExportCsv = async (params?: {
     return false;
   }
 };
+
+export const downloadProductMasterExportCsv = (params?: {
+  search?: string;
+  Status?: string;
+  Category?: string;
+  ids?: Array<string | number>;
+}): Promise<boolean> =>
+  downloadSuperAdminExportCsv({
+    endpoint: "ProductMasterExport/",
+    query: {
+      search: params?.search,
+      Status: params?.Status && params.Status !== "All" ? params.Status : undefined,
+      Category:
+        params?.Category && params.Category !== "All" ? params.Category : undefined,
+      ids: params?.ids && params.ids.length > 0 ? params.ids.join(",") : undefined,
+    },
+    defaultFilename: `product_master_export_${new Date().toISOString().split("T")[0]}.csv`,
+  });
 
 // Re-export Add-on Price Template API hooks and types
 export * from "./addonPriceTemplateApi";

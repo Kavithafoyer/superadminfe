@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Search,
@@ -33,6 +33,7 @@ import {
   ShieldCheck,
   DollarSign,
   Info,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -59,9 +60,104 @@ import {
   EDUCATION_CAPABILITIES,
   INITIAL_PRODUCTS,
 } from './productData';
-import { useGetProductCategoryListQuery } from '@/service/api/superAdminService';
+import { skipToken } from '@reduxjs/toolkit/query';
+import { useDebounce } from '@/hooks/use-debounce';
+import { normalizeApiUrl } from '@/service/tenant';
+import {
+  useGetProductCategoryListQuery,
+  useGetProductMasterPaginatedQuery,
+  useGetProductMasterLookupsQuery,
+  useFilterProductMasterQuery,
+  useCreateProductMasterMutation,
+  useUpdateProductMasterMutation,
+  useDeleteProductMasterMutation,
+  downloadProductMasterExportCsv,
+} from '@/service/api/superAdminService';
 
-const LOCAL_STORAGE_KEY = 'PEGATTO_PRODUCT_MASTER_RECORDS_V4';
+const LEGACY_PLACEHOLDER_ASSETS = new Set([
+  'new-product-logo.svg',
+  'new-product-icon.svg',
+  'pegatto-default.svg',
+  'default-logo.svg',
+  'default-icon.svg',
+  'pegatto-education.svg',
+  'edu-icon.svg',
+]);
+
+function normalizeAssetPath(raw?: string | null): string {
+  const val = (raw || '').trim();
+  if (!val || LEGACY_PLACEHOLDER_ASSETS.has(val.toLowerCase())) return '';
+  return val;
+}
+
+function resolveProductMediaUrl(raw?: string | null): string {
+  const val = normalizeAssetPath(raw);
+  if (!val) return '';
+  if (/^(https?:\/\/|data:|blob:)/i.test(val)) return val;
+  if (val.startsWith('/')) return `${normalizeApiUrl()}${val}`;
+  return '';
+}
+
+function getAssetDisplayName(raw?: string | null, file?: File | null): string {
+  if (file?.name) return file.name;
+  const val = normalizeAssetPath(raw);
+  if (!val) return '';
+  const tail = val.split('?')[0].split('/').pop() || val;
+  return tail.replace(/^[a-f0-9]{32}_/i, '');
+}
+
+function inferIconType(category?: string, code?: string): InitialProductConfig['icon_type'] {
+  const val = `${category || ''} ${code || ''}`.toLowerCase();
+  if (val.includes('it') || val.includes('maint')) return 'it';
+  if (val.includes('hr') || val.includes('people')) return 'people';
+  if (val.includes('ret')) return 'retail';
+  if (val.includes('real')) return 'real_estate';
+  if (val.includes('crm')) return 'crm';
+  if (val.includes('core') || val.includes('plat') || val.includes('cloud')) return 'core';
+  return 'education';
+}
+
+function mapProductMasterDto(dto: any): InitialProductConfig {
+  const code = dto.Product_Code || dto.Product_Id || '';
+  const name = dto.Product_Name || code || 'Untitled Product';
+  const category = dto.Category || 'General';
+  const status: InitialProductConfig['status'] =
+    dto.Status && ['Active', 'Inactive', 'Draft', 'Under Review', 'Archived'].includes(dto.Status)
+      ? dto.Status
+      : dto.Is_Active === false
+        ? 'Inactive'
+        : 'Active';
+
+  return {
+    id: String(dto.id),
+    product_name: name,
+    product_code: code,
+    category,
+    status,
+    short_description: dto.Description || '',
+    description: dto.Detailed_Description || dto.Description || '',
+    current_version: dto.Current_version || 'v1.0.0',
+    release_date: dto.Release_Date || '',
+    lifecycle_stage: dto.Lifecycle_stage || 'General Availability',
+    logo_file: normalizeAssetPath(dto.Product_Logo),
+    logo_dimensions: dto.Product_Logo ? '(Custom)' : '',
+    icon_file: normalizeAssetPath(dto.Product_Icon),
+    icon_dimensions: dto.Product_Icon ? '(Custom)' : '',
+    icon_type: inferIconType(category, code),
+    editions_count: Number(dto.editions_count ?? 1),
+    editions: Array.isArray(dto.editions) && dto.editions.length > 0 ? dto.editions : ['Standard'],
+    editions_details: Array.isArray(dto.editions_details) ? dto.editions_details : [],
+  };
+}
+
+function toIsoReleaseDate(value?: string): string | null {
+  if (!value || !value.trim()) return null;
+  const trimmed = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString().slice(0, 10);
+}
 
 interface ProductMasterScreenProps {
   initialMode?: 'edit_product' | 'add_product';
@@ -71,35 +167,35 @@ interface ProductMasterScreenProps {
 
 function newProductDraft(): Partial<InitialProductConfig> {
   return {
-  id: `prd-${Date.now().toString(36)}`,
-  product_name: '',
-  product_code: '',
-  category: 'Education',
-  status: 'Draft',
-  short_description: '',
-  description: '',
-  current_version: 'v1.0.0',
-  release_date: '22 Nov 2026',
-  lifecycle_stage: 'General Availability',
-  logo_file: 'new-product-logo.svg',
-  logo_dimensions: '(120 × 120)',
-  icon_file: 'new-product-icon.svg',
-  icon_dimensions: '(32 × 32)',
-  icon_type: 'education',
-  editions_count: 1,
-  editions: ['Standard'],
-  editions_details: [
-    {
-      id: `ed-${Date.now()}`,
-      name: 'Standard',
-      code: 'STD',
-      description: 'Standard product edition',
-      status: 'Active',
-      displayOrder: 1,
-      capabilities: {},
-    },
-  ],
-};
+    id: `prd-${Date.now().toString(36)}`,
+    product_name: '',
+    product_code: '',
+    category: 'Education',
+    status: 'Draft',
+    short_description: '',
+    description: '',
+    current_version: 'v1.0.0',
+    release_date: '22 Nov 2026',
+    lifecycle_stage: 'General Availability',
+    logo_file: 'new-product-logo.svg',
+    logo_dimensions: '(120 × 120)',
+    icon_file: 'new-product-icon.svg',
+    icon_dimensions: '(32 × 32)',
+    icon_type: 'education',
+    editions_count: 1,
+    editions: ['Standard'],
+    editions_details: [
+      {
+        id: `ed-${Date.now()}`,
+        name: 'Standard',
+        code: 'STD',
+        description: 'Standard product edition',
+        status: 'Active',
+        displayOrder: 1,
+        capabilities: {},
+      },
+    ],
+  };
 }
 
 export function ProductMasterScreen({
@@ -109,33 +205,65 @@ export function ProductMasterScreen({
 }: ProductMasterScreenProps) {
   const router = useRouter();
 
-  // Master products state
-  const [products, setProducts] = useState<InitialProductConfig[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
-          }
-        }
-      } catch (err) {
-        console.warn('Could not read cached products, using initial:', err);
+  // Search, Filter & Pagination state
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery.trim(), 300);
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const hasServerFilter =
+    Boolean(debouncedSearch) || statusFilter !== 'All' || categoryFilter !== 'All';
+
+  // Live API queries
+  const {
+    data: paginatedResponse,
+    isLoading: isListLoading,
+    isFetching: isListFetching,
+    refetch: refetchList,
+  } = useGetProductMasterPaginatedQuery(
+    !hasServerFilter ? { page: currentPage, page_size: itemsPerPage } : skipToken
+  );
+
+  const {
+    data: filteredApiList,
+    isLoading: isFilterLoading,
+    isFetching: isFilterFetching,
+    refetch: refetchFiltered,
+  } = useFilterProductMasterQuery(
+    hasServerFilter
+      ? {
+        search: debouncedSearch || undefined,
+        Status: statusFilter !== 'All' ? statusFilter : undefined,
+        Category: categoryFilter !== 'All' ? categoryFilter : undefined,
       }
-    }
-    return INITIAL_PRODUCTS;
-  });
+      : skipToken
+  );
+
+  const { data: lookupProducts = [] } = useGetProductMasterLookupsQuery();
+  const [createProductApi, { isLoading: isCreating }] = useCreateProductMasterMutation();
+  const [updateProductApi, { isLoading: isUpdating }] = useUpdateProductMasterMutation();
+  const [deleteProductApi, { isLoading: isDeleting }] = useDeleteProductMasterMutation();
+  const [isExporting, setIsExporting] = useState(false);
+
+  const products = useMemo<InitialProductConfig[]>(() => {
+    const rawList = hasServerFilter
+      ? filteredApiList ?? []
+      : paginatedResponse?.results ?? [];
+    return rawList.map(mapProductMasterDto);
+  }, [hasServerFilter, filteredApiList, paginatedResponse]);
+
+  const totalProductsCount = hasServerFilter
+    ? products.length
+    : paginatedResponse?.count ?? products.length;
+  const totalPages = Math.max(1, Math.ceil(totalProductsCount / itemsPerPage));
 
   // Selected product
-  const [selectedProductId, setSelectedProductId] = useState<string>(() => {
-    return initialProductId || products[0]?.id || 'prd-edu';
-  });
+  const [selectedProductId, setSelectedProductId] = useState<string>(initialProductId || '');
 
-  const matchedProduct = useMemo(() => {
-    const selection = selectedProductId.toLowerCase();
-    return products.find(product => product.id === selectedProductId ||
-      product.product_code?.toLowerCase() === selection || product.product_name.toLowerCase() === selection);
+  const selectedProduct = useMemo(() => {
+    return products.find((p) => p.id === selectedProductId) || products[0] || INITIAL_PRODUCTS[0];
   }, [products, selectedProductId]);
   const selectedProduct = matchedProduct ?? products[0];
 
@@ -156,16 +284,13 @@ export function ProductMasterScreen({
   // Selected edition ID for editions subview
   const [selectedEditionId, setSelectedEditionId] = useState<string>('ed-edu-std');
 
-  // Search & Filter state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [categoryFilter, setCategoryFilter] = useState('All');
-
   // Dynamic live categories from ProductCategoryListwithPagination
   const { data: categoryApiResponse } = useGetProductCategoryListQuery();
   const liveCategoryNames = useMemo(() => {
-    if (!categoryApiResponse?.results) return [];
-    return categoryApiResponse.results
+    const raw = Array.isArray(categoryApiResponse)
+      ? categoryApiResponse
+      : categoryApiResponse?.results ?? [];
+    return raw
       .map((c: any) => c.Category_Name || c.Category_Code)
       .filter(Boolean);
   }, [categoryApiResponse]);
@@ -179,10 +304,6 @@ export function ProductMasterScreen({
   // Capabilities state
   const [capabilities, setCapabilities] = useState(EDUCATION_CAPABILITIES);
 
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-
   // Modal dialog states
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -192,17 +313,117 @@ export function ProductMasterScreen({
     code: string;
   } | null>(null);
 
-  // Persist products to localStorage
-  const persistProducts = (updated: InitialProductConfig[]) => {
-    setProducts(updated);
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
-      } catch (err) {
-        console.warn('Failed to persist products:', err);
+  // Chosen Product Logo / Icon file states (user-uploaded instead of predefined)
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
+  const iconInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
+  const [selectedIconFile, setSelectedIconFile] = useState<File | null>(null);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState('');
+  const [iconPreviewUrl, setIconPreviewUrl] = useState('');
+
+  const resetSelectedMedia = () => {
+    setSelectedLogoFile(null);
+    setSelectedIconFile(null);
+    setLogoPreviewUrl((prev) => {
+      if (prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+      return '';
+    });
+    setIconPreviewUrl((prev) => {
+      if (prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+      return '';
+    });
+    if (logoInputRef.current) logoInputRef.current.value = '';
+    if (iconInputRef.current) iconInputRef.current.value = '';
+  };
+
+  useEffect(() => {
+    return () => {
+      if (logoPreviewUrl.startsWith('blob:')) URL.revokeObjectURL(logoPreviewUrl);
+      if (iconPreviewUrl.startsWith('blob:')) URL.revokeObjectURL(iconPreviewUrl);
+    };
+  }, [logoPreviewUrl, iconPreviewUrl]);
+
+  const handleChooseMediaFile = (
+    kind: 'logo' | 'icon',
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file (PNG, JPG, SVG, WebP).');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size must be under 2 MB.');
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    const applyFileState = (dims: string) => {
+      if (kind === 'logo') {
+        setLogoPreviewUrl((prev) => {
+          if (prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+          return objectUrl;
+        });
+        setSelectedLogoFile(file);
+        setProductForm((prev) => ({
+          ...prev,
+          logo_file: file.name,
+          logo_dimensions: dims,
+        }));
+      } else {
+        setIconPreviewUrl((prev) => {
+          if (prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+          return objectUrl;
+        });
+        setSelectedIconFile(file);
+        setProductForm((prev) => ({
+          ...prev,
+          icon_file: file.name,
+          icon_dimensions: dims,
+        }));
       }
+    };
+
+    const img = new window.Image();
+    img.onload = () => {
+      const dims = img.naturalWidth && img.naturalHeight
+        ? `(${img.naturalWidth} × ${img.naturalHeight})`
+        : `${Math.max(1, Math.round(file.size / 1024))} KB`;
+      applyFileState(dims);
+    };
+    img.onerror = () => {
+      applyFileState(`${Math.max(1, Math.round(file.size / 1024))} KB`);
+    };
+    img.src = objectUrl;
+  };
+
+  const handleClearMediaAsset = (kind: 'logo' | 'icon') => {
+    if (kind === 'logo') {
+      setSelectedLogoFile(null);
+      setLogoPreviewUrl((prev) => {
+        if (prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+        return '';
+      });
+      if (logoInputRef.current) logoInputRef.current.value = '';
+      setProductForm((prev) => ({ ...prev, logo_file: '', logo_dimensions: '' }));
+    } else {
+      setSelectedIconFile(null);
+      setIconPreviewUrl((prev) => {
+        if (prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+        return '';
+      });
+      if (iconInputRef.current) iconInputRef.current.value = '';
+      setProductForm((prev) => ({ ...prev, icon_file: '', icon_dimensions: '' }));
     }
   };
+
+  useEffect(() => {
+    if (products.length > 0 && (!selectedProductId || !products.some((p) => p.id === selectedProductId))) {
+      setSelectedProductId(products[0].id);
+    }
+  }, [products, selectedProductId]);
 
   // Sync form when selected product changes (unless in add_product mode)
   useEffect(() => {
@@ -220,6 +441,7 @@ export function ProductMasterScreen({
 
   // Handle select product from table
   const handleSelectProduct = (p: InitialProductConfig) => {
+    resetSelectedMedia();
     setSelectedProductId(p.id);
     setDrawerMode('edit_product');
     setProductForm({ ...p });
@@ -232,34 +454,61 @@ export function ProductMasterScreen({
 
   // Open "Add Product" mode in right drawer
   const handleStartAddProduct = () => {
+    resetSelectedMedia();
     setDrawerMode('add_product');
     setActiveTab('details');
-    setProductForm(newProductDraft());
+    setProductForm({
+      id: `prd-${Date.now().toString(36)}`,
+      product_name: '',
+      product_code: '',
+      category: liveCategoryNames[0] || 'Education',
+      status: 'Draft',
+      short_description: '',
+      description: '',
+      current_version: 'v1.0.0',
+      release_date: '',
+      lifecycle_stage: 'General Availability',
+      logo_file: '',
+      logo_dimensions: '',
+      icon_file: '',
+      icon_dimensions: '',
+      icon_type: 'education',
+      editions_count: 1,
+      editions: ['Standard'],
+      editions_details: [
+        {
+          id: `ed-${Date.now()}`,
+          name: 'Standard',
+          code: 'STD',
+          description: 'Standard product edition',
+          status: 'Active',
+          displayOrder: 1,
+          capabilities: {},
+        },
+      ],
+    });
     setIsDrawerOpen(true);
   };
 
-  // Filtered Products List
+  // Filtered Products List (paginated client-side when server filter returns all matches)
   const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
-      const matchSearch =
-        searchQuery === '' ||
-        p.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.product_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!hasServerFilter) return products;
+    const start = (currentPage - 1) * itemsPerPage;
+    return products.slice(start, start + itemsPerPage);
+  }, [hasServerFilter, products, currentPage, itemsPerPage]);
 
-      const matchStatus = statusFilter === 'All' || p.status === statusFilter;
-      const matchCategory = categoryFilter === 'All' || p.category === categoryFilter;
-
-      return matchSearch && matchStatus && matchCategory;
-    });
-  }, [products, searchQuery, statusFilter, categoryFilter]);
-
-  // Unique categories for filter dropdown
+  // Unique categories for filter dropdown (from live lookups + categories + loaded products)
   const uniqueCategories = useMemo(() => {
     const set = new Set<string>();
-    products.forEach((p) => set.add(p.category));
+    liveCategoryNames.forEach((cat: string) => set.add(cat));
+    lookupProducts.forEach((p) => {
+      if (p.Category) set.add(p.Category);
+    });
+    products.forEach((p) => {
+      if (p.category) set.add(p.category);
+    });
     return ['All', ...Array.from(set)];
-  }, [products]);
+  }, [liveCategoryNames, lookupProducts, products]);
 
   // Reset Filters
   const handleResetFilters = () => {
@@ -270,130 +519,165 @@ export function ProductMasterScreen({
     toast.info('Filters reset to default.');
   };
 
-  // Save / Update Product
-  const handleSaveProduct = (e?: React.FormEvent) => {
+  // Save / Update Product via ProductMasterCRUD/
+  const handleSaveProduct = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!productForm.product_name || !productForm.product_code) {
       toast.error('Please enter product name and code');
       return;
     }
 
-    if (drawerMode === 'add_product') {
-      const newProd: InitialProductConfig = {
-        id: productForm.id || `prd-${Date.now().toString(36)}`,
-        product_name: productForm.product_name,
-        product_code: productForm.product_code.toUpperCase(),
-        category: productForm.category || 'Education',
-        status: (productForm.status as any) || 'Active',
-        short_description: productForm.short_description || '',
-        description: productForm.description || '',
-        current_version: productForm.current_version || 'v1.0.0',
-        release_date: productForm.release_date || '22 Nov 2026',
-        lifecycle_stage: productForm.lifecycle_stage || 'General Availability',
-        logo_file: productForm.logo_file || 'pegatto-default.svg',
-        logo_dimensions: productForm.logo_dimensions || '(120 × 120)',
-        icon_file: productForm.icon_file || 'default-icon.svg',
-        icon_dimensions: productForm.icon_dimensions || '(32 × 32)',
-        icon_type: (productForm.category?.toLowerCase().includes('it')
-          ? 'it'
-          : productForm.category?.toLowerCase().includes('hr')
-          ? 'people'
-          : productForm.category?.toLowerCase().includes('ret')
-          ? 'retail'
-          : productForm.category?.toLowerCase().includes('real')
-          ? 'real_estate'
-          : productForm.category?.toLowerCase().includes('crm')
-          ? 'crm'
-          : 'education') as any,
-        editions_count: productForm.editions_count || 1,
-        editions: productForm.editions || ['Standard'],
-        editions_details: productForm.editions_details || [
-          {
-            id: `ed-${Date.now()}`,
-            name: 'Standard',
-            code: `${productForm.product_code}-STD`,
-            description: 'Standard operational tier',
-            status: 'Active',
-            displayOrder: 1,
-            capabilities: {},
-          },
-        ],
-      };
-
-      const updated = [newProd, ...products];
-      persistProducts(updated);
-      setSelectedProductId(newProd.id);
-      setDrawerMode('edit_product');
-      toast.success(`Product "${newProd.product_name}" created successfully!`);
-    } else {
-      const updated = products.map((p) => {
-        if (p.id === matchedProduct?.id) {
-          return {
-            ...p,
-            ...productForm,
-            product_code: productForm.product_code?.toUpperCase(),
-          } as InitialProductConfig;
-        }
-        return p;
-      });
-      persistProducts(updated);
-      toast.success(`Product "${productForm.product_name}" updated successfully!`);
-    }
-  };
-
-  // Duplicate Product
-  const handleDuplicateProduct = (p: InitialProductConfig, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const cloned: InitialProductConfig = {
-      ...p,
-      id: `prd-${Date.now().toString(36)}`,
-      product_name: `${p.product_name} (Copy)`,
-      product_code: `${p.product_code}-COPY`,
-      status: 'Draft',
+    const baseFields: Record<string, any> = {
+      Product_Name: productForm.product_name.trim(),
+      Product_Code: productForm.product_code.trim().toUpperCase(),
+      Category: productForm.category || 'Education',
+      Status: productForm.status || 'Active',
+      Is_Active: productForm.status !== 'Inactive',
+      Description: productForm.short_description || '',
+      Detailed_Description: productForm.description || '',
+      Current_version: productForm.current_version || 'v1.0.0',
+      Release_Date: toIsoReleaseDate(productForm.release_date),
+      Lifecycle_stage: productForm.lifecycle_stage || 'General Availability',
+      Product_Logo: productForm.logo_file || '',
+      Product_Icon: productForm.icon_file || '',
     };
-    persistProducts([cloned, ...products]);
-    setSelectedProductId(cloned.id);
-    setProductForm({ ...cloned });
-    setDrawerMode('edit_product');
-    setIsDrawerOpen(true);
-    toast.success(`Cloned "${p.product_name}"`);
-  };
 
-  // Confirm Delete
-  const handleConfirmDelete = () => {
-    if (!deleteTarget) return;
-    const remaining = products.filter((p) => p.id !== deleteTarget.id);
-    persistProducts(remaining);
-    if (selectedProductId === deleteTarget.id && remaining.length > 0) {
-      setSelectedProductId(remaining[0].id);
-      setProductForm({ ...remaining[0] });
+    const buildRequestBody = (isUpdate: boolean): Record<string, any> | FormData => {
+      if (!selectedLogoFile && !selectedIconFile) {
+        return isUpdate
+          ? { id: Number(selectedProductId) || selectedProductId, ...baseFields }
+          : baseFields;
+      }
+      const fd = new FormData();
+      if (isUpdate) {
+        fd.append('id', String(Number(selectedProductId) || selectedProductId));
+      }
+      Object.entries(baseFields).forEach(([key, value]) => {
+        if (key === 'Product_Logo' && selectedLogoFile) {
+          fd.append('Product_Logo', selectedLogoFile);
+        } else if (key === 'Product_Icon' && selectedIconFile) {
+          fd.append('Product_Icon', selectedIconFile);
+        } else if (key === 'Release_Date') {
+          fd.append(key, value ?? '');
+        } else if (value !== undefined && value !== null) {
+          fd.append(key, String(value));
+        }
+      });
+      return fd;
+    };
+
+    try {
+      if (drawerMode === 'add_product') {
+        const created = await createProductApi(buildRequestBody(false)).unwrap();
+        resetSelectedMedia();
+        if (created?.id) setSelectedProductId(String(created.id));
+        setDrawerMode('edit_product');
+        setCurrentPage(1);
+        toast.success(`Product "${baseFields.Product_Name}" created successfully!`);
+      } else {
+        const updated = await updateProductApi(buildRequestBody(true)).unwrap();
+        resetSelectedMedia();
+        if (updated?.id) setProductForm(mapProductMasterDto(updated));
+        toast.success(`Product "${baseFields.Product_Name}" updated successfully!`);
+      }
+      if (hasServerFilter) refetchFiltered();
+      else refetchList();
+    } catch (err: any) {
+      const msg =
+        err?.data?.Error ||
+        err?.data?.detail ||
+        err?.data?.Product_Code?.[0] ||
+        'Failed to save product to server.';
+      toast.error(msg);
     }
-    toast.success(`Product "${deleteTarget.name}" deleted.`);
-    setDeleteTarget(null);
   };
 
-  // Export Data to CSV
-  const handleExportCsv = () => {
-    const headers = ['Product Name', 'Product Code', 'Category', 'Editions Count', 'Status', 'Current Version', 'Release Date'];
-    const rows = products.map((p) => [
-      `"${p.product_name}"`,
-      `"${p.product_code}"`,
-      `"${p.category}"`,
-      p.editions_count,
-      `"${p.status}"`,
-      `"${p.current_version}"`,
-      `"${p.release_date}"`,
-    ]);
-    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `pegatto_product_master_${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-    toast.success('Product catalog exported as CSV');
-    setIsImportExportOpen(false);
+  // Duplicate Product via ProductMasterCRUD/
+  const handleDuplicateProduct = async (p: InitialProductConfig, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const copyCode = `${p.product_code}-COPY-${Date.now().toString().slice(-3)}`.toUpperCase();
+    try {
+      const created = await createProductApi({
+        Product_Name: `${p.product_name} (Copy)`,
+        Product_Code: copyCode,
+        Category: p.category,
+        Status: 'Draft',
+        Is_Active: true,
+        Description: p.short_description || '',
+        Detailed_Description: p.description || '',
+        Current_version: p.current_version || 'v1.0.0',
+        Release_Date: toIsoReleaseDate(p.release_date),
+        Lifecycle_stage: p.lifecycle_stage || 'General Availability',
+      }).unwrap();
+      if (created?.id) {
+        setSelectedProductId(String(created.id));
+        setProductForm(mapProductMasterDto(created));
+      }
+      setDrawerMode('edit_product');
+      setIsDrawerOpen(true);
+      toast.success(`Cloned "${p.product_name}"`);
+      if (hasServerFilter) refetchFiltered();
+      else refetchList();
+    } catch (err: any) {
+      toast.error(err?.data?.Error || 'Failed to duplicate product');
+    }
+  };
+
+  // Confirm Delete via ProductMasterCRUD/
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteProductApi(deleteTarget.id).unwrap();
+      toast.success(`Product "${deleteTarget.name}" deleted.`);
+      if (selectedProductId === deleteTarget.id) {
+        setSelectedProductId('');
+      }
+      setDeleteTarget(null);
+      if (hasServerFilter) refetchFiltered();
+      else refetchList();
+    } catch (err: any) {
+      toast.error(err?.data?.Error || 'Failed to delete product.');
+    }
+  };
+
+  // Export Data to CSV via ProductMasterExport/ (with client fallback)
+  const handleExportCsv = async () => {
+    setIsExporting(true);
+    try {
+      const ok = await downloadProductMasterExportCsv({
+        search: debouncedSearch || undefined,
+        Status: statusFilter !== 'All' ? statusFilter : undefined,
+        Category: categoryFilter !== 'All' ? categoryFilter : undefined,
+      });
+      if (ok) {
+        toast.success('Product catalog exported as CSV');
+        setIsImportExportOpen(false);
+        return;
+      }
+
+      const headers = ['Product Name', 'Product Code', 'Category', 'Editions Count', 'Status', 'Current Version', 'Release Date'];
+      const rows = products.map((p) => [
+        `"${p.product_name}"`,
+        `"${p.product_code}"`,
+        `"${p.category}"`,
+        p.editions_count,
+        `"${p.status}"`,
+        `"${p.current_version}"`,
+        `"${p.release_date}"`,
+      ]);
+      const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `pegatto_product_master_${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success('Product catalog exported as CSV');
+      setIsImportExportOpen(false);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Toggle capability in editions subview
@@ -418,17 +702,14 @@ export function ProductMasterScreen({
       return ed;
     });
 
-    const updatedProducts = products.map((p) => {
-      if (p.id === selectedProductId) {
-        return {
-          ...p,
-          editions_details: updatedDetails,
-        };
-      }
-      return p;
-    });
-
-    persistProducts(updatedProducts);
+    setProductForm((prev) => ({
+      ...prev,
+      editions_details: updatedDetails,
+    }));
+    const updatedEd = updatedDetails.find((ed) => ed.id === selectedEditionId);
+    if (updatedEd) {
+      setEditionForm({ ...updatedEd });
+    }
     toast.success(`Updated capability for ${editionCode}`);
   };
 
@@ -618,12 +899,20 @@ export function ProductMasterScreen({
                         )}
                       >
                         <td className="py-3 px-3 text-center text-slate-500 font-semibold text-xs">
-                          {index + 1}
+                          {(currentPage - 1) * itemsPerPage + index + 1}
                         </td>
 
                         <td className="py-3 px-3 whitespace-nowrap">
                           <div className="flex items-center gap-2.5">
-                            <ProductBadgeIcon type={p.icon_type || p.category} size="md" />
+                            {resolveProductMediaUrl(p.logo_file || p.icon_file) ? (
+                              <img
+                                src={resolveProductMediaUrl(p.logo_file || p.icon_file)}
+                                alt={p.product_name}
+                                className="h-8 w-8 rounded-lg object-contain border border-slate-200 bg-white p-0.5 shrink-0"
+                              />
+                            ) : (
+                              <ProductBadgeIcon type={p.icon_type || p.category} size="md" />
+                            )}
                             <span className="font-semibold text-slate-900">{p.product_name}</span>
                           </div>
                         </td>
@@ -649,8 +938,8 @@ export function ProductMasterScreen({
                               p.status === 'Active'
                                 ? 'bg-[#dcfce7] text-[#15803d]'
                                 : p.status === 'Draft'
-                                ? 'bg-[#e0e7ff] text-[#4338ca]'
-                                : 'bg-slate-100 text-slate-700'
+                                  ? 'bg-[#e0e7ff] text-[#4338ca]'
+                                  : 'bg-slate-100 text-slate-700'
                             )}
                           >
                             {p.status}
@@ -704,15 +993,25 @@ export function ProductMasterScreen({
             {/* Pagination Footer matching Screenshot */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-100 text-xs text-slate-500 bg-white">
               <div>
-                Showing 1 - {filteredProducts.length} of {filteredProducts.length} products
+                {isListLoading || isFilterLoading || isListFetching || isFilterFetching ? (
+                  'Loading products...'
+                ) : totalProductsCount === 0 ? (
+                  'Showing 0 products'
+                ) : (
+                  `Showing ${(currentPage - 1) * itemsPerPage + 1} - ${Math.min(
+                    currentPage * itemsPerPage,
+                    totalProductsCount
+                  )} of ${totalProductsCount} products`
+                )}
               </div>
 
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
-                    disabled
-                    className="p-1 rounded hover:bg-slate-100 text-slate-400 disabled:opacity-50"
+                    disabled={currentPage <= 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="p-1 rounded hover:bg-slate-100 text-slate-600 disabled:text-slate-300 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                   >
                     &lt;
                   </button>
@@ -720,12 +1019,13 @@ export function ProductMasterScreen({
                     type="button"
                     className="h-6 w-6 rounded bg-[#6222cc] text-white font-semibold text-xs flex items-center justify-center shadow-xs"
                   >
-                    1
+                    {currentPage}
                   </button>
                   <button
                     type="button"
-                    disabled
-                    className="p-1 rounded hover:bg-slate-100 text-slate-400 disabled:opacity-50"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="p-1 rounded hover:bg-slate-100 text-slate-600 disabled:text-slate-300 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                   >
                     &gt;
                   </button>
@@ -735,8 +1035,11 @@ export function ProductMasterScreen({
                   <span>Items per page</span>
                   <select
                     value={itemsPerPage}
-                    onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                    className="border border-slate-200 rounded px-1.5 py-0.5 bg-white text-slate-700 font-medium"
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="border border-slate-200 rounded px-1.5 py-0.5 bg-white text-slate-700 font-medium cursor-pointer"
                   >
                     <option value={10}>10</option>
                     <option value={25}>25</option>
@@ -759,10 +1062,22 @@ export function ProductMasterScreen({
             {/* Header: Product Icon + Name + Badge + Close Button */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <ProductBadgeIcon
-                  type={drawerMode === 'add_product' ? 'core' : selectedProduct.icon_type || selectedProduct.category}
-                  size="md"
-                />
+                {(drawerMode === 'add_product' ? logoPreviewUrl : logoPreviewUrl || resolveProductMediaUrl(selectedProduct.logo_file || selectedProduct.icon_file)) ? (
+                  <img
+                    src={
+                      drawerMode === 'add_product'
+                        ? logoPreviewUrl
+                        : logoPreviewUrl || resolveProductMediaUrl(selectedProduct.logo_file || selectedProduct.icon_file)
+                    }
+                    alt={drawerMode === 'add_product' ? 'New Product' : selectedProduct.product_name}
+                    className="h-9 w-9 rounded-xl object-contain border border-slate-200 bg-white p-0.5 shrink-0"
+                  />
+                ) : (
+                  <ProductBadgeIcon
+                    type={drawerMode === 'add_product' ? 'core' : selectedProduct.icon_type || selectedProduct.category}
+                    size="md"
+                  />
+                )}
                 <h3 className="text-base font-bold text-slate-900">
                   {drawerMode === 'add_product' ? 'New Product' : selectedProduct.product_name}
                 </h3>
@@ -912,23 +1227,29 @@ export function ProductMasterScreen({
                         }
                         className="w-full h-8.5 appearance-none px-3 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 outline-none focus:ring-1 focus:ring-[#6222cc] cursor-pointer"
                       >
-                        {liveCategoryNames.length > 0 ? (
-                          liveCategoryNames.map((name: string) => (
+                        {(() => {
+                          const baseOptions =
+                            liveCategoryNames.length > 0
+                              ? liveCategoryNames
+                              : [
+                                'Education',
+                                'IT / Services',
+                                'HRMS',
+                                'Retail',
+                                'Real Estate',
+                                'CRM (Generic)',
+                                'Platform',
+                              ];
+                          const allOptions =
+                            productForm.category && !baseOptions.includes(productForm.category)
+                              ? [productForm.category, ...baseOptions]
+                              : baseOptions;
+                          return allOptions.map((name: string) => (
                             <option key={name} value={name}>
                               {name}
                             </option>
-                          ))
-                        ) : (
-                          <>
-                            <option value="Education">Education</option>
-                            <option value="IT / Services">IT / Services</option>
-                            <option value="HRMS">HRMS</option>
-                            <option value="Retail">Retail</option>
-                            <option value="Real Estate">Real Estate</option>
-                            <option value="CRM (Generic)">CRM (Generic)</option>
-                            <option value="Platform">Platform</option>
-                          </>
-                        )}
+                          ));
+                        })()}
                       </select>
                       <ChevronDown className="h-3.5 w-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
@@ -1046,70 +1367,132 @@ export function ProductMasterScreen({
 
                 {/* Row 6: Product Logo & Product Icon (Menu) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  {/* Product Logo Box */}
+                  {/* Product Logo Chooser Box */}
                   <div className="space-y-1">
                     <label className="font-semibold text-slate-700">
                       Product Logo
                     </label>
-                    <div className="p-2 border border-slate-200 rounded-xl bg-slate-50/50 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <ProductBadgeIcon
-                          type={productForm.icon_type || productForm.category}
-                          size="sm"
-                        />
-                        <div className="truncate">
-                          <p className="text-xs font-semibold text-slate-800 truncate">
-                            {productForm.logo_file || 'pegatto-education.svg'}
-                          </p>
-                          <p className="text-[10px] text-slate-500">
-                            {productForm.logo_dimensions || '(120 × 120)'}
-                          </p>
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/svg+xml,image/webp,image/x-icon"
+                      onChange={(e) => handleChooseMediaFile('logo', e)}
+                      className="hidden"
+                    />
+                    {(() => {
+                      const activeLogoSrc = logoPreviewUrl || resolveProductMediaUrl(productForm.logo_file);
+                      const logoLabel = getAssetDisplayName(productForm.logo_file, selectedLogoFile);
+                      return (
+                        <div className="p-2 border border-slate-200 rounded-xl bg-slate-50/50 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            {activeLogoSrc ? (
+                              <img
+                                src={activeLogoSrc}
+                                alt="Product Logo Preview"
+                                className="h-8 w-8 rounded-lg object-contain border border-slate-200 bg-white p-0.5 shrink-0"
+                              />
+                            ) : (
+                              <div className="h-8 w-8 rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center shrink-0">
+                                <ImageIcon className="h-4 w-4 text-slate-400" />
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-slate-800 truncate">
+                                {logoLabel || 'No logo chosen'}
+                              </p>
+                              <p className="text-[10px] text-slate-500 truncate">
+                                {productForm.logo_dimensions || 'PNG, JPG, SVG, WebP'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => logoInputRef.current?.click()}
+                              className="px-2 py-1 text-[11px] font-semibold text-[#6222cc] bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-md flex items-center gap-1 transition-colors cursor-pointer"
+                              title="Choose logo image"
+                            >
+                              <Upload className="h-3 w-3" />
+                              <span>{activeLogoSrc || logoLabel ? 'Change' : 'Choose'}</span>
+                            </button>
+                            {(activeLogoSrc || logoLabel) && (
+                              <button
+                                type="button"
+                                onClick={() => handleClearMediaAsset('logo')}
+                                className="text-red-500 hover:text-red-700 p-1 rounded-md transition-colors cursor-pointer"
+                                title="Remove logo"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setProductForm({ ...productForm, logo_file: 'default-logo.svg' })
-                        }
-                        className="text-red-500 hover:text-red-700 p-1 rounded-md transition-colors cursor-pointer"
-                        title="Delete logo"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+                      );
+                    })()}
                   </div>
 
-                  {/* Product Icon (Menu) Box */}
+                  {/* Product Icon (Menu) Chooser Box */}
                   <div className="space-y-1">
                     <label className="font-semibold text-slate-700">
                       Product Icon (Menu)
                     </label>
-                    <div className="p-2 border border-slate-200 rounded-xl bg-slate-50/50 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <ProductBadgeIcon
-                          type={productForm.icon_type || productForm.category}
-                          size="sm"
-                        />
-                        <div className="truncate">
-                          <p className="text-xs font-semibold text-slate-800 truncate">
-                            {productForm.icon_file || 'edu-icon.svg'}
-                          </p>
-                          <p className="text-[10px] text-slate-500">
-                            {productForm.icon_dimensions || '(32 × 32)'}
-                          </p>
+                    <input
+                      ref={iconInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/svg+xml,image/webp,image/x-icon"
+                      onChange={(e) => handleChooseMediaFile('icon', e)}
+                      className="hidden"
+                    />
+                    {(() => {
+                      const activeIconSrc = iconPreviewUrl || resolveProductMediaUrl(productForm.icon_file);
+                      const iconLabel = getAssetDisplayName(productForm.icon_file, selectedIconFile);
+                      return (
+                        <div className="p-2 border border-slate-200 rounded-xl bg-slate-50/50 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            {activeIconSrc ? (
+                              <img
+                                src={activeIconSrc}
+                                alt="Product Icon Preview"
+                                className="h-8 w-8 rounded-lg object-contain border border-slate-200 bg-white p-0.5 shrink-0"
+                              />
+                            ) : (
+                              <div className="h-8 w-8 rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center shrink-0">
+                                <ImageIcon className="h-4 w-4 text-slate-400" />
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-slate-800 truncate">
+                                {iconLabel || 'No icon chosen'}
+                              </p>
+                              <p className="text-[10px] text-slate-500 truncate">
+                                {productForm.icon_dimensions || 'PNG, JPG, SVG, WebP'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => iconInputRef.current?.click()}
+                              className="px-2 py-1 text-[11px] font-semibold text-[#6222cc] bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-md flex items-center gap-1 transition-colors cursor-pointer"
+                              title="Choose menu icon"
+                            >
+                              <Upload className="h-3 w-3" />
+                              <span>{activeIconSrc || iconLabel ? 'Change' : 'Choose'}</span>
+                            </button>
+                            {(activeIconSrc || iconLabel) && (
+                              <button
+                                type="button"
+                                onClick={() => handleClearMediaAsset('icon')}
+                                className="text-red-500 hover:text-red-700 p-1 rounded-md transition-colors cursor-pointer"
+                                title="Remove menu icon"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setProductForm({ ...productForm, icon_file: 'default-icon.svg' })
-                        }
-                        className="text-red-500 hover:text-red-700 p-1 rounded-md transition-colors cursor-pointer"
-                        title="Delete menu icon"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -1117,10 +1500,17 @@ export function ProductMasterScreen({
                 <div className="flex items-center gap-2.5 pt-3">
                   <Button
                     type="submit"
-                    className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                    disabled={isCreating || isUpdating}
+                    className="bg-[#6222cc] hover:bg-[#521cb0] text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50"
                   >
                     <Check className="h-4 w-4" />
-                    <span>{drawerMode === 'add_product' ? 'Create Product' : 'Update Product'}</span>
+                    <span>
+                      {isCreating || isUpdating
+                        ? 'Saving...'
+                        : drawerMode === 'add_product'
+                          ? 'Create Product'
+                          : 'Update Product'}
+                    </span>
                   </Button>
                   <Button
                     type="button"
@@ -1318,11 +1708,12 @@ export function ProductMasterScreen({
             <Button
               type="button"
               variant="outline"
+              disabled={isExporting}
               onClick={handleExportCsv}
               className="w-full justify-start h-10 border-slate-200 gap-2 hover:bg-slate-50"
             >
               <Download className="h-4 w-4 text-[#6222cc]" />
-              <span>Export Product Catalog (CSV)</span>
+              <span>{isExporting ? 'Exporting CSV...' : 'Export Product Catalog (CSV)'}</span>
             </Button>
           </div>
 
@@ -1398,10 +1789,11 @@ export function ProductMasterScreen({
             </Button>
             <Button
               type="button"
+              disabled={isDeleting}
               onClick={handleConfirmDelete}
-              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold"
+              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold disabled:opacity-50"
             >
-              Delete Product
+              {isDeleting ? 'Deleting...' : 'Delete Product'}
             </Button>
           </DialogFooter>
         </DialogContent>

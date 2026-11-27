@@ -1,4 +1,4 @@
-import { baseApi } from '../baseApi';
+import { baseApi } from "../baseApi";
 
 export interface AddonPriceHistoryDto {
   id: number;
@@ -35,40 +35,52 @@ export const addonPriceHistoryApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAddonPriceHistoryKPI: builder.query<AddonPriceHistoryKPIDto, void>({
       query: () => ({
-        url: 'superadmin/AddonPriceHistoryKPI/',
-        method: 'GET',
+        url: "superadmin/AddonPriceHistoryKPI/",
+        method: "GET",
       }),
-      providesTags: ['AddonPriceHistory'],
+      providesTags: ["AddonPriceHistory"],
     }),
 
-    getAddonPriceHistoryWithoutPagination: builder.query<AddonPriceHistoryDto[], { pricing_id?: number; addon_name?: string } | void>({
+    getAddonPriceHistoryWithoutPagination: builder.query<
+      AddonPriceHistoryDto[],
+      { pricing_id?: number; addon_name?: string } | void
+    >({
       query: (params) => ({
-        url: 'superadmin/AddonPriceHistorylistwithoutpaginaton/',
-        method: 'GET',
+        url: "superadmin/AddonPriceHistorylistwithoutpaginaton/",
+        method: "GET",
         params: params || {},
       }),
       transformResponse: (response: any) => {
         if (Array.isArray(response)) return response;
-        if (response && Array.isArray(response.results)) return response.results;
+        if (response && Array.isArray(response.results))
+          return response.results;
         if (response && Array.isArray(response.data)) return response.data;
         return [];
       },
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'AddonPriceHistory' as const, id })),
-              { type: 'AddonPriceHistory', id: 'LIST' },
+              ...result.map(({ id }) => ({
+                type: "AddonPriceHistory" as const,
+                id,
+              })),
+              { type: "AddonPriceHistory", id: "LIST" },
             ]
-          : [{ type: 'AddonPriceHistory', id: 'LIST' }],
+          : [{ type: "AddonPriceHistory", id: "LIST" }],
     }),
 
     getAddonPriceHistoryWithPagination: builder.query<
-      { count: number; next: string | null; previous: string | null; results: AddonPriceHistoryDto[] },
+      {
+        count: number;
+        next: string | null;
+        previous: string | null;
+        results: AddonPriceHistoryDto[];
+      },
       { page?: number; page_size?: number }
     >({
       query: (params) => ({
-        url: 'superadmin/AddonPriceHistoryListwithPagination/',
-        method: 'GET',
+        url: "superadmin/AddonPriceHistoryListwithPagination/",
+        method: "GET",
         params: {
           page: params.page || 1,
           ...(params.page_size ? { page_size: params.page_size } : {}),
@@ -76,7 +88,12 @@ export const addonPriceHistoryApi = baseApi.injectEndpoints({
       }),
       transformResponse: (response: any) => {
         if (Array.isArray(response)) {
-          return { count: response.length, next: null, previous: null, results: response };
+          return {
+            count: response.length,
+            next: null,
+            previous: null,
+            results: response,
+          };
         }
         return {
           count: response?.count || 0,
@@ -85,22 +102,23 @@ export const addonPriceHistoryApi = baseApi.injectEndpoints({
           results: response?.results || response?.data || [],
         };
       },
-      providesTags: ['AddonPriceHistory'],
+      providesTags: ["AddonPriceHistory"],
     }),
 
     searchAddonPriceHistory: builder.query<AddonPriceHistoryDto[], string>({
       query: (search) => ({
-        url: 'superadmin/AddonPriceHistorySearch/',
-        method: 'GET',
+        url: "superadmin/AddonPriceHistorySearch/",
+        method: "GET",
         params: { search },
       }),
       transformResponse: (response: any) => {
         if (Array.isArray(response)) return response;
-        if (response && Array.isArray(response.results)) return response.results;
+        if (response && Array.isArray(response.results))
+          return response.results;
         if (response && Array.isArray(response.data)) return response.data;
         return [];
       },
-      providesTags: ['AddonPriceHistory'],
+      providesTags: ["AddonPriceHistory"],
     }),
 
     filterAddonPriceHistoryMutation: builder.mutation<
@@ -115,13 +133,14 @@ export const addonPriceHistoryApi = baseApi.injectEndpoints({
       }
     >({
       query: (body) => ({
-        url: 'superadmin/AddonPriceHistoryFilter/',
-        method: 'POST',
+        url: "superadmin/AddonPriceHistoryFilter/",
+        method: "POST",
         body,
       }),
       transformResponse: (response: any) => {
         if (Array.isArray(response)) return response;
-        if (response && Array.isArray(response.results)) return response.results;
+        if (response && Array.isArray(response.results))
+          return response.results;
         if (response && Array.isArray(response.data)) return response.data;
         return [];
       },
@@ -140,41 +159,47 @@ export const addonPriceHistoryApi = baseApi.injectEndpoints({
       }
     >({
       query: (body) => ({
-        url: 'superadmin/AddonPriceHistoryCRUD/',
-        method: 'POST',
+        url: "superadmin/AddonPriceHistoryCRUD/",
+        method: "POST",
         body,
       }),
       invalidatesTags: [
-        { type: 'AddonPriceHistory', id: 'LIST' },
-        'AddonPriceHistory',
-        'AddonPricing',
+        { type: "AddonPriceHistory", id: "LIST" },
+        "AddonPriceHistory",
+        "AddonPricing",
       ],
     }),
 
-    updateAddonPriceHistory: builder.mutation<AddonPriceHistoryDto, Partial<AddonPriceHistoryDto> & { id: number }>({
+    updateAddonPriceHistory: builder.mutation<
+      AddonPriceHistoryDto,
+      Partial<AddonPriceHistoryDto> & { id: number }
+    >({
       query: (data) => ({
-        url: 'superadmin/AddonPriceHistoryCRUD/',
-        method: 'PUT',
+        url: "superadmin/AddonPriceHistoryCRUD/",
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: (result, error, { id }) => [
-        { type: 'AddonPriceHistory', id },
-        { type: 'AddonPriceHistory', id: 'LIST' },
-        'AddonPriceHistory',
-        'AddonPricing',
+        { type: "AddonPriceHistory", id },
+        { type: "AddonPriceHistory", id: "LIST" },
+        "AddonPriceHistory",
+        "AddonPricing",
       ],
     }),
 
-    deleteAddonPriceHistory: builder.mutation<{ message: string }, number | string>({
+    deleteAddonPriceHistory: builder.mutation<
+      { message: string },
+      number | string
+    >({
       query: (id) => ({
-        url: 'superadmin/AddonPriceHistoryCRUD/',
-        method: 'DELETE',
+        url: "superadmin/AddonPriceHistoryCRUD/",
+        method: "DELETE",
         params: { id },
       }),
       invalidatesTags: [
-        { type: 'AddonPriceHistory', id: 'LIST' },
-        'AddonPriceHistory',
-        'AddonPricing',
+        { type: "AddonPriceHistory", id: "LIST" },
+        "AddonPriceHistory",
+        "AddonPricing",
       ],
     }),
   }),
@@ -200,27 +225,28 @@ export async function downloadAddonPriceHistoryExportCsv(params?: {
   search?: string;
 }): Promise<void> {
   const token =
-    typeof window !== 'undefined'
-      ? localStorage.getItem('token') ||
-        localStorage.getItem('accesstoken') ||
-        localStorage.getItem('access_token') ||
-        ''
-      : '';
+    typeof window !== "undefined"
+      ? localStorage.getItem("token") ||
+        localStorage.getItem("accesstoken") ||
+        localStorage.getItem("access_token") ||
+        ""
+      : "";
   const dbName =
-    (typeof window !== 'undefined' && localStorage.getItem('DBName')) ||
-    'crmuseradmin1';
+    (typeof window !== "undefined" && localStorage.getItem("DBName")) ||
+    "crmuseradmin1";
 
   const queryParams = new URLSearchParams();
-  if (params?.pricing_id) queryParams.set('pricing_id', String(params.pricing_id));
-  if (params?.addon_name) queryParams.set('addon_name', params.addon_name);
-  if (params?.search) queryParams.set('search', params.search);
+  if (params?.pricing_id)
+    queryParams.set("pricing_id", String(params.pricing_id));
+  if (params?.addon_name) queryParams.set("addon_name", params.addon_name);
+  if (params?.search) queryParams.set("search", params.search);
 
   const url = `http://127.0.0.1:8000/pegatto_superadmin/superadmin/AddonPriceHistoryExport/${
-    queryParams.toString() ? `?${queryParams.toString()}` : ''
+    queryParams.toString() ? `?${queryParams.toString()}` : ""
   }`;
 
   const response = await fetch(url, {
-    method: 'GET',
+    method: "GET",
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       db: dbName,
@@ -234,7 +260,7 @@ export async function downloadAddonPriceHistoryExportCsv(params?: {
 
   const blob = await response.blob();
   const downloadUrl = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = downloadUrl;
   a.download = `price_history_${new Date().toISOString().slice(0, 10)}.csv`;
   document.body.appendChild(a);
