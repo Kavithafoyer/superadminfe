@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Tag,
@@ -49,6 +49,21 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  useGetProductPricingListQuery,
+  useGetProductPricingKpiQuery,
+  useGetProductPriceMatrixQuery,
+  useGetProductPriceHistoryQuery,
+  useGetProductMasterLookupsQuery,
+  useGetProductEditionsListQuery,
+  useGetPlansListQuery,
+  useCreateProductPricingMutation,
+  useUpdateProductPricingMutation,
+  useDeleteProductPricingMutation,
+  useBulkUpdateProductPricingMutation,
+  useScheduleProductPricingMutation,
+  downloadProductPricingExportCsv,
+} from '@/service/api/superAdminService';
 
 export interface TierItem {
   id: string;
@@ -61,7 +76,9 @@ export interface TierItem {
 
 export interface PricingRule {
   id: string;
+  backendId?: number;
   pricingId: string;
+  productId?: number | null;
   product: string;
   edition: string;
   plan: string;
@@ -86,237 +103,104 @@ export interface PricingRule {
   invoicingNotes: string;
 }
 
-const INITIAL_PRICING_RULES: PricingRule[] = [
-  {
-    id: 'prc-1',
-    pricingId: 'PRC-000782',
-    product: 'Pegatto CRM',
+const CURRENCY_DISPLAY_MAP: Record<string, string> = {
+  INR: 'INR (₹)',
+  USD: 'USD ($)',
+  EUR: 'EUR (€)',
+  GBP: 'GBP (£)',
+};
+
+const CURRENCY_SYMBOL_MAP: Record<string, string> = {
+  INR: '₹',
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+};
+
+const COUNTRY_CODE_MAP: Record<string, string> = {
+  India: 'IN',
+  'United States': 'US',
+  'United Kingdom': 'GB',
+  Europe: 'EU',
+  Global: 'GL',
+};
+
+function mapBackendPricingToRule(row: any): PricingRule {
+  const curCode = String(row.Currency || 'INR').split(' ')[0].toUpperCase();
+  const sym = row.Currency_Symbol || CURRENCY_SYMBOL_MAP[curCode] || '₹';
+  const numPrice = Number(row.Price ?? 0);
+  const app = (row.Applicability && typeof row.Applicability === 'object' ? row.Applicability : {}) as Record<string, any>;
+  const country = row.Country || 'India';
+  const rawCycle = String(row.Billing_Cycle || 'Monthly');
+  const cycle: PricingRule['billingCycle'] =
+    rawCycle.toLowerCase().includes('ann')
+      ? 'Annual'
+      : rawCycle.toLowerCase().includes('quart')
+      ? 'Quarterly'
+      : 'Monthly';
+  const rawStatus = String(row.Status || 'Active');
+  const status: PricingRule['status'] =
+    rawStatus === 'Scheduled' || rawStatus === 'Expired' || rawStatus === 'Draft' ? rawStatus : 'Active';
+
+  return {
+    id: String(row.id),
+    backendId: Number(row.id),
+    pricingId: row.Pricing_Id || `PRC-${row.id}`,
+    productId: row.Product_Id ?? null,
+    product: row.Product_Name || 'Pegatto CRM',
+    edition: row.Edition_Name || app.edition_label || 'Standard',
+    plan: row.Plan_Name || app.plan_label || 'Standard',
+    country,
+    countryCode: COUNTRY_CODE_MAP[country] || 'GL',
+    currency: CURRENCY_DISPLAY_MAP[curCode] || curCode,
+    price: `${sym}${numPrice.toLocaleString('en-IN')}`,
+    priceNumeric: numPrice,
+    billingCycle: cycle,
+    effectiveFrom: row.Effective_From || '—',
+    effectiveTo: row.Effective_To || '—',
+    taxTreatment: row.Tax_Treatment || 'Exclusive of Tax',
+    licenseUnit: row.Pricing_Model || 'Per Tenant',
+    minQuantity: Number(app.min_quantity || 1),
+    status,
+    tiers: Array.isArray(row.Configured_Tiers) ? row.Configured_Tiers : [],
+    applicableSegments: Array.isArray(app.segments) ? app.segments : [],
+    allowDiscounts: app.allow_discounts !== false,
+    allowCustomization: app.allow_customization !== false,
+    hsnCode: row.HSN_SAC_Code || '',
+    taxRate: row.Tax_Label || (row.Tax_Rate !== null && row.Tax_Rate !== undefined ? `${row.Tax_Rate}%` : ''),
+    invoicingNotes: row.Terms_And_Notes || '',
+  };
+}
+
+function createEmptyRule(defaultProduct = 'Pegatto CRM', defaultProductId?: number | null): PricingRule {
+  return {
+    id: `prc-${Date.now()}`,
+    pricingId: '',
+    productId: defaultProductId ?? null,
+    product: defaultProduct,
     edition: 'Professional',
     plan: 'Standard',
     country: 'India',
     countryCode: 'IN',
     currency: 'INR (₹)',
-    price: '₹4,999',
-    priceNumeric: 4999,
+    price: '',
+    priceNumeric: 0,
     billingCycle: 'Monthly',
-    effectiveFrom: '01 Jan 2026',
-    effectiveTo: '—',
+    effectiveFrom: new Date().toISOString().split('T')[0],
+    effectiveTo: '',
     taxTreatment: 'Exclusive of Tax',
     licenseUnit: 'Per Tenant',
     minQuantity: 1,
-    status: 'Active',
-    tiers: [
-      { id: 't1', name: 'Basic', price: '₹1,499', userLimit: 'Up to 5', storage: '10 GB', features: 'Core CRM' },
-      { id: 't2', name: 'Pro', price: '₹4,999', userLimit: 'Up to 25', storage: '50 GB', features: 'Advanced Analytics' },
-      { id: 't3', name: 'Enterprise', price: '₹12,499', userLimit: 'Up to 100', storage: '250 GB', features: 'Custom SLA & APIs' },
-    ],
-    applicableSegments: ['Small Business', 'Mid Market', 'Education'],
+    status: 'Draft',
+    tiers: [],
+    applicableSegments: [],
     allowDiscounts: true,
     allowCustomization: true,
-    hsnCode: '998314 - SaaS Services',
-    taxRate: '18% GST',
-    invoicingNotes: 'Prices are subject to standard 18% GST for Indian domestic entities.',
-  },
-  {
-    id: 'prc-2',
-    pricingId: 'PRC-000783',
-    product: 'Pegatto CRM',
-    edition: 'Professional',
-    plan: 'Standard',
-    country: 'India',
-    countryCode: 'IN',
-    currency: 'INR (₹)',
-    price: '₹49,999',
-    priceNumeric: 49999,
-    billingCycle: 'Annual',
-    effectiveFrom: '01 Jan 2026',
-    effectiveTo: '—',
-    taxTreatment: 'Exclusive of Tax',
-    licenseUnit: 'Per Tenant',
-    minQuantity: 1,
-    status: 'Active',
-    tiers: [
-      { id: 't1', name: 'Annual Pro', price: '₹49,999', userLimit: 'Up to 25', storage: '60 GB', features: '2 Months Free' },
-      { id: 't2', name: 'Annual Enterprise', price: '₹1,24,999', userLimit: 'Up to 100', storage: '300 GB', features: 'Priority Support' },
-    ],
-    applicableSegments: ['Mid Market', 'Enterprise'],
-    allowDiscounts: true,
-    allowCustomization: true,
-    hsnCode: '998314 - SaaS Services',
-    taxRate: '18% GST',
-    invoicingNotes: 'Includes 17% annual discount commitment.',
-  },
-  {
-    id: 'prc-3',
-    pricingId: 'PRC-000784',
-    product: 'Pegatto CRM',
-    edition: 'Professional',
-    plan: 'Standard',
-    country: 'United States',
-    countryCode: 'US',
-    currency: 'USD ($)',
-    price: '$79',
-    priceNumeric: 79,
-    billingCycle: 'Monthly',
-    effectiveFrom: '01 Jan 2026',
-    effectiveTo: '—',
-    taxTreatment: 'Exclusive of Tax',
-    licenseUnit: 'Per Tenant',
-    minQuantity: 1,
-    status: 'Active',
-    tiers: [
-      { id: 't1', name: 'US Starter', price: '$29', userLimit: 'Up to 5', storage: '10 GB', features: 'Basic CRM' },
-      { id: 't2', name: 'US Growth', price: '$79', userLimit: 'Up to 25', storage: '50 GB', features: 'Full CRM Suite' },
-    ],
-    applicableSegments: ['SMB', 'Mid Market'],
-    allowDiscounts: true,
-    allowCustomization: false,
-    hsnCode: 'US-SaaS-998',
-    taxRate: 'State Sales Tax (Where Applicable)',
-    invoicingNotes: 'Standard US export invoicing terms.',
-  },
-  {
-    id: 'prc-4',
-    pricingId: 'PRC-000785',
-    product: 'Pegatto CRM',
-    edition: 'Professional',
-    plan: 'Standard',
-    country: 'United States',
-    countryCode: 'US',
-    currency: 'USD ($)',
-    price: '$799',
-    priceNumeric: 799,
-    billingCycle: 'Annual',
-    effectiveFrom: '01 Jan 2026',
-    effectiveTo: '—',
-    taxTreatment: 'Exclusive of Tax',
-    licenseUnit: 'Per Tenant',
-    minQuantity: 1,
-    status: 'Active',
-    tiers: [
-      { id: 't1', name: 'US Annual Pro', price: '$799', userLimit: 'Up to 25', storage: '100 GB', features: 'Annual Discount Applied' },
-    ],
-    applicableSegments: ['SMB', 'Mid Market'],
-    allowDiscounts: true,
-    allowCustomization: false,
-    hsnCode: 'US-SaaS-998',
-    taxRate: 'State Sales Tax',
-    invoicingNotes: 'Annual upfront payment.',
-  },
-  {
-    id: 'prc-5',
-    pricingId: 'PRC-000786',
-    product: 'Pegatto Education',
-    edition: 'Professional',
-    plan: 'Premium',
-    country: 'India',
-    countryCode: 'IN',
-    currency: 'INR (₹)',
-    price: '₹9,999',
-    priceNumeric: 9999,
-    billingCycle: 'Monthly',
-    effectiveFrom: '01 Feb 2026',
-    effectiveTo: '—',
-    taxTreatment: 'Exclusive of Tax',
-    licenseUnit: 'Per School',
-    minQuantity: 1,
-    status: 'Active',
-    tiers: [
-      { id: 't1', name: 'Single Campus', price: '₹9,999', userLimit: 'Up to 1,500 students', storage: '100 GB', features: 'Academics & Fee Mgmt' },
-      { id: 't2', name: 'Multi Campus', price: '₹24,999', userLimit: 'Up to 5,000 students', storage: '500 GB', features: 'Multi-Branch Analytics' },
-    ],
-    applicableSegments: ['K-12 Schools', 'Higher Education', 'Coaching Centers'],
-    allowDiscounts: true,
-    allowCustomization: true,
-    hsnCode: '998314 - SaaS Services',
-    taxRate: '18% GST',
-    invoicingNotes: 'Educational institution discount structure.',
-  },
-  {
-    id: 'prc-6',
-    pricingId: 'PRC-000787',
-    product: 'Pegatto People (HRMS)',
-    edition: 'Standard',
-    plan: 'Premium',
-    country: 'United States',
-    countryCode: 'US',
-    currency: 'USD ($)',
-    price: '$149',
-    priceNumeric: 149,
-    billingCycle: 'Monthly',
-    effectiveFrom: '01 Jan 2026',
-    effectiveTo: '—',
-    taxTreatment: 'Exclusive of Tax',
-    licenseUnit: 'Per Tenant',
-    minQuantity: 1,
-    status: 'Active',
-    tiers: [
-      { id: 't1', name: 'HR Essentials', price: '$149', userLimit: 'Up to 50 employees', storage: '20 GB', features: 'Payroll & Attendance' },
-    ],
-    applicableSegments: ['SMB', 'Mid Market'],
-    allowDiscounts: true,
-    allowCustomization: false,
-    hsnCode: 'US-HR-SaaS',
-    taxRate: 'Exempt',
-    invoicingNotes: 'Monthly subscription for international entities.',
-  },
-  {
-    id: 'prc-7',
-    pricingId: 'PRC-000788',
-    product: 'Pegatto IT',
-    edition: 'Enterprise',
-    plan: 'Enterprise',
-    country: 'Global',
-    countryCode: 'GL',
-    currency: 'USD ($)',
-    price: '$299',
-    priceNumeric: 299,
-    billingCycle: 'Monthly',
-    effectiveFrom: '15 Mar 2026',
-    effectiveTo: '—',
-    taxTreatment: 'Exclusive of Tax',
-    licenseUnit: 'Per Tenant',
-    minQuantity: 1,
-    status: 'Scheduled',
-    tiers: [
-      { id: 't1', name: 'IT Ops', price: '$299', userLimit: 'Up to 200 nodes', storage: '1 TB', features: 'Incident & Asset Mgmt' },
-    ],
-    applicableSegments: ['Global Enterprise', 'MSP Partners'],
-    allowDiscounts: true,
-    allowCustomization: true,
-    hsnCode: 'GL-IT-9901',
-    taxRate: 'Reverse Charge Mechanism',
-    invoicingNotes: 'Scheduled rate revision effective mid Q1 2026.',
-  },
-  {
-    id: 'prc-8',
-    pricingId: 'PRC-000789',
-    product: 'Pegatto Retail',
-    edition: 'Professional',
-    plan: 'Enterprise',
-    country: 'Global',
-    countryCode: 'GL',
-    currency: 'USD ($)',
-    price: '$2,999',
-    priceNumeric: 2999,
-    billingCycle: 'Annual',
-    effectiveFrom: '01 Jan 2025',
-    effectiveTo: '31 Dec 2025',
-    taxTreatment: 'Exclusive of Tax',
-    licenseUnit: 'Per Chain',
-    minQuantity: 1,
-    status: 'Expired',
-    tiers: [
-      { id: 't1', name: 'Retail Legacy', price: '$2,999', userLimit: 'Up to 10 Outlets', storage: '500 GB', features: 'POS Sync & Inventory' },
-    ],
-    applicableSegments: ['Retail Chains'],
-    allowDiscounts: false,
-    allowCustomization: false,
-    hsnCode: 'GL-RET-01',
-    taxRate: 'Standard',
-    invoicingNotes: 'Historical 2025 annual rate contract.',
-  },
-];
+    hsnCode: '',
+    taxRate: '',
+    invoicingNotes: '',
+  };
+}
 
 export interface ProductPricingScreenProps {
   initialMode?: 'view' | 'edit' | 'create';
@@ -332,20 +216,11 @@ export function ProductPricingScreen({
   // Top page navigation tabs: 'rules' | 'matrix' | 'bulk' | 'history'
   const [activeTab, setActiveTab] = useState<'rules' | 'matrix' | 'bulk' | 'history'>('rules');
 
-  // Master Pricing Rules State
-  const [pricingRules, setPricingRules] = useState<PricingRule[]>(INITIAL_PRICING_RULES);
-
   // Selected Rule ID (for right panel inspection / edit)
-  const [selectedRuleId, setSelectedRuleId] = useState<string>(() => {
-    if (initialPricingId) {
-      const found = INITIAL_PRICING_RULES.find((r) => r.id === initialPricingId || r.pricingId === initialPricingId);
-      if (found) return found.id;
-    }
-    return 'prc-1';
-  });
+  const [selectedRuleId, setSelectedRuleId] = useState<string>('');
 
   // Multi-select row IDs for bulk actions
-  const [selectedRowIds, setSelectedRowIds] = useState<string[]>(['prc-1']);
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
 
   // Filters State
   const [filterProduct, setFilterProduct] = useState('All');
@@ -356,118 +231,155 @@ export function ProductPricingScreen({
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Columns customizer & row options menu
+  const [isColumnsOpen, setIsColumnsOpen] = useState(false);
+  const [openOptionsRowId, setOpenOptionsRowId] = useState<string | null>(null);
+  const [visibleCols, setVisibleCols] = useState({
+    pricingId: true,
+    product: true,
+    editionPlan: true,
+    country: true,
+    price: true,
+    cycle: true,
+    status: true,
+  });
+
+  // Bulk Update Form State
+  const [bulkProduct, setBulkProduct] = useState('All');
+  const [bulkCurrency, setBulkCurrency] = useState('All');
+  const [bulkAdjType, setBulkAdjType] = useState('increase_pct');
+  const [bulkAdjValue, setBulkAdjValue] = useState('5');
+  const [bulkEffectiveDate, setBulkEffectiveDate] = useState('2026-07-01');
+  const [bulkPreviewCount, setBulkPreviewCount] = useState<number | null>(null);
+
   // Right Panel State
-  // Mode: 'view' (overview) | 'edit' (editing existing) | 'create' (creating brand new)
   const [panelMode, setPanelMode] = useState<'view' | 'edit' | 'create'>(initialMode);
-  // Right panel subtabs: 'overview' | 'details' | 'tiers' | 'applicability' | 'taxes'
   const [rightSubTab, setRightSubTab] = useState<'overview' | 'details' | 'tiers' | 'applicability' | 'taxes'>(
     initialMode === 'create' ? 'details' : 'overview'
   );
+  const [formData, setFormData] = useState<PricingRule>(() => createEmptyRule());
 
-  // Form State in Right Panel
-  const [formData, setFormData] = useState<PricingRule>(() => {
-    if (initialMode === 'create') {
-      const newId = `prc-${Date.now()}`;
-      const newPricingId = `PRC-00${Math.floor(1000 + Math.random() * 9000)}`;
-      return {
-        id: newId,
-        pricingId: newPricingId,
-        product: 'Pegatto CRM',
-        edition: 'Professional',
-        plan: 'Standard',
-        country: 'India',
-        countryCode: 'IN',
-        currency: 'INR (₹)',
-        price: '₹5,999',
-        priceNumeric: 5999,
-        billingCycle: 'Monthly',
-        effectiveFrom: '01 Mar 2026',
-        effectiveTo: '—',
-        taxTreatment: 'Exclusive of Tax',
-        licenseUnit: 'Per Tenant',
-        minQuantity: 1,
-        status: 'Draft',
-        tiers: [
-          { id: `t-${Date.now()}-1`, name: 'Starter', price: '₹1,999', userLimit: 'Up to 5', storage: '10 GB', features: 'Essential CRM' },
-          { id: `t-${Date.now()}-2`, name: 'Pro', price: '₹5,999', userLimit: 'Up to 25', storage: '50 GB', features: 'Automation & Reports' },
-        ],
-        applicableSegments: ['Small Business', 'Mid Market'],
-        allowDiscounts: true,
-        allowCustomization: true,
-        hsnCode: '998314 - SaaS Services',
-        taxRate: '18% GST',
-        invoicingNotes: 'Standard pricing terms apply.',
-      };
-    }
-    if (initialPricingId) {
-      const found = INITIAL_PRICING_RULES.find((r) => r.id === initialPricingId || r.pricingId === initialPricingId);
-      if (found) return found;
-    }
-    return INITIAL_PRICING_RULES[0];
-  });
-
-  // Pagination
+  // Pagination & Schedule Modal
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-
-  // Future Schedule Dialog
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [scheduleDate, setScheduleDate] = useState('2026-06-01');
   const [newProposedPrice, setNewProposedPrice] = useState('₹5,499');
+  const [scheduleLeadNote, setScheduleLeadNote] = useState('Notify tenants 30 days in advance');
+
+  // Live Backend Queries
+  const pricingQueryArgs = useMemo(
+    () => ({
+      Product: filterProduct !== 'All' ? filterProduct : undefined,
+      Edition: filterEdition !== 'All' ? filterEdition : undefined,
+      Plan: filterPlan !== 'All Plans' ? filterPlan : undefined,
+      Country: filterCountry !== 'All Countries' ? filterCountry : undefined,
+      Currency: filterCurrency !== 'All Currencies' ? filterCurrency : undefined,
+      Status: filterStatus !== 'All' ? filterStatus : undefined,
+      search: searchQuery.trim() || undefined,
+    }),
+    [filterProduct, filterEdition, filterPlan, filterCountry, filterCurrency, filterStatus, searchQuery]
+  );
+
+  const { data: rawPricingList = [], isFetching: isPricingFetching, refetch: refetchPricingList } =
+    useGetProductPricingListQuery(pricingQueryArgs, { refetchOnMountOrArgChange: true });
+  const { data: kpiData, refetch: refetchKpi } = useGetProductPricingKpiQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+  const { data: matrixRows = [], isFetching: isMatrixFetching, refetch: refetchMatrix } =
+    useGetProductPriceMatrixQuery(
+      { Product: filterProduct !== 'All' ? filterProduct : undefined },
+      { refetchOnMountOrArgChange: true }
+    );
+  const { data: historyRows = [], isFetching: isHistoryFetching, refetch: refetchHistory } =
+    useGetProductPriceHistoryQuery(undefined, { refetchOnMountOrArgChange: true });
+  const { data: productLookups = [] } = useGetProductMasterLookupsQuery();
+  const { data: editionLookups = [] } = useGetProductEditionsListQuery();
+  const { data: planLookups = [] } = useGetPlansListQuery();
+
+  // Mutations
+  const [createProductPricing, { isLoading: isCreatingPricing }] = useCreateProductPricingMutation();
+  const [updateProductPricing, { isLoading: isUpdatingPricing }] = useUpdateProductPricingMutation();
+  const [deleteProductPricing] = useDeleteProductPricingMutation();
+  const [bulkUpdatePricing, { isLoading: isBulkUpdating }] = useBulkUpdateProductPricingMutation();
+  const [scheduleProductPricing, { isLoading: isScheduling }] = useScheduleProductPricingMutation();
+
+  const pricingRules: PricingRule[] = useMemo(
+    () => rawPricingList.map(mapBackendPricingToRule),
+    [rawPricingList]
+  );
+
+  const editionOptions = useMemo(() => {
+    const set = new Set<string>(['Professional', 'Standard', 'Enterprise']);
+    editionLookups.forEach((e: any) => {
+      if (e.Edition_Name) set.add(e.Edition_Name);
+    });
+    pricingRules.forEach((r) => {
+      if (r.edition) set.add(r.edition);
+    });
+    return Array.from(set);
+  }, [editionLookups, pricingRules]);
+
+  const planOptions = useMemo(() => {
+    const set = new Set<string>(['Standard', 'Premium', 'Enterprise']);
+    planLookups.forEach((p: any) => {
+      if (p.Plan_Name || p.name) set.add(p.Plan_Name || p.name);
+    });
+    pricingRules.forEach((r) => {
+      if (r.plan) set.add(r.plan);
+    });
+    return Array.from(set);
+  }, [planLookups, pricingRules]);
+
+  // Sync selected rule cleanly when live pricing list loads
+  useEffect(() => {
+    if (panelMode === 'create') return;
+    if (pricingRules.length > 0) {
+      const target =
+        (initialPricingId && pricingRules.find((r) => r.id === initialPricingId || r.pricingId === initialPricingId)) ||
+        pricingRules.find((r) => r.id === selectedRuleId) ||
+        pricingRules[0];
+      if (target && (target.id !== selectedRuleId || formData.id !== target.id)) {
+        setSelectedRuleId(target.id);
+        setFormData({ ...target });
+      }
+    }
+  }, [pricingRules, selectedRuleId, initialPricingId, panelMode, formData.id]);
 
   // Active Selected Rule
   const selectedRule = useMemo(() => {
-    return pricingRules.find((r) => r.id === selectedRuleId) || pricingRules[0];
-  }, [pricingRules, selectedRuleId]);
+    return pricingRules.find((r) => r.id === selectedRuleId) || pricingRules[0] || formData;
+  }, [pricingRules, selectedRuleId, formData]);
 
-  // Keep form data synced when switching selected row (if in view mode)
+  // Tab switch triggers live API calls
+  const handleTabChange = (tab: 'rules' | 'matrix' | 'bulk' | 'history') => {
+    setActiveTab(tab);
+    if (tab === 'rules') {
+      refetchPricingList();
+      refetchKpi();
+    } else if (tab === 'matrix') {
+      refetchMatrix();
+    } else if (tab === 'history') {
+      refetchHistory();
+    } else if (tab === 'bulk') {
+      handleBulkPreview();
+    }
+  };
+
+  // Keep form data synced when switching selected row
   const handleSelectRow = (rule: PricingRule) => {
     setSelectedRuleId(rule.id);
     if (panelMode === 'create') {
       setPanelMode('view');
       setRightSubTab('overview');
-      setFormData({ ...rule });
-    } else if (panelMode === 'edit') {
-      setFormData({ ...rule });
-    } else {
-      setFormData({ ...rule });
     }
+    setFormData({ ...rule });
   };
 
   // Switch to Create Mode in Right Panel
   const handleStartCreate = () => {
-    const newId = `prc-${Date.now()}`;
-    const newPricingId = `PRC-00${Math.floor(1000 + Math.random() * 9000)}`;
-    const freshRule: PricingRule = {
-      id: newId,
-      pricingId: newPricingId,
-      product: 'Pegatto CRM',
-      edition: 'Professional',
-      plan: 'Standard',
-      country: 'India',
-      countryCode: 'IN',
-      currency: 'INR (₹)',
-      price: '₹5,999',
-      priceNumeric: 5999,
-      billingCycle: 'Monthly',
-      effectiveFrom: '01 Mar 2026',
-      effectiveTo: '—',
-      taxTreatment: 'Exclusive of Tax',
-      licenseUnit: 'Per Tenant',
-      minQuantity: 1,
-      status: 'Draft',
-      tiers: [
-        { id: `t-${Date.now()}-1`, name: 'Starter', price: '₹1,999', userLimit: 'Up to 5', storage: '10 GB', features: 'Essential CRM' },
-        { id: `t-${Date.now()}-2`, name: 'Pro', price: '₹5,999', userLimit: 'Up to 25', storage: '50 GB', features: 'Automation & Reports' },
-      ],
-      applicableSegments: ['Small Business', 'Mid Market'],
-      allowDiscounts: true,
-      allowCustomization: true,
-      hsnCode: '998314 - SaaS Services',
-      taxRate: '18% GST',
-      invoicingNotes: 'Standard pricing terms apply.',
-    };
-    setFormData(freshRule);
+    const firstProd = productLookups[0];
+    setFormData(createEmptyRule(firstProd?.Product_Name || 'Pegatto CRM', firstProd?.id ?? null));
     setPanelMode('create');
     setRightSubTab('details');
   };
@@ -480,40 +392,67 @@ export function ProductPricingScreen({
       setFormData({ ...target });
       setPanelMode('edit');
       setRightSubTab('details');
-      toast.info(`Editing ${target.pricingId} in form panel`);
     }
   };
 
-  // Save changes from Right Panel form
-  const handleSaveForm = (saveAsStatus: 'Active' | 'Draft' = 'Active') => {
-    const finalPricingId = formData.pricingId?.trim() || `PRC-00${Math.floor(1000 + Math.random() * 9000)}`;
-    const finalProduct = formData.product?.trim() || 'Pegatto CRM';
-    const finalPrice = formData.price?.trim() || '₹4,999';
+  // Save changes from Right Panel form via ProductPricingCRUD/
+  const handleSaveForm = async (saveAsStatus: 'Active' | 'Draft' = 'Active') => {
+    const curCode = String(formData.currency || 'INR').split(' ')[0].toUpperCase();
+    const numericPrice = Number(String(formData.priceNumeric || formData.price).replace(/[^0-9.]/g, '')) || 0;
+    const numericTax = Number(String(formData.taxRate || '').replace(/[^0-9.]/g, ''));
+    const nextStatus = panelMode === 'create' ? saveAsStatus : formData.status === 'Draft' ? saveAsStatus : formData.status;
 
-    const updatedRule: PricingRule = {
-      ...formData,
-      pricingId: finalPricingId,
-      product: finalProduct,
-      price: finalPrice,
-      status: panelMode === 'create' ? saveAsStatus : formData.status === 'Draft' ? saveAsStatus : formData.status,
+    const payload: Record<string, any> = {
+      Product_Id: formData.productId || formData.product,
+      Country: formData.country || 'India',
+      Region: formData.countryCode || 'IN',
+      Currency: curCode,
+      Currency_Symbol: CURRENCY_SYMBOL_MAP[curCode] || '₹',
+      Price: numericPrice,
+      Billing_Cycle: formData.billingCycle || 'Monthly',
+      Pricing_Model: formData.licenseUnit || 'Per Tenant',
+      Status: nextStatus,
+      Effective_From: formData.effectiveFrom && formData.effectiveFrom !== '—' ? formData.effectiveFrom : null,
+      Effective_To: formData.effectiveTo && formData.effectiveTo !== '—' ? formData.effectiveTo : null,
+      Tax_Treatment: formData.taxTreatment || 'Exclusive of Tax',
+      HSN_SAC_Code: formData.hsnCode || '',
+      Tax_Rate: Number.isFinite(numericTax) && String(formData.taxRate).match(/\d/) ? numericTax : null,
+      Tax_Label: formData.taxRate || '',
+      Configured_Tiers: formData.tiers || [],
+      Applicability: {
+        edition_label: formData.edition || 'Standard',
+        plan_label: formData.plan || 'Standard',
+        segments: formData.applicableSegments || [],
+        allow_discounts: formData.allowDiscounts,
+        allow_customization: formData.allowCustomization,
+        min_quantity: formData.minQuantity || 1,
+      },
+      Terms_And_Notes: formData.invoicingNotes || '',
     };
 
-    if (panelMode === 'create') {
-      setPricingRules((prev) => [updatedRule, ...prev]);
-      setSelectedRuleId(updatedRule.id);
-      setFormData(updatedRule);
+    try {
+      let saved: any;
+      if (panelMode === 'create') {
+        if (formData.pricingId?.trim()) payload.Pricing_Id = formData.pricingId.trim();
+        saved = await createProductPricing(payload).unwrap();
+        toast.success(`Pricing rule ${saved?.Pricing_Id || ''} created successfully!`);
+      } else {
+        payload.id = formData.backendId ?? Number(formData.id);
+        saved = await updateProductPricing(payload).unwrap();
+        toast.success(`Pricing rule ${saved?.Pricing_Id || formData.pricingId} updated successfully!`);
+      }
+      if (saved?.id) {
+        setSelectedRuleId(String(saved.id));
+        setFormData(mapBackendPricingToRule(saved));
+      }
       setPanelMode('view');
       setRightSubTab('overview');
-      toast.success(`Pricing rule ${updatedRule.pricingId} created successfully!`);
-    } else {
-      setPricingRules((prev) =>
-        prev.map((r) => (r.id === updatedRule.id ? updatedRule : r))
-      );
-      setSelectedRuleId(updatedRule.id);
-      setFormData(updatedRule);
-      setPanelMode('view');
-      setRightSubTab('overview');
-      toast.success(`Pricing rule ${updatedRule.pricingId} updated successfully!`);
+      refetchPricingList();
+      refetchKpi();
+      refetchMatrix();
+      refetchHistory();
+    } catch (err: any) {
+      toast.error(err?.data?.Error || 'Failed to save pricing rule');
     }
   };
 
@@ -524,31 +463,24 @@ export function ProductPricingScreen({
     if (selectedRule) {
       setFormData({ ...selectedRule });
     }
-    toast.info('Returned to Pricing Overview');
   };
 
-  // Filtered pricing rules
-  const filteredRules = useMemo(() => {
-    return pricingRules.filter((r) => {
-      if (filterProduct !== 'All' && r.product !== filterProduct) return false;
-      if (filterEdition !== 'All' && r.edition !== filterEdition) return false;
-      if (filterPlan !== 'All Plans' && r.plan !== filterPlan) return false;
-      if (filterCountry !== 'All Countries' && r.country !== filterCountry) return false;
-      if (filterCurrency !== 'All Currencies' && !r.currency.includes(filterCurrency)) return false;
-      if (filterStatus !== 'All' && r.status !== filterStatus) return false;
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        return (
-          r.product.toLowerCase().includes(q) ||
-          r.edition.toLowerCase().includes(q) ||
-          r.plan.toLowerCase().includes(q) ||
-          r.country.toLowerCase().includes(q) ||
-          r.pricingId.toLowerCase().includes(q)
-        );
-      }
-      return true;
-    });
-  }, [pricingRules, filterProduct, filterEdition, filterPlan, filterCountry, filterCurrency, filterStatus, searchQuery]);
+  // Delete rule via ProductPricingCRUD/
+  const handleDeleteRule = async (rule: PricingRule) => {
+    const pk = rule.backendId ?? rule.id;
+    try {
+      await deleteProductPricing({ id: pk }).unwrap();
+      toast.success(`Deleted ${rule.pricingId}`);
+      refetchPricingList();
+      refetchKpi();
+      refetchMatrix();
+    } catch (err: any) {
+      toast.error(err?.data?.Error || 'Failed to delete pricing rule');
+    }
+  };
+
+  // Filtered pricing rules (server already filters, client preserves instant search refinement)
+  const filteredRules = pricingRules;
 
   // Paginated list
   const paginatedRules = useMemo(() => {
@@ -572,43 +504,87 @@ export function ProductPricingScreen({
     );
   };
 
-  // Export to CSV
-  const handleExportCSV = () => {
-    const headers = [
-      'Pricing ID',
-      'Product',
-      'Edition',
-      'Plan',
-      'Country',
-      'Currency',
-      'Price',
-      'Billing Cycle',
-      'Effective From',
-      'Status',
-    ];
-    const rows = filteredRules.map((r) => [
-      r.pricingId,
-      r.product,
-      r.edition,
-      r.plan,
-      r.country,
-      r.currency,
-      r.price,
-      r.billingCycle,
-      r.effectiveFrom,
-      r.status,
-    ]);
-    const csvContent =
-      'data:text/csv;charset=utf-8,' +
-      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
+  // Export to CSV via ProductPricingExport/
+  const handleExportCSV = async () => {
+    const ok = await downloadProductPricingExportCsv({
+      Product: filterProduct,
+      Edition: filterEdition,
+      Plan: filterPlan,
+      Country: filterCountry,
+      Currency: filterCurrency,
+      Status: filterStatus,
+      search: searchQuery,
+      ids: selectedRowIds.length > 0 ? selectedRowIds : undefined,
+    });
+    if (ok) {
+      toast.success('Pricing rules exported to CSV');
+      return;
+    }
+    const headers = ['Pricing ID', 'Product', 'Edition', 'Plan', 'Country', 'Currency', 'Price', 'Billing Cycle', 'Status'];
+    const rows = filteredRules.map((r) => [r.pricingId, r.product, r.edition, r.plan, r.country, r.currency, r.price, r.billingCycle, r.status]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
+    link.setAttribute('href', encodeURI(csvContent));
     link.setAttribute('download', `Product_Pricing_Rules_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     toast.success('Pricing rules exported to CSV');
+  };
+
+  // Bulk Update Handlers
+  const handleBulkPreview = async () => {
+    try {
+      const res = await bulkUpdatePricing({
+        preview: true,
+        Product: bulkProduct !== 'All' ? bulkProduct : undefined,
+        Currency: bulkCurrency !== 'All' ? bulkCurrency : undefined,
+        adjustment_type: bulkAdjType,
+        adjustment_value: Number(String(bulkAdjValue).replace(/[^0-9.-]/g, '')) || 0,
+      }).unwrap();
+      setBulkPreviewCount(res?.affected_count ?? 0);
+    } catch {
+      setBulkPreviewCount(null);
+    }
+  };
+
+  const handleBulkSubmit = async () => {
+    try {
+      const res = await bulkUpdatePricing({
+        preview: false,
+        Product: bulkProduct !== 'All' ? bulkProduct : undefined,
+        Currency: bulkCurrency !== 'All' ? bulkCurrency : undefined,
+        adjustment_type: bulkAdjType,
+        adjustment_value: Number(String(bulkAdjValue).replace(/[^0-9.-]/g, '')) || 0,
+        effective_date: bulkEffectiveDate || undefined,
+      }).unwrap();
+      toast.success(res?.message || 'Bulk price adjustment scheduled!');
+      refetchPricingList();
+      refetchKpi();
+      refetchMatrix();
+      refetchHistory();
+    } catch (err: any) {
+      toast.error(err?.data?.Error || 'Failed to apply bulk adjustment');
+    }
+  };
+
+  const handleScheduleSubmit = async () => {
+    if (!selectedRule?.backendId) return;
+    try {
+      await scheduleProductPricing({
+        id: selectedRule.backendId,
+        new_price: newProposedPrice,
+        effective_date: scheduleDate,
+        notification_lead: scheduleLeadNote,
+      }).unwrap();
+      setIsScheduleModalOpen(false);
+      toast.success(`Price revision to ${newProposedPrice} scheduled for ${scheduleDate}!`);
+      refetchPricingList();
+      refetchKpi();
+      refetchHistory();
+    } catch (err: any) {
+      toast.error(err?.data?.Error || 'Failed to schedule future price');
+    }
   };
 
   // Reset Filters
@@ -694,7 +670,7 @@ export function ProductPricingScreen({
           </div>
           <div>
             <span className="text-xs font-semibold text-slate-500">Total Pricing Rules</span>
-            <h3 className="text-2xl font-bold text-slate-900 mt-0.5">{pricingRules.length + 140}</h3>
+            <h3 className="text-2xl font-bold text-slate-900 mt-0.5">{kpiData?.total_rules ?? pricingRules.length}</h3>
           </div>
         </div>
 
@@ -705,7 +681,7 @@ export function ProductPricingScreen({
           </div>
           <div>
             <span className="text-xs font-semibold text-slate-500">Active Prices</span>
-            <h3 className="text-2xl font-bold text-slate-900 mt-0.5">112</h3>
+            <h3 className="text-2xl font-bold text-slate-900 mt-0.5">{kpiData?.active_prices ?? 0}</h3>
           </div>
         </div>
 
@@ -716,7 +692,7 @@ export function ProductPricingScreen({
           </div>
           <div>
             <span className="text-xs font-semibold text-slate-500">Scheduled Prices</span>
-            <h3 className="text-2xl font-bold text-slate-900 mt-0.5">18</h3>
+            <h3 className="text-2xl font-bold text-slate-900 mt-0.5">{kpiData?.scheduled_prices ?? 0}</h3>
           </div>
         </div>
 
@@ -727,7 +703,7 @@ export function ProductPricingScreen({
           </div>
           <div>
             <span className="text-xs font-semibold text-slate-500">Expired Prices</span>
-            <h3 className="text-2xl font-bold text-slate-900 mt-0.5">18</h3>
+            <h3 className="text-2xl font-bold text-slate-900 mt-0.5">{kpiData?.expired_prices ?? 0}</h3>
           </div>
         </div>
       </div>
@@ -746,7 +722,7 @@ export function ProductPricingScreen({
             <button
               key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => handleTabChange(tab.id as any)}
               className={cn(
                 'pb-3 font-semibold transition-all relative cursor-pointer',
                 activeTab === tab.id
@@ -781,11 +757,11 @@ export function ProductPricingScreen({
                     className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc] cursor-pointer"
                   >
                     <option value="All">All Products</option>
-                    <option value="Pegatto CRM">Pegatto CRM</option>
-                    <option value="Pegatto Education">Pegatto Education</option>
-                    <option value="Pegatto People (HRMS)">Pegatto People (HRMS)</option>
-                    <option value="Pegatto IT">Pegatto IT</option>
-                    <option value="Pegatto Retail">Pegatto Retail</option>
+                    {productLookups.map((p) => (
+                      <option key={p.id} value={p.Product_Name}>
+                        {p.Product_Name}
+                      </option>
+                    ))}
                   </select>
                   <ChevronDown className="h-3.5 w-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
@@ -804,9 +780,11 @@ export function ProductPricingScreen({
                     className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc] cursor-pointer"
                   >
                     <option value="All">All Editions</option>
-                    <option value="Professional">Professional</option>
-                    <option value="Standard">Standard</option>
-                    <option value="Enterprise">Enterprise</option>
+                    {editionOptions.map((ed) => (
+                      <option key={ed} value={ed}>
+                        {ed}
+                      </option>
+                    ))}
                   </select>
                   <ChevronDown className="h-3.5 w-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
@@ -825,9 +803,11 @@ export function ProductPricingScreen({
                     className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc] cursor-pointer"
                   >
                     <option value="All Plans">All Plans</option>
-                    <option value="Standard">Standard</option>
-                    <option value="Premium">Premium</option>
-                    <option value="Enterprise">Enterprise</option>
+                    {planOptions.map((pl) => (
+                      <option key={pl} value={pl}>
+                        {pl}
+                      </option>
+                    ))}
                   </select>
                   <ChevronDown className="h-3.5 w-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
@@ -848,6 +828,8 @@ export function ProductPricingScreen({
                     <option value="All Countries">All Countries</option>
                     <option value="India">India</option>
                     <option value="United States">United States</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="Europe">Europe</option>
                     <option value="Global">Global</option>
                   </select>
                   <ChevronDown className="h-3.5 w-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -870,6 +852,7 @@ export function ProductPricingScreen({
                     <option value="INR">INR (₹)</option>
                     <option value="USD">USD ($)</option>
                     <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
                   </select>
                   <ChevronDown className="h-3.5 w-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
@@ -909,10 +892,13 @@ export function ProductPricingScreen({
               </button>
               <Button
                 type="button"
-                onClick={() => toast.success('Pricing filters applied')}
+                onClick={() => {
+                  refetchPricingList();
+                  toast.success('Pricing filters applied');
+                }}
                 className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs h-8 px-4 rounded-lg font-medium shadow-2xs cursor-pointer"
               >
-                Apply
+                {isPricingFetching ? 'Loading...' : 'Apply'}
               </Button>
             </div>
           </div>
@@ -951,15 +937,48 @@ export function ProductPricingScreen({
                     <span>Export</span>
                   </Button>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => toast.info('Column layout customizer')}
-                    className="bg-white hover:bg-slate-50 text-slate-700 text-xs h-9 px-3 rounded-xl border-slate-200 gap-1.5 shadow-2xs cursor-pointer"
-                  >
-                    <SlidersHorizontal className="h-3.5 w-3.5 text-slate-500" />
-                    <span>Columns</span>
-                  </Button>
+                  <div className="relative">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsColumnsOpen((prev) => !prev)}
+                      className="bg-white hover:bg-slate-50 text-slate-700 text-xs h-9 px-3 rounded-xl border-slate-200 gap-1.5 shadow-2xs cursor-pointer"
+                    >
+                      <SlidersHorizontal className="h-3.5 w-3.5 text-slate-500" />
+                      <span>Columns</span>
+                    </Button>
+                    {isColumnsOpen && (
+                      <div className="absolute right-0 mt-1.5 w-48 bg-white rounded-xl border border-slate-200 shadow-lg p-2.5 z-30 space-y-1.5 text-xs">
+                        <div className="text-[11px] font-bold text-slate-700 pb-1 border-b border-slate-100">
+                          Visible Columns
+                        </div>
+                        {[
+                          { key: 'pricingId', label: 'Pricing ID' },
+                          { key: 'product', label: 'Product' },
+                          { key: 'editionPlan', label: 'Edition / Plan' },
+                          { key: 'country', label: 'Country' },
+                          { key: 'price', label: 'Price' },
+                          { key: 'cycle', label: 'Cycle' },
+                          { key: 'status', label: 'Status' },
+                        ].map((col) => (
+                          <label key={col.key} className="flex items-center gap-2 py-0.5 text-slate-700 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={visibleCols[col.key as keyof typeof visibleCols]}
+                              onChange={(e) =>
+                                setVisibleCols((prev) => ({
+                                  ...prev,
+                                  [col.key]: e.target.checked,
+                                }))
+                              }
+                              className="rounded border-slate-300 accent-[#6222cc] h-3.5 w-3.5"
+                            />
+                            <span>{col.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -980,13 +999,13 @@ export function ProductPricingScreen({
                             className="rounded border-slate-300 accent-[#6222cc] text-[#6222cc] focus:ring-[#6222cc] h-3.5 w-3.5 cursor-pointer"
                           />
                         </th>
-                        <th className="py-3 px-3 font-semibold text-slate-800">Pricing ID</th>
-                        <th className="py-3 px-3 font-semibold text-slate-800">Product</th>
-                        <th className="py-3 px-3 font-semibold text-slate-800">Edition / Plan</th>
-                        <th className="py-3 px-3 font-semibold text-slate-800">Country</th>
-                        <th className="py-3 px-3 font-semibold text-slate-800">Price</th>
-                        <th className="py-3 px-3 font-semibold text-slate-800">Cycle</th>
-                        <th className="py-3 px-3 text-center font-semibold text-slate-800">Status</th>
+                        {visibleCols.pricingId && <th className="py-3 px-3 font-semibold text-slate-800">Pricing ID</th>}
+                        {visibleCols.product && <th className="py-3 px-3 font-semibold text-slate-800">Product</th>}
+                        {visibleCols.editionPlan && <th className="py-3 px-3 font-semibold text-slate-800">Edition / Plan</th>}
+                        {visibleCols.country && <th className="py-3 px-3 font-semibold text-slate-800">Country</th>}
+                        {visibleCols.price && <th className="py-3 px-3 font-semibold text-slate-800">Price</th>}
+                        {visibleCols.cycle && <th className="py-3 px-3 font-semibold text-slate-800">Cycle</th>}
+                        {visibleCols.status && <th className="py-3 px-3 text-center font-semibold text-slate-800">Status</th>}
                         <th className="py-3 px-3 text-center font-semibold text-slate-800">Actions</th>
                       </tr>
                     </thead>
@@ -1022,79 +1041,150 @@ export function ProductPricingScreen({
                               />
                             </td>
 
-                            {/* Pricing ID */}
-                            <td className="py-3 px-3 font-mono font-semibold text-[#6222cc] hover:underline whitespace-nowrap">
-                              {rule.pricingId}
-                            </td>
+                            {visibleCols.pricingId && (
+                              <td className="py-3 px-3 font-mono font-semibold text-[#6222cc] hover:underline whitespace-nowrap">
+                                {rule.pricingId}
+                              </td>
+                            )}
 
-                            {/* Product */}
-                            <td className="py-3 px-3 font-medium text-slate-900 whitespace-nowrap">
-                              {rule.product}
-                            </td>
+                            {visibleCols.product && (
+                              <td className="py-3 px-3 font-medium text-slate-900 whitespace-nowrap">
+                                {rule.product}
+                              </td>
+                            )}
 
-                            {/* Edition / Plan */}
-                            <td className="py-3 px-3 text-slate-700 whitespace-nowrap">
-                              <span className="font-medium text-slate-800">{rule.edition}</span>
-                              <span className="text-slate-400 text-[10px] block">{rule.plan}</span>
-                            </td>
+                            {visibleCols.editionPlan && (
+                              <td className="py-3 px-3 text-slate-700 whitespace-nowrap">
+                                <span className="font-medium text-slate-800">{rule.edition}</span>
+                                <span className="text-slate-400 text-[10px] block">{rule.plan}</span>
+                              </td>
+                            )}
 
-                            {/* Country */}
-                            <td className="py-3 px-3 text-slate-700 whitespace-nowrap">
-                              <div className="flex items-center gap-1.5">
-                                <span>{rule.country === 'India' ? '🇮🇳' : rule.country === 'United States' ? '🇺🇸' : '🌐'}</span>
-                                <span>{rule.country}</span>
-                              </div>
-                            </td>
+                            {visibleCols.country && (
+                              <td className="py-3 px-3 text-slate-700 whitespace-nowrap">
+                                <div className="flex items-center gap-1.5">
+                                  <span>{rule.country === 'India' ? '🇮🇳' : rule.country === 'United States' ? '🇺🇸' : '🌐'}</span>
+                                  <span>{rule.country}</span>
+                                </div>
+                              </td>
+                            )}
 
-                            {/* Price */}
-                            <td className="py-3 px-3 font-bold text-slate-900 whitespace-nowrap">
-                              {rule.price}
-                            </td>
+                            {visibleCols.price && (
+                              <td className="py-3 px-3 font-bold text-slate-900 whitespace-nowrap">
+                                {rule.price}
+                              </td>
+                            )}
 
-                            {/* Billing Cycle */}
-                            <td className="py-3 px-3 text-slate-600 whitespace-nowrap">
-                              {rule.billingCycle}
-                            </td>
+                            {visibleCols.cycle && (
+                              <td className="py-3 px-3 text-slate-600 whitespace-nowrap">
+                                {rule.billingCycle}
+                              </td>
+                            )}
 
-                            {/* Status */}
-                            <td className="py-3 px-3 text-center whitespace-nowrap">
-                              <span
-                                className={cn(
-                                  'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold',
-                                  rule.status === 'Active'
-                                    ? 'bg-[#dcfce7] text-[#15803d]'
-                                    : rule.status === 'Scheduled'
-                                    ? 'bg-[#fef3c7] text-[#b45309]'
-                                    : rule.status === 'Draft'
-                                    ? 'bg-[#e0e7ff] text-[#4338ca]'
-                                    : 'bg-[#fee2e2] text-[#b91c1c]'
-                                )}
-                              >
-                                {rule.status}
-                              </span>
-                            </td>
+                            {visibleCols.status && (
+                              <td className="py-3 px-3 text-center whitespace-nowrap">
+                                <span
+                                  className={cn(
+                                    'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold',
+                                    rule.status === 'Active'
+                                      ? 'bg-[#dcfce7] text-[#15803d]'
+                                      : rule.status === 'Scheduled'
+                                      ? 'bg-[#fef3c7] text-[#b45309]'
+                                      : rule.status === 'Draft'
+                                      ? 'bg-[#e0e7ff] text-[#4338ca]'
+                                      : 'bg-[#fee2e2] text-[#b91c1c]'
+                                  )}
+                                >
+                                  {rule.status}
+                                </span>
+                              </td>
+                            )}
 
                             {/* Actions */}
                             <td
-                              className="py-3 px-3 text-center whitespace-nowrap"
+                              className="py-3 px-3 text-center whitespace-nowrap relative"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <div className="flex items-center justify-center gap-1">
                                 <button
                                   type="button"
                                   onClick={() => handleStartEdit(rule)}
-                                  className="p-1 rounded text-slate-400 hover:text-[#6222cc] hover:bg-slate-100 transition-colors cursor-pointer"
-                                  title="Edit Pricing in Form"
+                                  className="p-1 rounded text-slate-500 hover:text-[#6222cc] hover:bg-purple-50 transition-colors cursor-pointer"
+                                  title="Edit Pricing Rule"
                                 >
                                   <Edit2 className="h-3.5 w-3.5" />
                                 </button>
-                                <button
-                                  type="button"
-                                  onClick={() => toast.info(`Options for ${rule.pricingId}`)}
-                                  className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                                >
-                                  <MoreVertical className="h-3.5 w-3.5" />
-                                </button>
+                                <div className="relative">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setOpenOptionsRowId((prev) => (prev === rule.id ? null : rule.id))
+                                    }
+                                    className="p-1 rounded text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+                                    title="More Options"
+                                  >
+                                    <MoreVertical className="h-3.5 w-3.5" />
+                                  </button>
+                                  {openOptionsRowId === rule.id && (
+                                    <div className="absolute right-0 mt-1 w-44 bg-white rounded-xl border border-slate-200 shadow-lg py-1 z-30 text-left text-xs">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setOpenOptionsRowId(null);
+                                          handleStartEdit(rule);
+                                        }}
+                                        className="w-full px-3 py-1.5 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
+                                      >
+                                        <Edit2 className="h-3.5 w-3.5 text-[#6222cc]" />
+                                        <span>Edit Pricing Rule</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setOpenOptionsRowId(null);
+                                          setSelectedRuleId(rule.id);
+                                          setNewProposedPrice(rule.price);
+                                          setIsScheduleModalOpen(true);
+                                        }}
+                                        className="w-full px-3 py-1.5 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
+                                      >
+                                        <Clock className="h-3.5 w-3.5 text-amber-600" />
+                                        <span>Schedule Future Price</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setOpenOptionsRowId(null);
+                                          setFormData({
+                                            ...rule,
+                                            id: `prc-${Date.now()}`,
+                                            backendId: undefined,
+                                            pricingId: '',
+                                            status: 'Draft',
+                                          });
+                                          setPanelMode('create');
+                                          setRightSubTab('details');
+                                          toast.info(`Duplicated ${rule.pricingId} into New Rule form`);
+                                        }}
+                                        className="w-full px-3 py-1.5 hover:bg-slate-50 text-slate-700 flex items-center gap-2 cursor-pointer"
+                                      >
+                                        <Copy className="h-3.5 w-3.5 text-slate-500" />
+                                        <span>Duplicate Rule</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setOpenOptionsRowId(null);
+                                          handleDeleteRule(rule);
+                                        }}
+                                        className="w-full px-3 py-1.5 hover:bg-red-50 text-red-600 flex items-center gap-2 cursor-pointer border-t border-slate-100 mt-1 pt-1.5"
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                        <span>Delete Rule</span>
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </td>
                           </tr>
@@ -1402,13 +1492,14 @@ export function ProductPricingScreen({
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <label className="font-semibold text-slate-700">
-                        Pricing Code / ID <span className="text-rose-500">*</span>
+                        Pricing Code / ID <span className="text-[10px] font-normal text-slate-400">(Auto-generated)</span>
                       </label>
                       <Input
                         value={formData.pricingId}
-                        onChange={(e) => setFormData({ ...formData, pricingId: e.target.value })}
-                        className="h-8 text-xs font-mono font-semibold"
-                        placeholder="e.g. PRC-000782"
+                        readOnly
+                        disabled
+                        className="h-8 text-xs font-mono font-semibold bg-slate-100 text-slate-500 cursor-not-allowed"
+                        placeholder="Auto-generated on save (PRC-XXXXXX)"
                       />
                     </div>
 
@@ -1418,15 +1509,24 @@ export function ProductPricingScreen({
                       </label>
                       <select
                         value={formData.product}
-                        onChange={(e) => setFormData({ ...formData, product: e.target.value })}
+                        onChange={(e) => {
+                          const found = productLookups.find((p) => p.Product_Name === e.target.value);
+                          setFormData({
+                            ...formData,
+                            product: e.target.value,
+                            productId: found?.id ?? null,
+                          });
+                        }}
                         className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
                       >
-                        <option value="Pegatto CRM">Pegatto CRM</option>
-                        <option value="Pegatto Education">Pegatto Education</option>
-                        <option value="Pegatto People (HRMS)">Pegatto People (HRMS)</option>
-                        <option value="Pegatto IT">Pegatto IT</option>
-                        <option value="Pegatto Retail">Pegatto Retail</option>
-                        <option value="Pegatto Real Estate">Pegatto Real Estate</option>
+                        {productLookups.map((p) => (
+                          <option key={p.id} value={p.Product_Name}>
+                            {p.Product_Name}
+                          </option>
+                        ))}
+                        {!productLookups.some((p) => p.Product_Name === formData.product) && formData.product && (
+                          <option value={formData.product}>{formData.product}</option>
+                        )}
                       </select>
                     </div>
                   </div>
@@ -1442,10 +1542,11 @@ export function ProductPricingScreen({
                         onChange={(e) => setFormData({ ...formData, edition: e.target.value })}
                         className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
                       >
-                        <option value="Professional">Professional</option>
-                        <option value="Standard">Standard</option>
-                        <option value="Enterprise">Enterprise</option>
-                        <option value="Free Core">Free Core</option>
+                        {editionOptions.map((ed) => (
+                          <option key={ed} value={ed}>
+                            {ed}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
@@ -1458,11 +1559,11 @@ export function ProductPricingScreen({
                         onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
                         className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
                       >
-                        <option value="Standard">Standard</option>
-                        <option value="Premium">Premium</option>
-                        <option value="Enterprise">Enterprise</option>
-                        <option value="Starter">Starter</option>
-                        <option value="Free Core">Free Core</option>
+                        {planOptions.map((pl) => (
+                          <option key={pl} value={pl}>
+                            {pl}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -1973,16 +2074,19 @@ export function ProductPricingScreen({
             <div>
               <h3 className="text-base font-bold text-slate-900">Multi-Currency Price Matrix</h3>
               <p className="text-xs text-slate-500">
-                Compare edition base rates across international regions and currencies.
+                Live edition base rates across international regions and currencies (`ProductPriceMatrix/`).
               </p>
             </div>
             <Button
               type="button"
-              onClick={() => toast.success('Matrix synced with global currency rates')}
-              className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs h-8 px-3 rounded-lg"
+              onClick={() => {
+                refetchMatrix();
+                toast.success('Price matrix refreshed from backend');
+              }}
+              className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs h-8 px-3 rounded-lg cursor-pointer"
             >
-              <RefreshCw className="h-3.5 w-3.5 mr-1" />
-              Sync FX Rates
+              <RefreshCw className={cn('h-3.5 w-3.5 mr-1', isMatrixFetching && 'animate-spin')} />
+              Sync Matrix
             </Button>
           </div>
 
@@ -1990,7 +2094,7 @@ export function ProductPricingScreen({
             <table className="w-full text-xs text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/80 text-slate-700 border-b border-slate-200 font-semibold text-[11px]">
-                  <th className="py-3 px-3">Product & Edition</th>
+                  <th className="py-3 px-3">Product &amp; Edition</th>
                   <th className="py-3 px-3">Billing</th>
                   <th className="py-3 px-3">India (INR ₹)</th>
                   <th className="py-3 px-3">United States (USD $)</th>
@@ -2000,28 +2104,40 @@ export function ProductPricingScreen({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {[
-                  { prod: 'Pegatto CRM (Pro)', cycle: 'Monthly', inr: '₹4,999', usd: '$79', eur: '€75', gbp: '£65', status: 'Active' },
-                  { prod: 'Pegatto CRM (Pro)', cycle: 'Annual', inr: '₹49,999', usd: '$799', eur: '€750', gbp: '£650', status: 'Active' },
-                  { prod: 'Pegatto CRM (Enterprise)', cycle: 'Monthly', inr: '₹14,999', usd: '$199', eur: '€185', gbp: '£160', status: 'Active' },
-                  { prod: 'Pegatto Education', cycle: 'Monthly', inr: '₹9,999', usd: '$149', eur: '€140', gbp: '£120', status: 'Active' },
-                  { prod: 'Pegatto People (HRMS)', cycle: 'Monthly', inr: '₹7,999', usd: '$119', eur: '€110', gbp: '£95', status: 'Active' },
-                  { prod: 'Pegatto IT Ops', cycle: 'Monthly', inr: '₹12,499', usd: '$189', eur: '€175', gbp: '£150', status: 'Scheduled' },
-                ].map((row, i) => (
-                  <tr key={i} className="hover:bg-slate-50/60">
-                    <td className="py-3 px-3 font-semibold text-slate-900">{row.prod}</td>
-                    <td className="py-3 px-3 text-slate-600">{row.cycle}</td>
-                    <td className="py-3 px-3 font-bold text-slate-800 font-mono">{row.inr}</td>
-                    <td className="py-3 px-3 font-bold text-slate-800 font-mono">{row.usd}</td>
-                    <td className="py-3 px-3 font-bold text-slate-800 font-mono">{row.eur}</td>
-                    <td className="py-3 px-3 font-bold text-slate-800 font-mono">{row.gbp}</td>
-                    <td className="py-3 px-3 text-center">
-                      <span className="bg-[#dcfce7] text-[#15803d] px-2 py-0.5 rounded-full text-[10px] font-semibold">
-                        {row.status}
-                      </span>
+                {matrixRows.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-8 text-center text-slate-500">
+                      No pricing matrix records found.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  matrixRows.map((row: any, i: number) => (
+                    <tr key={i} className="hover:bg-slate-50/60">
+                      <td className="py-3 px-3 font-semibold text-slate-900">
+                        {row.product} ({row.edition})
+                      </td>
+                      <td className="py-3 px-3 text-slate-600">{row.cycle}</td>
+                      <td className="py-3 px-3 font-bold text-slate-800 font-mono">{row.inr || '—'}</td>
+                      <td className="py-3 px-3 font-bold text-slate-800 font-mono">{row.usd || '—'}</td>
+                      <td className="py-3 px-3 font-bold text-slate-800 font-mono">{row.eur || '—'}</td>
+                      <td className="py-3 px-3 font-bold text-slate-800 font-mono">{row.gbp || '—'}</td>
+                      <td className="py-3 px-3 text-center">
+                        <span
+                          className={cn(
+                            'px-2 py-0.5 rounded-full text-[10px] font-semibold',
+                            row.status === 'Active'
+                              ? 'bg-[#dcfce7] text-[#15803d]'
+                              : row.status === 'Scheduled'
+                              ? 'bg-amber-50 text-amber-700'
+                              : 'bg-slate-100 text-slate-600'
+                          )}
+                        >
+                          {row.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -2034,7 +2150,7 @@ export function ProductPricingScreen({
           <div>
             <h3 className="text-base font-bold text-slate-900">Bulk Price Adjustment</h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Apply a percentage increase or decrease across multiple products and currencies simultaneously.
+              Apply a percentage increase/decrease or fixed adjustment across multiple products and currencies (`ProductPricingBulkUpdate/`).
             </p>
           </div>
 
@@ -2042,20 +2158,32 @@ export function ProductPricingScreen({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700">Target Product</label>
-                <select className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white font-medium text-slate-800">
-                  <option>All Products</option>
-                  <option>Pegatto CRM</option>
-                  <option>Pegatto Education</option>
-                  <option>Pegatto People</option>
+                <select
+                  value={bulkProduct}
+                  onChange={(e) => setBulkProduct(e.target.value)}
+                  className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white font-medium text-slate-800"
+                >
+                  <option value="All">All Products</option>
+                  {productLookups.map((p) => (
+                    <option key={p.id} value={p.Product_Name}>
+                      {p.Product_Name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700">Target Currency</label>
-                <select className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white font-medium text-slate-800">
-                  <option>All Currencies</option>
-                  <option>INR (₹)</option>
-                  <option>USD ($)</option>
+                <select
+                  value={bulkCurrency}
+                  onChange={(e) => setBulkCurrency(e.target.value)}
+                  className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white font-medium text-slate-800"
+                >
+                  <option value="All">All Currencies</option>
+                  <option value="INR">INR (₹)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
                 </select>
               </div>
             </div>
@@ -2063,28 +2191,44 @@ export function ProductPricingScreen({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700">Adjustment Type</label>
-                <select className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white font-medium text-slate-800">
-                  <option>Increase by Percentage (%)</option>
-                  <option>Decrease by Percentage (%)</option>
-                  <option>Fixed Amount Addition</option>
+                <select
+                  value={bulkAdjType}
+                  onChange={(e) => setBulkAdjType(e.target.value)}
+                  className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white font-medium text-slate-800"
+                >
+                  <option value="increase_pct">Increase by Percentage (%)</option>
+                  <option value="decrease_pct">Decrease by Percentage (%)</option>
+                  <option value="fixed">Fixed Amount Addition</option>
                 </select>
               </div>
 
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700">Adjustment Value</label>
-                <Input defaultValue="5%" className="h-8 text-xs font-bold" />
+                <Input
+                  value={bulkAdjValue}
+                  onChange={(e) => setBulkAdjValue(e.target.value)}
+                  className="h-8 text-xs font-bold"
+                  placeholder="e.g. 5"
+                />
               </div>
             </div>
 
             <div className="space-y-1">
               <label className="font-semibold text-slate-700">Effective Scheduled Date</label>
-              <Input type="date" defaultValue="2026-07-01" className="h-8 text-xs" />
+              <Input
+                type="date"
+                value={bulkEffectiveDate}
+                onChange={(e) => setBulkEffectiveDate(e.target.value)}
+                className="h-8 text-xs"
+              />
             </div>
 
             <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-amber-800 flex items-start gap-2 text-xs">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
               <span>
-                This change will impact 24 pricing rules. Existing active tenant subscriptions will be grandfathered until renewal.
+                {bulkPreviewCount !== null
+                  ? `Preview: ${bulkPreviewCount} pricing rule(s) will be updated and logged in Price History.`
+                  : 'Click Preview Impact to calculate affected pricing rules before applying.'}
               </span>
             </div>
 
@@ -2092,16 +2236,19 @@ export function ProductPricingScreen({
               <Button
                 type="button"
                 variant="outline"
-                className="text-xs h-8 px-3 rounded-lg border-slate-200"
+                disabled={isBulkUpdating}
+                onClick={handleBulkPreview}
+                className="text-xs h-8 px-3 rounded-lg border-slate-200 cursor-pointer"
               >
                 Preview Impact
               </Button>
               <Button
                 type="button"
-                onClick={() => toast.success('Bulk price adjustment scheduled!')}
-                className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs h-8 px-4 rounded-lg font-semibold"
+                disabled={isBulkUpdating}
+                onClick={handleBulkSubmit}
+                className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs h-8 px-4 rounded-lg font-semibold cursor-pointer"
               >
-                Schedule Bulk Update
+                {isBulkUpdating ? 'Updating...' : 'Schedule Bulk Update'}
               </Button>
             </div>
           </div>
@@ -2111,18 +2258,29 @@ export function ProductPricingScreen({
       {/* TAB 4: PRICE HISTORY */}
       {activeTab === 'history' && (
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 space-y-4">
-          <div>
-            <h3 className="text-base font-bold text-slate-900">Pricing Audit Trail & History</h3>
-            <p className="text-xs text-slate-500">
-              Complete chronological log of price updates, edition changes, and schedule modifications.
-            </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Pricing Audit Trail &amp; History</h3>
+              <p className="text-xs text-slate-500">
+                Live chronological log from `ProductPriceHistory/`.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => refetchHistory()}
+              className="text-xs h-8 px-3 rounded-lg cursor-pointer"
+            >
+              <RefreshCw className={cn('h-3.5 w-3.5 mr-1', isHistoryFetching && 'animate-spin')} />
+              Refresh
+            </Button>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/80 text-slate-700 border-b border-slate-200 font-semibold text-[11px]">
-                  <th className="py-3 px-3">Date & Time</th>
+                  <th className="py-3 px-3">Date &amp; Time</th>
                   <th className="py-3 px-3">Pricing ID</th>
                   <th className="py-3 px-3">Product / Edition</th>
                   <th className="py-3 px-3">Old Price</th>
@@ -2133,27 +2291,39 @@ export function ProductPricingScreen({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {[
-                  { date: '18 Nov 2026, 11:20 AM', id: 'PRC-000782', prod: 'Pegatto CRM (Pro)', old: '₹4,499', nw: '₹4,999', by: 'Super Admin', reason: 'Annual inflation revision', status: 'Applied' },
-                  { date: '15 Oct 2026, 04:15 PM', id: 'PRC-000783', prod: 'Pegatto CRM (Annual)', old: '₹44,999', nw: '₹49,999', by: 'Finance Ops', reason: 'Feature pack inclusion', status: 'Applied' },
-                  { date: '01 Sep 2026, 09:30 AM', id: 'PRC-000787', prod: 'Pegatto People (HRMS)', old: '$129', nw: '$149', by: 'Product Manager', reason: 'Global currency alignment', status: 'Applied' },
-                  { date: '12 Aug 2026, 02:45 PM', id: 'PRC-000784', prod: 'Pegatto CRM (US)', old: '$69', nw: '$79', by: 'Super Admin', reason: 'US market revision', status: 'Applied' },
-                ].map((log, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/60">
-                    <td className="py-3 px-3 text-slate-600 whitespace-nowrap font-mono text-[11px]">{log.date}</td>
-                    <td className="py-3 px-3 font-mono font-semibold text-[#6222cc]">{log.id}</td>
-                    <td className="py-3 px-3 font-medium text-slate-900">{log.prod}</td>
-                    <td className="py-3 px-3 text-slate-400 line-through font-mono">{log.old}</td>
-                    <td className="py-3 px-3 font-bold text-slate-900 font-mono">{log.nw}</td>
-                    <td className="py-3 px-3 text-slate-700">{log.by}</td>
-                    <td className="py-3 px-3 text-slate-600">{log.reason}</td>
-                    <td className="py-3 px-3 text-center">
-                      <span className="bg-[#dcfce7] text-[#15803d] px-2 py-0.5 rounded-full text-[10px] font-semibold">
-                        {log.status}
-                      </span>
+                {historyRows.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-8 text-center text-slate-500">
+                      No pricing history entries recorded yet.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  historyRows.map((log: any) => {
+                    const sym = CURRENCY_SYMBOL_MAP[(log.Currency || 'INR').toUpperCase()] || '₹';
+                    return (
+                      <tr key={log.id} className="hover:bg-slate-50/60">
+                        <td className="py-3 px-3 text-slate-600 whitespace-nowrap font-mono text-[11px]">
+                          {log.Change_Date ? String(log.Change_Date).replace('T', ' ').slice(0, 16) : '—'}
+                        </td>
+                        <td className="py-3 px-3 font-mono font-semibold text-[#6222cc]">{log.Pricing_Id}</td>
+                        <td className="py-3 px-3 font-medium text-slate-900">{log.Product_Label}</td>
+                        <td className="py-3 px-3 text-slate-400 line-through font-mono">
+                          {sym}{Number(log.Old_Price || 0).toLocaleString('en-IN')}
+                        </td>
+                        <td className="py-3 px-3 font-bold text-slate-900 font-mono">
+                          {sym}{Number(log.New_Price || 0).toLocaleString('en-IN')}
+                        </td>
+                        <td className="py-3 px-3 text-slate-700">{log.Changed_By_Name || 'Super Admin'}</td>
+                        <td className="py-3 px-3 text-slate-600">{log.Reason || '—'}</td>
+                        <td className="py-3 px-3 text-center">
+                          <span className="bg-[#dcfce7] text-[#15803d] px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                            {log.Status || 'Applied'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
@@ -2192,10 +2362,14 @@ export function ProductPricingScreen({
             </div>
             <div className="space-y-1">
               <label className="font-semibold text-slate-700">Notification Lead Time</label>
-              <select className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium">
-                <option>Notify tenants 30 days in advance</option>
-                <option>Notify tenants 60 days in advance</option>
-                <option>Immediate notice on invoice</option>
+              <select
+                value={scheduleLeadNote}
+                onChange={(e) => setScheduleLeadNote(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 font-medium"
+              >
+                <option value="Notify tenants 30 days in advance">Notify tenants 30 days in advance</option>
+                <option value="Notify tenants 60 days in advance">Notify tenants 60 days in advance</option>
+                <option value="Immediate notice on invoice">Immediate notice on invoice</option>
               </select>
             </div>
           </div>
@@ -2211,13 +2385,11 @@ export function ProductPricingScreen({
             </Button>
             <Button
               type="button"
-              onClick={() => {
-                setIsScheduleModalOpen(false);
-                toast.success(`Price revision to ${newProposedPrice} scheduled for ${scheduleDate}!`);
-              }}
-              className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs font-semibold"
+              disabled={isScheduling}
+              onClick={handleScheduleSubmit}
+              className="bg-[#6222cc] hover:bg-[#521cb0] text-white text-xs font-semibold cursor-pointer"
             >
-              Schedule Price
+              {isScheduling ? 'Scheduling...' : 'Schedule Price'}
             </Button>
           </DialogFooter>
         </DialogContent>

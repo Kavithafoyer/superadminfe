@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { FreePaidPlansScreen } from '@/components/products/FreePaidPlansScreen';
+import { ProductMasterPlansScreen } from '@/components/products/ProductMasterPlansScreen';
 
 export default function PlansPricingPage() {
   return (
     <div className="w-full">
-      <FreePaidPlansScreen />
+      <ProductMasterPlansScreen />
     </div>
   );
 }

@@ -125,6 +125,10 @@ export const getMenuGroups = (): MenuSection[] => [
             path: '/products/features',
           },
           {
+            label: 'Plans & Pricing',
+            path: '/products/plans-pricing',
+          },
+          {
             label: 'Free Core Configuration',
             path: '/products/configuration',
           },
@@ -132,14 +136,14 @@ export const getMenuGroups = (): MenuSection[] => [
             label: 'Trial Configuration',
             path: '/products/trial-configuration',
           },
-          {
-            label: 'Product Releases',
-            path: '/products/releases',
-          },
-          {
-            label: 'Feature Mapping',
-            path: '/products/feature-mapping',
-          },
+          // {
+          //   label: 'Product Releases',
+          //   path: '/products/releases',
+          // },
+          // {
+          //   label: 'Feature Mapping',
+          //   path: '/products/feature-mapping',
+          // },
           {
             label: 'Product Pricing',
             path: '/products/pricing',
