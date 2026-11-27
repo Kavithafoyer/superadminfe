@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { skipToken } from '@reduxjs/toolkit/query';
 import { useRouter } from 'next/navigation';
 import {
   Settings,
@@ -79,65 +80,100 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
+import { useGetConfigurationProductsQuery, useGetProductConfigurationQuery, useSaveProductConfigurationMutation, type ProductConfiguration } from '@/service/api/productConfigurationApi';
+import { useGetProductEditionsQuery, type EditionProduct } from '@/service/api/productEditionApi';
+import { apiError } from '../addons/PricingWorkspace';
+
 export interface ProductConfigScreenProps {
   initialTab?: 'general' | 'module' | 'features' | 'workflow' | 'integrations' | 'branding' | 'advanced';
 }
 
+function setting<T>(section: Record<string, unknown> | undefined, key: string, fallback: T): T {
+  const value = section?.[key];
+  if (value == null || typeof value !== typeof fallback || Array.isArray(value) !== Array.isArray(fallback)) return fallback;
+  if (typeof fallback === 'object' && !Array.isArray(fallback)) return { ...fallback, ...value };
+  return value as T;
+}
+
 export function ProductConfigurationScreen({ initialTab = 'general' }: ProductConfigScreenProps) {
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [productCode, setProductCode] = useState('');
+  const catalog = useGetConfigurationProductsQuery();
+  const products = (catalog.currentData ?? []).filter(product => !!product.Product_Code);
+  const product = products.find(item => item.Product_Code === productCode) ?? products[0];
+  const selectedCode = product?.Product_Code || '';
+  const query = useGetProductConfigurationQuery(selectedCode || skipToken);
+  const configurationReady = query.currentData !== undefined && !query.isError;
+
+  return <ConfigurationEditor key={selectedCode + ':' + configurationReady}
+    activeTab={activeTab} setActiveTab={setActiveTab} product={product} products={products}
+    setProductCode={setProductCode} configuration={query.currentData}
+    loading={catalog.isLoading || (!!selectedCode && query.isFetching && !configurationReady)}
+    error={catalog.error ?? query.error}
+    retry={() => { if (catalog.isError) void catalog.refetch(); if (query.isError) void query.refetch(); }} />;
+}
+
+function ConfigurationEditor({ activeTab, setActiveTab, product, products, setProductCode, configuration, loading, error, retry }: {
+  activeTab: NonNullable<ProductConfigScreenProps['initialTab']>;
+  setActiveTab: (tab: NonNullable<ProductConfigScreenProps['initialTab']>) => void;
+  product?: EditionProduct;
+  products: EditionProduct[];
+  setProductCode: (code: string) => void;
+  configuration?: ProductConfiguration | null;
+  loading: boolean;
+  error: unknown;
+  retry: () => void;
+}) {
   const router = useRouter();
-
-  // Active top navigation tab
-  const [activeTab, setActiveTab] = useState<
-    'general' | 'module' | 'features' | 'workflow' | 'integrations' | 'branding' | 'advanced'
-  >(initialTab);
-
-  // Selected product & edition dropdowns
-  const [selectedProduct, setSelectedProduct] = useState('Pegatto Education');
-  const [selectedEdition, setSelectedEdition] = useState('Standard');
+  const [saveConfiguration, saveRequest] = useSaveProductConfigurationMutation();
+  const [saved, setSaved] = useState(configuration);
+  const editions = useGetProductEditionsQuery(product?.id ?? skipToken);
+  const editionOptions = editions.currentData ?? [];
+  const [selectedEdition, setSelectedEdition] = useState(() => setting(saved?.Feature_Controls, 'selectedEdition', ''));
 
   // ==========================================
   // STATE: GENERAL SETTINGS (Image 1 from turn 3)
   // ==========================================
-  const [generalForm, setGeneralForm] = useState({
-    productName: 'Pegatto Education',
-    productCode: 'PEG-EDU',
-    defaultEdition: 'Standard',
+  const [generalForm, setGeneralForm] = useState(() => setting(saved?.General_Settings, 'generalForm', {
+    productName: product?.Product_Name ?? '',
+    productCode: product?.Product_Code ?? '',
+    defaultEdition: '',
     defaultPlan: 'Basic',
     trialPeriod: 14,
     defaultTimeZone: '(UTC+05:30) Chennai, Kolkata, Mumbai, New Delhi',
     defaultLanguage: 'English',
-    productStatus: true,
-  });
+    productStatus: product?.Is_Active ?? true,
+  }));
 
-  const [businessRules, setBusinessRules] = useState({
+  const [businessRules, setBusinessRules] = useState(() => setting(saved?.General_Settings, 'businessRules', {
     selfRegistration: true,
     requireApproval: true,
     trialAutoConversion: true,
     editionUpgradeDowngrade: true,
     multiCampus: true,
-  });
+  }));
 
-  const [quotas, setQuotas] = useState({
+  const [quotas, setQuotas] = useState(() => setting(saved?.General_Settings, 'quotas', {
     users: '50',
     students: '500',
     storage: '100 GB',
     emails: '10,000',
     whatsapp: '5,000',
-  });
+  }));
 
-  const [generalModulesList, setGeneralModulesList] = useState([
+  const [generalModulesList, setGeneralModulesList] = useState(() => setting(saved?.General_Settings, 'generalModulesList', [
     { id: 'gm-1', name: 'Admission & Enquiry', icon: Users, status: 'Enabled', settings: 'Lead capture, counselling, admission flow' },
     { id: 'gm-2', name: 'Student Management', icon: BookOpen, status: 'Enabled', settings: 'Student profile, class, section, roll no.' },
     { id: 'gm-3', name: 'Fees & Payments', icon: CreditCard, status: 'Enabled', settings: 'Fee structure, online payment, reminders' },
     { id: 'gm-4', name: 'Attendance', icon: Calendar, status: 'Enabled', settings: 'Biometric / Manual, threshold 75%' },
     { id: 'gm-5', name: 'Timetable', icon: Calendar, status: 'Enabled', settings: 'Auto generation, period & teacher mapping' },
     { id: 'gm-6', name: 'Assessment & Exams', icon: ClipboardList, status: 'Enabled', settings: 'Exam types, grading, result processing' },
-  ]);
+  ]));
 
   // ==========================================
   // STATE: MODULE CONFIGURATION (Image 2 from new upload)
   // ==========================================
-  const [modulesCatalog, setModulesCatalog] = useState([
+  const [modulesCatalog, setModulesCatalog] = useState(() => setting(saved?.Module_Configuration, 'modulesCatalog', [
     { id: 'mod-1', name: 'Admission & Enquiry', code: 'ADM', icon: Users, enabled: true },
     { id: 'mod-2', name: 'Student Management', code: 'STU', icon: BookOpen, enabled: true },
     { id: 'mod-3', name: 'Fees & Payments', code: 'FEE', icon: CreditCard, enabled: true },
@@ -150,11 +186,11 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
     { id: 'mod-10', name: 'Analytics & Reports', code: 'REP', icon: BarChart2, enabled: true },
     { id: 'mod-11', name: 'Transport', code: 'TRN', icon: Rocket, enabled: false },
     { id: 'mod-12', name: 'Library', code: 'LIB', icon: BookOpen, enabled: false },
-  ]);
+  ]));
 
   const [selectedModuleInConfig, setSelectedModuleInConfig] = useState('Admission & Enquiry');
 
-  const [moduleSettingsForm, setModuleSettingsForm] = useState({
+  const [moduleSettingsForm, setModuleSettingsForm] = useState(() => setting(saved?.Module_Configuration, 'moduleSettingsForm', {
     moduleName: 'Admission & Enquiry',
     displayName: 'Admissions',
     moduleCode: 'ADM',
@@ -168,23 +204,23 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
     autoLeadAssignment: true,
     enableLeadScoringAi: true,
     enableCounsellingWorkflow: true,
-  });
+  }));
 
-  const [moduleFeaturesList, setModuleFeaturesList] = useState([
+  const [moduleFeaturesList, setModuleFeaturesList] = useState(() => setting(saved?.Module_Configuration, 'moduleFeaturesList', [
     { id: 'mf-1', name: 'Lead Capture', icon: Filter, config: 'Sources: Website, FB, Insta, WhatsApp, Walk-in', status: true },
     { id: 'mf-2', name: 'Enquiry Management', icon: Users, config: 'Track, qualify and nurture enquiries', status: true },
     { id: 'mf-3', name: 'Counselling', icon: Headphones, config: 'Schedule, notes, follow-ups, outcome', status: true },
     { id: 'mf-4', name: 'Shortlisting', icon: ClipboardList, config: 'Merit, criteria, document verification', status: true },
     { id: 'mf-5', name: 'Admission & Enrolment', icon: GraduationCap, config: 'Application, approval, enrolment, student creation', status: true },
     { id: 'mf-6', name: 'Document Management', icon: Folder, config: 'Upload, verify and manage documents', status: true },
-  ]);
+  ]));
 
   // ==========================================
   // STATE: FEATURE CONTROLS (Image 1 from new upload)
   // ==========================================
   const [selectedFeatureControlModule, setSelectedFeatureControlModule] = useState('Admission & Enquiry');
 
-  const [featureControls, setFeatureControls] = useState([
+  const [featureControls, setFeatureControls] = useState(() => setting(saved?.Feature_Controls, 'featureControls', [
     { id: 'fc-1', name: 'Lead Capture', icon: Filter, enabled: true, accessControl: 'All Users', limits: 'Unlimited' },
     { id: 'fc-2', name: 'Enquiry Management', icon: Users, enabled: true, accessControl: 'Admissions Team', limits: 'Unlimited' },
     { id: 'fc-3', name: 'Counselling', icon: Headphones, enabled: true, accessControl: 'Counsellor', limits: 'Up to 500 / month' },
@@ -193,43 +229,43 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
     { id: 'fc-6', name: 'Online Application', icon: FileText, enabled: true, accessControl: 'All Users', limits: 'Unlimited' },
     { id: 'fc-7', name: 'Document Verification', icon: Folder, enabled: true, accessControl: 'Admissions Team', limits: 'Up to 1 GB / file' },
     { id: 'fc-8', name: 'Enquiry Reports', icon: BarChart2, enabled: false, accessControl: 'Admin Only', limits: '—' },
-  ]);
+  ]));
 
-  const [tenantFeatureCustomization, setTenantFeatureCustomization] = useState(true);
-  const [showFeatureInTenantSettings, setShowFeatureInTenantSettings] = useState(true);
-  const [logFeatureUsageAuditTrail, setLogFeatureUsageAuditTrail] = useState(true);
+  const [tenantFeatureCustomization, setTenantFeatureCustomization] = useState(() => setting(saved?.Feature_Controls, 'tenantFeatureCustomization', true));
+  const [showFeatureInTenantSettings, setShowFeatureInTenantSettings] = useState(() => setting(saved?.Feature_Controls, 'showFeatureInTenantSettings', true));
+  const [logFeatureUsageAuditTrail, setLogFeatureUsageAuditTrail] = useState(() => setting(saved?.Feature_Controls, 'logFeatureUsageAuditTrail', true));
 
   // ==========================================
   // STATE: WORKFLOWS & APPROVALS (Image 4 from previous)
   // ==========================================
   const [selectedWorkflow, setSelectedWorkflow] = useState('Student Admission');
-  const [workflowSettings, setWorkflowSettings] = useState({
+  const [workflowSettings, setWorkflowSettings] = useState(() => setting(saved?.Module_Configuration, 'workflowSettings', {
     name: 'Student Admission',
     module: 'Admission & Enquiry',
     appliesTo: 'New Admission',
     isActive: true,
     emailNotifications: true,
     slaMonitoring: true,
-  });
+  }));
 
-  const [approvalMatrix, setApprovalMatrix] = useState([
+  const [approvalMatrix, setApprovalMatrix] = useState(() => setting(saved?.Module_Configuration, 'approvalMatrix', [
     { id: 'ap-1', level: 'Level 1 – Document Check', approver: 'Admissions Team', condition: '—' },
     { id: 'ap-2', level: 'Level 2 – Academic Approval', approver: 'Principal', condition: 'If Grade ≥ 8' },
     { id: 'ap-3', level: 'Level 3 – Fee Concession', approver: 'Correspondent / Trustee', condition: 'If Concession ≥ 10%' },
-  ]);
+  ]));
 
-  const [automations, setAutomations] = useState([
+  const [automations, setAutomations] = useState(() => setting(saved?.Module_Configuration, 'automations', [
     { id: 'au-1', label: 'Create student record after final approval', checked: true },
     { id: 'au-2', label: 'Send approval/rejection email to applicant', checked: true },
     { id: 'au-3', label: 'Update admission status automatically', checked: true },
     { id: 'au-4', label: 'Create fee invoice on enrolment', checked: false },
-  ]);
+  ]));
 
   // ==========================================
   // STATE: INTEGRATIONS (Image 3 from previous)
   // ==========================================
   const [integrationCategory, setIntegrationCategory] = useState('All');
-  const [integrationsList, setIntegrationsList] = useState([
+  const [integrationsList, setIntegrationsList] = useState(() => setting(saved?.Integrations, 'integrationsList', [
     { id: 'int-1', name: 'WhatsApp Business (Cloud API)', category: 'Communication', desc: 'Send notifications, alerts and follow-ups', connected: true, icon: 'whatsapp' },
     { id: 'int-2', name: 'Email (SMTP)', category: 'Communication', desc: 'Transactional & bulk emails (e.g., GoDaddy)', connected: true, icon: 'email' },
     { id: 'int-3', name: 'SMS Gateway', category: 'Communication', desc: 'OTP, alerts and notifications', connected: false, icon: 'sms' },
@@ -242,12 +278,12 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
     { id: 'int-10', name: 'Meta (Facebook / Instagram)', category: 'Communication', desc: 'Lead capture from FB & Instagram forms', connected: true, icon: 'meta' },
     { id: 'int-11', name: 'REST API', category: 'Others', desc: 'Programmatic access to Pegatto data', connected: true, icon: 'code' },
     { id: 'int-12', name: 'Webhooks', category: 'Others', desc: 'Real-time event notifications to external apps', connected: true, icon: 'webhook' },
-  ]);
+  ]));
 
   // ==========================================
   // STATE: BRANDING & UI (Image 2 from turn 3)
   // ==========================================
-  const [brandingForm, setBrandingForm] = useState({
+  const [brandingForm, setBrandingForm] = useState(() => setting(saved?.Branding, 'brandingForm', {
     productName: 'Pegatto Education',
     tagline: 'Never Miss a Lead. Never Miss an Opportunity.',
     primaryColor: '#6A0DAD',
@@ -264,12 +300,12 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
     showProductTagline: true,
     displayEditionName: true,
     showHelpSupportLink: false,
-  });
+  }));
 
   // ==========================================
   // STATE: ADVANCED (Image 4 from new upload)
   // ==========================================
-  const [advancedSettings, setAdvancedSettings] = useState({
+  const [advancedSettings, setAdvancedSettings] = useState(() => setting(saved?.Advanced_Settings, 'advancedSettings', {
     mfa: true,
     ipAllowlist: false,
     passwordPolicy: true,
@@ -296,7 +332,29 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
     featureFlags: true,
     betaEarlyAccess: false,
     tenantFeatureOverride: true,
-  });
+  }));
+
+  async function saveChanges() {
+    if (!product?.Product_Code || saved === undefined || saveRequest.isLoading) return;
+    try {
+      const result = await saveConfiguration({
+        productCode: product.Product_Code,
+        existing: !!saved,
+        sections: {
+          General_Settings: { ...saved?.General_Settings, generalForm, businessRules, quotas, generalModulesList },
+          Module_Configuration: { ...saved?.Module_Configuration, modulesCatalog, moduleSettingsForm, moduleFeaturesList, workflowSettings, approvalMatrix, automations },
+          Feature_Controls: { ...saved?.Feature_Controls, featureControls, tenantFeatureCustomization, showFeatureInTenantSettings, logFeatureUsageAuditTrail, selectedEdition },
+          Integrations: { ...saved?.Integrations, integrationsList },
+          Branding: { ...saved?.Branding, brandingForm },
+          Advanced_Settings: { ...saved?.Advanced_Settings, advancedSettings }
+        },
+      }).unwrap();
+      setSaved(result);
+      toast.success('Configuration saved successfully.');
+    } catch (failure) {
+      toast.error(apiError(failure));
+    }
+  }
 
   // Header icon & title based on active tab
   const getHeaderInfo = () => {
@@ -306,7 +364,6 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           icon: <Layers className="h-7 w-7 text-[#6222cc]" />,
           title: 'Module Configuration',
           desc: 'Enable, configure and manage modules for each product edition',
-          actionLabel: 'Save Changes',
           showReset: false,
           showEdition: true,
         };
@@ -315,7 +372,6 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           icon: <ToggleRight className="h-7 w-7 text-[#6222cc]" />,
           title: 'Product Configuration',
           desc: 'Configure product settings, business rules, defaults and feature controls',
-          actionLabel: 'Save Changes',
           showReset: false,
           showEdition: true,
         };
@@ -324,7 +380,6 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           icon: <GitFork className="h-7 w-7 text-[#6222cc]" />,
           title: 'Workflow & Approvals',
           desc: 'Design and manage business workflows, approval rules and automated actions',
-          actionLabel: 'Create Workflow',
           showReset: false,
           showEdition: true,
         };
@@ -333,7 +388,6 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           icon: <Link2 className="h-6 w-6 text-[#6366f1]" />,
           title: 'Integrations',
           desc: 'Connect Pegatto with external systems, apps and services for a seamless experience',
-          actionLabel: 'Add Integration',
           showReset: false,
           showEdition: true,
         };
@@ -342,7 +396,6 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           icon: <Palette className="h-7 w-7 text-[#6222cc]" />,
           title: 'Branding & UI',
           desc: 'Customize product branding, look & feel and user experience for each edition',
-          actionLabel: 'Save Changes',
           showReset: false,
           showEdition: true,
         };
@@ -351,7 +404,6 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           icon: <Sliders className="h-7 w-7 text-[#6222cc]" />,
           title: 'Product Configuration',
           desc: 'Configure product settings, business rules, defaults and feature controls',
-          actionLabel: 'Save Changes',
           showReset: false,
           showEdition: true,
         };
@@ -361,7 +413,6 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           icon: <Settings className="h-7 w-7 text-[#6222cc]" />,
           title: 'Product Configuration',
           desc: 'Configure product settings, business rules, defaults and feature controls',
-          actionLabel: 'Save Configuration',
           showReset: true,
           showEdition: false,
         };
@@ -402,14 +453,16 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             <div className="flex items-center gap-1.5 font-semibold text-slate-800">
               <GraduationCap className={cn('h-4 w-4', activeTab === 'integrations' ? 'text-[#6366f1]' : 'text-[#6222cc]')} />
               <select
-                value={selectedProduct}
-                onChange={(e) => setSelectedProduct(e.target.value)}
+                aria-label="Product"
+                value={product?.Product_Code ?? ''}
+                onChange={(e) => setProductCode(e.target.value)}
+                disabled={saveRequest.isLoading}
                 className="bg-transparent border-none outline-hidden cursor-pointer"
               >
-                <option value="Pegatto Education">Pegatto Education</option>
-                <option value="Pegatto IT">Pegatto IT</option>
-                <option value="Pegatto People">Pegatto People</option>
-                <option value="Pegatto Retail">Pegatto Retail</option>
+                {!products.length && <option value="">Select a product</option>}
+                {products.map(item => <option key={item.Product_Code} value={item.Product_Code ?? ''}>
+                  {item.Product_Name || item.Product_Code}
+                </option>)}
               </select>
             </div>
           </div>
@@ -418,25 +471,22 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
             <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs shadow-xs">
               <span className="text-slate-400 font-medium">Edition</span>
               <select
+                aria-label="Edition"
                 value={selectedEdition}
                 onChange={(e) => setSelectedEdition(e.target.value)}
                 className="bg-transparent border-none outline-hidden font-semibold text-slate-800 cursor-pointer"
               >
-                <option value="Standard">Standard</option>
-                <option value="Core (Free)">Core (Free)</option>
-                <option value="Enterprise">Enterprise</option>
+                  <option value="">Select an edition</option>
+                  {editionOptions.map(edition => <option key={edition.id} value={edition.Edition_Id}>
+                    {edition.Edition_Name || edition.Edition_Code || edition.Edition_Id}
+                  </option>)}
               </select>
             </div>
           )}
 
           <Button
-            onClick={() => {
-              if (activeTab === 'integrations') {
-                toast.info('Add Integration dialog');
-              } else {
-                toast.success('Configuration saved successfully!');
-              }
-            }}
+            onClick={() => void saveChanges()}
+            disabled={loading || !!error || saved === undefined || saveRequest.isLoading}
             className={cn(
               'text-white font-semibold text-xs sm:text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-xs transition-all cursor-pointer',
               activeTab === 'integrations'
@@ -444,8 +494,8 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                 : 'bg-[#6222cc] hover:bg-[#521cb0]'
             )}
           >
-            {activeTab === 'integrations' ? <Plus className="h-4 w-4" /> : <Check className="h-4 w-4" />}
-            <span>{activeTab === 'integrations' ? 'Add Integration' : headerInfo.actionLabel}</span>
+            <Check className="h-4 w-4" />
+            <span>{saveRequest.isLoading ? 'Saving...' : activeTab === 'general' ? 'Save Configuration' : 'Save Changes'}</span>
           </Button>
 
           {headerInfo.showReset && (
@@ -461,6 +511,10 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
         </div>
       </div>
 
+      {loading && <p role="status" className="text-sm text-slate-600">Loading product configuration...</p>}
+      {!!error && <p role="alert" className="text-sm text-red-700">{apiError(error)} <button type="button" className="underline" onClick={retry}>Retry</button></p>}
+      {!loading && !error && !product && <p role="status" className="text-sm text-slate-600">No products with a product code are available.</p>}
+      <div className="space-y-4" hidden={loading || !!error || saved === undefined}>
       {/* 2. Top Navigation Tabs Bar matching all 7 tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-200/80">
         {[
@@ -542,9 +596,10 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
                   onChange={(e) => setGeneralForm({ ...generalForm, defaultEdition: e.target.value })}
                   className="w-full h-8.5 px-3 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 outline-hidden"
                 >
-                  <option value="Standard">Standard</option>
-                  <option value="Core (Free)">Core (Free)</option>
-                  <option value="Enterprise">Enterprise</option>
+                  <option value="">Select an edition</option>
+                  {editionOptions.map(edition => <option key={edition.id} value={edition.Edition_Id}>
+                    {edition.Edition_Name || edition.Edition_Code || edition.Edition_Id}
+                  </option>)}
                 </select>
               </div>
 
@@ -3391,6 +3446,7 @@ export function ProductConfigurationScreen({ initialTab = 'general' }: ProductCo
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

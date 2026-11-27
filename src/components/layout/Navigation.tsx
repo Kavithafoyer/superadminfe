@@ -600,7 +600,7 @@ type SidebarLinkProps = React.ComponentProps<typeof NavLink> & { href: string };
 function workspaceSidebarHref(path: string, product?: string | null) {
   const params = new URLSearchParams();
   if (product) params.set('product', product);
-  if (path === '/products/editions' || path === '/products/features-modules') params.set('mode', 'create');
+  if (path === '/products/features-modules') params.set('mode', 'create');
   return params.size ? path + '?' + params.toString() : path;
 }
 

@@ -4053,9 +4053,9 @@ export const superAdminApi = baseApi.injectEndpoints({
         Product_Name: string;
         Category?: string;
       }>,
-      void
+      void | { Category_id?: number }
     >({
-      query: () => "superadmin/ProductMasterLookups/",
+      query: params => ({ url: "superadmin/ProductMasterLookups/", params: params || undefined }),
       transformResponse: (res: any) => {
         const raw = res?.results || res?.data || res;
         return Array.isArray(raw) ? raw : [];
