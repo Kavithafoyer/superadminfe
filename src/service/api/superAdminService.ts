@@ -4062,6 +4062,47 @@ export const superAdminApi = baseApi.injectEndpoints({
       },
       providesTags: ["ProductMasters"],
     }),
+    getProductEditionLookups: builder.query<
+      Array<{
+        id: number;
+        Edition_Id?: string;
+        Edition_Code?: string;
+        Edition_Name: string;
+        Product_Id?: number;
+      }>,
+      { Product_Id?: number | string } | void
+    >({
+      query: (params) => {
+        const pid = params && typeof params === "object" ? params.Product_Id : undefined;
+        return pid ? `superadmin/ProductEditionLookups/?Product_Id=${pid}` : "superadmin/ProductEditionLookups/";
+      },
+      transformResponse: (res: any) => {
+        const raw = res?.results || res?.data || res;
+        return Array.isArray(raw) ? raw : [];
+      },
+      providesTags: ["ProductEditions"],
+    }),
+    getPlanLookups: builder.query<
+      Array<{
+        id: number;
+        Plan_Id?: string;
+        Plan_Code?: string;
+        Plan_Name: string;
+        Edition_Id?: number;
+        Product_Id?: number;
+      }>,
+      { Edition_Id?: number | string } | void
+    >({
+      query: (params) => {
+        const eid = params && typeof params === "object" ? params.Edition_Id : undefined;
+        return eid ? `superadmin/PlanLookups/?Edition_Id=${eid}` : "superadmin/PlanLookups/";
+      },
+      transformResponse: (res: any) => {
+        const raw = res?.results || res?.data || res;
+        return Array.isArray(raw) ? raw : [];
+      },
+      providesTags: ["Plans"],
+    }),
     filterProductMaster: builder.query<
       any[],
       {
@@ -4334,6 +4375,8 @@ export const {
   useGetProductMasterListQuery,
   useGetProductMasterPaginatedQuery,
   useGetProductMasterLookupsQuery,
+  useGetProductEditionLookupsQuery,
+  useGetPlanLookupsQuery,
   useFilterProductMasterQuery,
   useLazyFilterProductMasterQuery,
   useGetProductMasterByIdQuery,

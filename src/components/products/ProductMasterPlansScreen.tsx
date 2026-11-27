@@ -15,12 +15,12 @@ import {
   Building2,
   Check,
   Edit2,
-  Copy,
   Trash2,
   ChevronDown,
   RefreshCw,
   Loader2,
   X,
+  Layers,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -36,7 +36,7 @@ import {
 } from '@/components/ui/dialog';
 import {
   PlanRecord,
-  useGetPlansListQuery,
+  useFilterPlansQuery,
   useCreatePlanMutation,
   useUpdatePlanMutation,
   useDeletePlanMutation,
@@ -83,7 +83,7 @@ function getCurrencySymbol(cur?: string): string {
 function inferIcon(plan: PlanRecord): ProductPlanRecord['icon'] {
   const n = String(plan.Plan_Name || plan.name || '').toLowerCase();
   const t = String(plan.Plantype || plan.plantype || '').toLowerCase();
-  if (t === 'free' || n.includes('free') || n.includes('basic')) return 'sprout';
+  if (t === 'free' || n.includes('free')) return 'sprout';
   if (n.includes('enterprise') || n.includes('business')) return 'building';
   if (n.includes('pro') || n.includes('popular')) return 'award';
   return 'graduation';
@@ -135,6 +135,7 @@ export function ProductMasterPlansScreen() {
   const [selectedProductId, setSelectedProductId] = useState<string>('ALL');
   const [currency, setCurrency] = useState('All');
   const [billingCycle, setBillingCycle] = useState('All');
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
   // Plan CRUD Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -169,8 +170,10 @@ export function ProductMasterPlansScreen() {
   const planQueryParams = useMemo(
     () => ({
       Product: selectedProductId !== 'ALL' ? selectedProductId : undefined,
+      Currency_Type: currency !== 'All' ? currency.split(' ')[0].toUpperCase() : undefined,
+      billing_cycle: billingCycle !== 'All' ? billingCycle.toLowerCase() : undefined,
     }),
-    [selectedProductId]
+    [selectedProductId, currency, billingCycle]
   );
 
   const {
@@ -178,7 +181,27 @@ export function ProductMasterPlansScreen() {
     isLoading: isPlansLoading,
     isFetching: isPlansFetching,
     refetch: refetchPlans,
-  } = useGetPlansListQuery(planQueryParams, { refetchOnMountOrArgChange: true });
+  } = useFilterPlansQuery(planQueryParams, { refetchOnMountOrArgChange: true });
+
+  const { data: allPlansForLookups = [] } = useFilterPlansQuery({});
+
+  const currencyOptions = useMemo(() => {
+    const set = new Set<string>();
+    allPlansForLookups.forEach((p) => {
+      const c = String(p.Currency_Type || p.currency || '').trim().toUpperCase();
+      if (c) set.add(c);
+    });
+    return Array.from(set).sort();
+  }, [allPlansForLookups]);
+
+  const billingCycleOptions = useMemo(() => {
+    const set = new Set<string>();
+    allPlansForLookups.forEach((p) => {
+      const b = String(p.billing_cycle || '').trim().toLowerCase();
+      if (b) set.add(b);
+    });
+    return Array.from(set).sort();
+  }, [allPlansForLookups]);
 
   const [createPlan, { isLoading: isCreating }] = useCreatePlanMutation();
   const [updatePlan, { isLoading: isUpdating }] = useUpdatePlanMutation();
@@ -187,6 +210,9 @@ export function ProductMasterPlansScreen() {
   const plans = useMemo(() => {
     const mapped = backendPlans.map(mapPlanToCard);
     return mapped.filter((p) => {
+      if (selectedProductId !== 'ALL') {
+        if (p.productId !== selectedProductId) return false;
+      }
       if (currency !== 'All') {
         const curCode = currency.split(' ')[0].toUpperCase();
         if (p.currency.toUpperCase() !== curCode) return false;
@@ -196,7 +222,7 @@ export function ProductMasterPlansScreen() {
       }
       return true;
     });
-  }, [backendPlans, currency, billingCycle]);
+  }, [backendPlans, selectedProductId, currency, billingCycle]);
 
   const activeProduct = useMemo(
     () => productLookups.find((p) => String(p.id) === selectedProductId) || null,
@@ -334,17 +360,43 @@ export function ProductMasterPlansScreen() {
     if (ok) toast.success('Plans exported to CSV');
   };
 
-  const renderPlanIcon = (icon: ProductPlanRecord['icon']) => {
+  const renderPlanIcon = (icon: ProductPlanRecord['icon'], sizeClass = 'h-5 w-5') => {
     switch (icon) {
       case 'sprout':
-        return <Sprout className="h-5 w-5 text-sky-500" />;
+        return <Sprout className={cn(sizeClass, 'text-sky-500')} />;
       case 'graduation':
-        return <GraduationCap className="h-5 w-5 text-emerald-600" />;
+        return <GraduationCap className={cn(sizeClass, 'text-emerald-600')} />;
       case 'award':
-        return <Award className="h-5 w-5 text-[#6222cc]" />;
+        return <Award className={cn(sizeClass, 'text-[#6222cc]')} />;
       case 'building':
-        return <Building2 className="h-5 w-5 text-amber-500" />;
+        return <Building2 className={cn(sizeClass, 'text-amber-500')} />;
     }
+  };
+
+  const getPlanCardSurfaceClass = (plan: ProductPlanRecord, idx: number) => {
+    if (plan.isPopular) {
+      return 'bg-gradient-to-b from-[#f6f2ff] via-white to-white border-2 border-[#6222cc] shadow-md shadow-purple-100/70';
+    }
+    const palette = [
+      'bg-gradient-to-b from-[#f3f9ff] via-white to-white border border-sky-200/70 shadow-xs',
+      'bg-gradient-to-b from-[#f1fcf6] via-white to-white border border-emerald-200/70 shadow-xs',
+      'bg-gradient-to-b from-[#f6f2ff] via-white to-white border border-purple-200/70 shadow-xs',
+      'bg-gradient-to-b from-[#fffaf0] via-white to-white border border-amber-200/70 shadow-xs',
+    ];
+    return palette[idx % palette.length];
+  };
+
+  const getSelectedPlanCardClass = (plan: ProductPlanRecord, idx: number) => {
+    if (plan.isPopular) {
+      return 'scale-[1.03] -translate-y-1 z-10 border-2 border-[#6222cc] ring-4 ring-[#6222cc]/15 shadow-lg shadow-purple-200/60';
+    }
+    const selectedPalette = [
+      'scale-[1.03] -translate-y-1 z-10 border-2 border-sky-500 ring-4 ring-sky-500/15 shadow-lg shadow-sky-200/60',
+      'scale-[1.03] -translate-y-1 z-10 border-2 border-emerald-500 ring-4 ring-emerald-500/15 shadow-lg shadow-emerald-200/60',
+      'scale-[1.03] -translate-y-1 z-10 border-2 border-[#6222cc] ring-4 ring-[#6222cc]/15 shadow-lg shadow-purple-200/60',
+      'scale-[1.03] -translate-y-1 z-10 border-2 border-amber-500 ring-4 ring-amber-500/15 shadow-lg shadow-amber-200/60',
+    ];
+    return selectedPalette[idx % selectedPalette.length];
   };
 
   return (
@@ -473,7 +525,20 @@ export function ProductMasterPlansScreen() {
               { id: 'plans', label: 'Plans & Pricing', path: '/products/plans-pricing' },
             ].map((tab) => {
               const isSelected = activeTab === tab.id;
-              return (
+              const getSelectedPlanCardClass = (plan: ProductPlanRecord, idx: number) => {
+    if (plan.isPopular) {
+      return 'scale-[1.03] -translate-y-1 z-10 border-2 border-[#6222cc] ring-4 ring-[#6222cc]/15 shadow-lg shadow-purple-200/60';
+    }
+    const selectedPalette = [
+      'scale-[1.03] -translate-y-1 z-10 border-2 border-sky-500 ring-4 ring-sky-500/15 shadow-lg shadow-sky-200/60',
+      'scale-[1.03] -translate-y-1 z-10 border-2 border-emerald-500 ring-4 ring-emerald-500/15 shadow-lg shadow-emerald-200/60',
+      'scale-[1.03] -translate-y-1 z-10 border-2 border-[#6222cc] ring-4 ring-[#6222cc]/15 shadow-lg shadow-purple-200/60',
+      'scale-[1.03] -translate-y-1 z-10 border-2 border-amber-500 ring-4 ring-amber-500/15 shadow-lg shadow-amber-200/60',
+    ];
+    return selectedPalette[idx % selectedPalette.length];
+  };
+
+  return (
                 <button
                   key={tab.id}
                   type="button"
@@ -526,10 +591,11 @@ export function ProductMasterPlansScreen() {
                 className="bg-transparent font-semibold text-slate-800 outline-none cursor-pointer text-xs"
               >
                 <option value="All">All Currencies</option>
-                <option value="INR">INR (₹)</option>
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
+                {currencyOptions.map((c) => (
+                  <option key={c} value={c}>
+                    {c} ({getCurrencySymbol(c)})
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -541,9 +607,11 @@ export function ProductMasterPlansScreen() {
                 className="bg-transparent font-semibold text-slate-800 outline-none cursor-pointer text-xs"
               >
                 <option value="All">All Cycles</option>
-                <option value="monthly">Monthly</option>
-                <option value="quarterly">Quarterly</option>
-                <option value="yearly">Yearly</option>
+                {billingCycleOptions.map((b) => (
+                  <option key={b} value={b}>
+                    {b.charAt(0).toUpperCase() + b.slice(1)}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -569,34 +637,30 @@ export function ProductMasterPlansScreen() {
             No plans matched the current product / currency / billing cycle filter.
           </div>
         ) : (
-          <div
-            className={cn(
-              'grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch',
-              isModalOpen ? 'xl:grid-cols-2' : 'xl:grid-cols-4'
-            )}
-          >
-            {plans.map((plan) => {
+          <div className="flex flex-nowrap overflow-x-auto gap-4 pt-3 pb-3 px-1 items-stretch">
+            {plans.map((plan, idx) => {
               const sym = getCurrencySymbol(plan.currency);
+              const isSelected = selectedPlanId === plan.id;
               return (
                 <div
                   key={plan.id}
+                  onClick={() => setSelectedPlanId(isSelected ? null : plan.id)}
                   className={cn(
-                    'rounded-2xl p-5 flex flex-col justify-between transition-all relative bg-white',
-                    plan.isPopular
-                      ? 'border-2 border-[#6222cc] shadow-md shadow-purple-100'
-                      : 'border border-slate-200/90 shadow-xs'
+                    'shrink-0 w-[265px] sm:w-[275px] rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 relative cursor-pointer',
+                    getPlanCardSurfaceClass(plan, idx),
+                    isSelected && getSelectedPlanCardClass(plan, idx)
                   )}
                 >
                   {plan.isPopular && (
-                    <div className="absolute -top-3 right-4 bg-[#6222cc] text-white text-[11px] font-bold px-3 py-0.5 rounded-full shadow-xs">
+                    <div className="absolute -top-3 right-3 bg-[#6222cc] text-white text-[11px] font-bold px-3.5 py-0.5 rounded-full shadow-xs">
                       Most Popular
                     </div>
                   )}
 
                   <div className="space-y-3.5">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
-                        {renderPlanIcon(plan.icon)}
+                    <div className="flex items-start gap-2.5">
+                      <div className="shrink-0 mt-0.5">
+                        {renderPlanIcon(plan.icon, 'h-7 w-7')}
                       </div>
                       <div className="min-w-0">
                         <h4 className="font-bold text-base text-slate-900 truncate" title={plan.name}>{plan.name}</h4>
@@ -606,8 +670,8 @@ export function ProductMasterPlansScreen() {
                       </div>
                     </div>
 
-                    <div className="pt-1">
-                      <div className="flex items-baseline gap-1">
+                    <div className="pt-1 text-center">
+                      <div className="flex items-baseline justify-center gap-1">
                         <span className="text-2xl font-extrabold text-slate-900">
                           {sym} {plan.monthlyPrice.toLocaleString()}
                         </span>
@@ -615,18 +679,18 @@ export function ProductMasterPlansScreen() {
                       </div>
 
                       {plan.monthlyPrice === 0 ? (
-                        <div className="mt-1">
-                          <span className="inline-block px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-[#e0f2fe] text-[#0284c7]">
+                        <div className="mt-1.5 flex justify-center">
+                          <span className="inline-block px-3 py-0.5 rounded-full text-[11px] font-semibold bg-[#e0f2fe] text-[#0284c7]">
                             Free Forever
                           </span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1.5 mt-1 text-xs">
+                        <div className="flex items-center justify-center gap-1.5 mt-1.5 text-xs flex-wrap">
                           <span className="text-slate-500 font-medium">
                             or {sym} {plan.yearlyPrice.toLocaleString()} / year
                           </span>
                           {plan.yearlyDiscount && (
-                            <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-[#dcfce7] text-[#15803d]">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#dcfce7] text-[#15803d]">
                               {plan.yearlyDiscount}
                             </span>
                           )}
@@ -655,7 +719,11 @@ export function ProductMasterPlansScreen() {
                   <div className="pt-4 mt-2">
                     <Button
                       type="button"
-                      onClick={() => openEditModal(plan)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPlanId(plan.id);
+                        openEditModal(plan);
+                      }}
                       className={cn(
                         'w-full h-9 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer',
                         plan.isPopular
@@ -676,7 +744,7 @@ export function ProductMasterPlansScreen() {
         {/* 4. PLAN MANAGEMENT TABLE */}
         <div className="pt-3 border-t border-slate-100 space-y-3.5">
           <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
-            <Package className="h-4 w-4 text-[#6222cc]" />
+            <Layers className="h-4 w-4 text-[#6222cc]" />
             <span>Plan Management</span>
           </div>
 
@@ -687,10 +755,12 @@ export function ProductMasterPlansScreen() {
                   <th className="py-2.5 px-3 w-8 text-center font-bold text-slate-900">#</th>
                   <th className="py-2.5 px-3 font-bold text-slate-900">Plan Name</th>
                   <th className="py-2.5 px-3 font-bold text-slate-900">Plan Code</th>
+                  <th className="py-2.5 px-3 font-bold text-slate-900">Product</th>
+                  <th className="py-2.5 px-3 font-bold text-slate-900">Plan Type</th>
                   <th className="py-2.5 px-3 font-bold text-slate-900">Price (Monthly)</th>
                   <th className="py-2.5 px-3 font-bold text-slate-900">Price (Yearly)</th>
-                  <th className="py-2.5 px-3 font-bold text-slate-900">Student Limit</th>
-                  <th className="py-2.5 px-3 font-bold text-slate-900">Target Segment</th>
+                  <th className="py-2.5 px-3 font-bold text-slate-900">Users Limit</th>
+                  <th className="py-2.5 px-3 font-bold text-slate-900">Storage</th>
                   <th className="py-2.5 px-3 text-center font-bold text-slate-900">Status</th>
                   <th className="py-2.5 px-3 text-center w-24 font-bold text-slate-900">Actions</th>
                 </tr>
@@ -698,7 +768,20 @@ export function ProductMasterPlansScreen() {
               <tbody className="divide-y divide-slate-100 font-medium">
                 {plans.map((pl, idx) => {
                   const sym = getCurrencySymbol(pl.currency);
-                  return (
+                  const getSelectedPlanCardClass = (plan: ProductPlanRecord, idx: number) => {
+    if (plan.isPopular) {
+      return 'scale-[1.03] -translate-y-1 z-10 border-2 border-[#6222cc] ring-4 ring-[#6222cc]/15 shadow-lg shadow-purple-200/60';
+    }
+    const selectedPalette = [
+      'scale-[1.03] -translate-y-1 z-10 border-2 border-sky-500 ring-4 ring-sky-500/15 shadow-lg shadow-sky-200/60',
+      'scale-[1.03] -translate-y-1 z-10 border-2 border-emerald-500 ring-4 ring-emerald-500/15 shadow-lg shadow-emerald-200/60',
+      'scale-[1.03] -translate-y-1 z-10 border-2 border-[#6222cc] ring-4 ring-[#6222cc]/15 shadow-lg shadow-purple-200/60',
+      'scale-[1.03] -translate-y-1 z-10 border-2 border-amber-500 ring-4 ring-amber-500/15 shadow-lg shadow-amber-200/60',
+    ];
+    return selectedPalette[idx % selectedPalette.length];
+  };
+
+  return (
                     <tr key={pl.id} className="hover:bg-slate-50/70 transition-colors">
                       <td className="py-2.5 px-3 text-center text-slate-500 font-semibold text-[11px]">
                         {idx + 1}
@@ -712,14 +795,20 @@ export function ProductMasterPlansScreen() {
                       <td className="py-2.5 px-3 font-mono text-[11px] text-slate-700">
                         {pl.code}
                       </td>
+                      <td className="py-2.5 px-3 text-slate-700 font-medium">{pl.productName}</td>
+                      <td className="py-2.5 px-3 text-slate-600">{pl.planType}</td>
                       <td className="py-2.5 px-3 text-slate-800 font-semibold">
                         {sym} {pl.monthlyPrice.toLocaleString()}
                       </td>
                       <td className="py-2.5 px-3 text-slate-800 font-semibold">
                         {sym} {pl.yearlyPrice.toLocaleString()}
                       </td>
-                      <td className="py-2.5 px-3 text-slate-700">{pl.studentLimit}</td>
-                      <td className="py-2.5 px-3 text-slate-600">{pl.productName}</td>
+                      <td className="py-2.5 px-3 text-slate-700">
+                        {pl.usersLimit > 0 ? `${pl.usersLimit} users` : 'Unlimited'}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-600">
+                        {pl.storageGb > 0 ? `${pl.storageGb} GB` : 'Unlimited'}
+                      </td>
                       <td className="py-2.5 px-3 text-center">
                         <span
                           className={cn(
@@ -744,14 +833,6 @@ export function ProductMasterPlansScreen() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => openCreateModal(pl)}
-                            title="Duplicate Plan"
-                            className="p-1 rounded-md text-[#6222cc] hover:bg-purple-50 transition-colors cursor-pointer"
-                          >
-                            <Copy className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            type="button"
                             onClick={() => setDeleteTarget(pl)}
                             title="Delete Plan"
                             className="p-1 rounded-md text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
@@ -773,13 +854,18 @@ export function ProductMasterPlansScreen() {
         {isModalOpen && (
           <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 space-y-4">
             <div className="flex items-start justify-between pb-3 border-b border-slate-100 gap-3">
-              <div>
-                <h3 className="text-base font-bold text-slate-900">
-                  {modalMode === 'create' ? 'Create Subscription Plan' : `Edit Plan: ${formName}`}
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Configure plan details, pricing, quotas, and features via `planCRUD/`.
-                </p>
+              <div className="flex items-start gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-[#6222cc] border border-purple-100 shrink-0">
+                  <Tag className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    {modalMode === 'create' ? 'Create Subscription Plan' : `Edit Plan: ${formName}`}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Configure plan details, pricing, quotas, and features.
+                  </p>
+                </div>
               </div>
               <button
                 type="button"

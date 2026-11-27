@@ -55,8 +55,8 @@ import {
   useGetProductPriceMatrixQuery,
   useGetProductPriceHistoryQuery,
   useGetProductMasterLookupsQuery,
-  useGetProductEditionsListQuery,
-  useGetPlansListQuery,
+  useGetProductEditionLookupsQuery,
+  useGetPlanLookupsQuery,
   useCreateProductPricingMutation,
   useUpdateProductPricingMutation,
   useDeleteProductPricingMutation,
@@ -117,13 +117,207 @@ const CURRENCY_SYMBOL_MAP: Record<string, string> = {
   GBP: '£',
 };
 
-const COUNTRY_CODE_MAP: Record<string, string> = {
-  India: 'IN',
-  'United States': 'US',
-  'United Kingdom': 'GB',
-  Europe: 'EU',
-  Global: 'GL',
-};
+const COUNTRY_OPTIONS: Array<{ name: string; code: string; currency?: string }> = [
+  { name: 'Global', code: 'GL', currency: 'USD ($)' },
+  { name: 'Afghanistan', code: 'AF' },
+  { name: 'Albania', code: 'AL' },
+  { name: 'Algeria', code: 'DZ' },
+  { name: 'Andorra', code: 'AD', currency: 'EUR (€)' },
+  { name: 'Angola', code: 'AO' },
+  { name: 'Antigua and Barbuda', code: 'AG' },
+  { name: 'Argentina', code: 'AR' },
+  { name: 'Armenia', code: 'AM' },
+  { name: 'Australia', code: 'AU', currency: 'USD ($)' },
+  { name: 'Austria', code: 'AT', currency: 'EUR (€)' },
+  { name: 'Azerbaijan', code: 'AZ' },
+  { name: 'Bahamas', code: 'BS' },
+  { name: 'Bahrain', code: 'BH' },
+  { name: 'Bangladesh', code: 'BD' },
+  { name: 'Barbados', code: 'BB' },
+  { name: 'Belarus', code: 'BY' },
+  { name: 'Belgium', code: 'BE', currency: 'EUR (€)' },
+  { name: 'Belize', code: 'BZ' },
+  { name: 'Benin', code: 'BJ' },
+  { name: 'Bhutan', code: 'BT' },
+  { name: 'Bolivia', code: 'BO' },
+  { name: 'Bosnia and Herzegovina', code: 'BA' },
+  { name: 'Botswana', code: 'BW' },
+  { name: 'Brazil', code: 'BR' },
+  { name: 'Brunei', code: 'BN' },
+  { name: 'Bulgaria', code: 'BG', currency: 'EUR (€)' },
+  { name: 'Burkina Faso', code: 'BF' },
+  { name: 'Burundi', code: 'BI' },
+  { name: 'Cambodia', code: 'KH' },
+  { name: 'Cameroon', code: 'CM' },
+  { name: 'Canada', code: 'CA', currency: 'USD ($)' },
+  { name: 'Cape Verde', code: 'CV' },
+  { name: 'Central African Republic', code: 'CF' },
+  { name: 'Chad', code: 'TD' },
+  { name: 'Chile', code: 'CL' },
+  { name: 'China', code: 'CN' },
+  { name: 'Colombia', code: 'CO' },
+  { name: 'Comoros', code: 'KM' },
+  { name: 'Congo', code: 'CG' },
+  { name: 'Costa Rica', code: 'CR' },
+  { name: 'Croatia', code: 'HR', currency: 'EUR (€)' },
+  { name: 'Cuba', code: 'CU' },
+  { name: 'Cyprus', code: 'CY', currency: 'EUR (€)' },
+  { name: 'Czech Republic', code: 'CZ' },
+  { name: 'Denmark', code: 'DK' },
+  { name: 'Djibouti', code: 'DJ' },
+  { name: 'Dominica', code: 'DM' },
+  { name: 'Dominican Republic', code: 'DO' },
+  { name: 'Ecuador', code: 'EC' },
+  { name: 'Egypt', code: 'EG' },
+  { name: 'El Salvador', code: 'SV' },
+  { name: 'Equatorial Guinea', code: 'GQ' },
+  { name: 'Eritrea', code: 'ER' },
+  { name: 'Estonia', code: 'EE', currency: 'EUR (€)' },
+  { name: 'Eswatini', code: 'SZ' },
+  { name: 'Ethiopia', code: 'ET' },
+  { name: 'Fiji', code: 'FJ' },
+  { name: 'Finland', code: 'FI', currency: 'EUR (€)' },
+  { name: 'France', code: 'FR', currency: 'EUR (€)' },
+  { name: 'Gabon', code: 'GA' },
+  { name: 'Gambia', code: 'GM' },
+  { name: 'Georgia', code: 'GE' },
+  { name: 'Germany', code: 'DE', currency: 'EUR (€)' },
+  { name: 'Ghana', code: 'GH' },
+  { name: 'Greece', code: 'GR', currency: 'EUR (€)' },
+  { name: 'Grenada', code: 'GD' },
+  { name: 'Guatemala', code: 'GT' },
+  { name: 'Guinea', code: 'GN' },
+  { name: 'Guinea-Bissau', code: 'GW' },
+  { name: 'Guyana', code: 'GY' },
+  { name: 'Haiti', code: 'HT' },
+  { name: 'Honduras', code: 'HN' },
+  { name: 'Hungary', code: 'HU' },
+  { name: 'Iceland', code: 'IS' },
+  { name: 'India', code: 'IN', currency: 'INR (₹)' },
+  { name: 'Indonesia', code: 'ID' },
+  { name: 'Iran', code: 'IR' },
+  { name: 'Iraq', code: 'IQ' },
+  { name: 'Ireland', code: 'IE', currency: 'EUR (€)' },
+  { name: 'Israel', code: 'IL' },
+  { name: 'Italy', code: 'IT', currency: 'EUR (€)' },
+  { name: 'Jamaica', code: 'JM' },
+  { name: 'Japan', code: 'JP' },
+  { name: 'Jordan', code: 'JO' },
+  { name: 'Kazakhstan', code: 'KZ' },
+  { name: 'Kenya', code: 'KE' },
+  { name: 'Kiribati', code: 'KI' },
+  { name: 'Kuwait', code: 'KW' },
+  { name: 'Kyrgyzstan', code: 'KG' },
+  { name: 'Laos', code: 'LA' },
+  { name: 'Latvia', code: 'LV', currency: 'EUR (€)' },
+  { name: 'Lebanon', code: 'LB' },
+  { name: 'Lesotho', code: 'LS' },
+  { name: 'Liberia', code: 'LR' },
+  { name: 'Libya', code: 'LY' },
+  { name: 'Liechtenstein', code: 'LI' },
+  { name: 'Lithuania', code: 'LT', currency: 'EUR (€)' },
+  { name: 'Luxembourg', code: 'LU', currency: 'EUR (€)' },
+  { name: 'Madagascar', code: 'MG' },
+  { name: 'Malawi', code: 'MW' },
+  { name: 'Malaysia', code: 'MY' },
+  { name: 'Maldives', code: 'MV' },
+  { name: 'Mali', code: 'ML' },
+  { name: 'Malta', code: 'MT', currency: 'EUR (€)' },
+  { name: 'Marshall Islands', code: 'MH' },
+  { name: 'Mauritania', code: 'MR' },
+  { name: 'Mauritius', code: 'MU' },
+  { name: 'Mexico', code: 'MX' },
+  { name: 'Micronesia', code: 'FM' },
+  { name: 'Moldova', code: 'MD' },
+  { name: 'Monaco', code: 'MC' },
+  { name: 'Mongolia', code: 'MN' },
+  { name: 'Montenegro', code: 'ME' },
+  { name: 'Morocco', code: 'MA' },
+  { name: 'Mozambique', code: 'MZ' },
+  { name: 'Myanmar', code: 'MM' },
+  { name: 'Namibia', code: 'NA' },
+  { name: 'Nauru', code: 'NR' },
+  { name: 'Nepal', code: 'NP' },
+  { name: 'Netherlands', code: 'NL', currency: 'EUR (€)' },
+  { name: 'New Zealand', code: 'NZ' },
+  { name: 'Nicaragua', code: 'NI' },
+  { name: 'Niger', code: 'NE' },
+  { name: 'Nigeria', code: 'NG' },
+  { name: 'North Korea', code: 'KP' },
+  { name: 'North Macedonia', code: 'MK' },
+  { name: 'Norway', code: 'NO' },
+  { name: 'Oman', code: 'OM' },
+  { name: 'Pakistan', code: 'PK' },
+  { name: 'Palau', code: 'PW' },
+  { name: 'Palestine', code: 'PS' },
+  { name: 'Panama', code: 'PA' },
+  { name: 'Papua New Guinea', code: 'PG' },
+  { name: 'Paraguay', code: 'PY' },
+  { name: 'Peru', code: 'PE' },
+  { name: 'Philippines', code: 'PH' },
+  { name: 'Poland', code: 'PL' },
+  { name: 'Portugal', code: 'PT', currency: 'EUR (€)' },
+  { name: 'Qatar', code: 'QA' },
+  { name: 'Romania', code: 'RO' },
+  { name: 'Russia', code: 'RU' },
+  { name: 'Rwanda', code: 'RW' },
+  { name: 'Saint Kitts and Nevis', code: 'KN' },
+  { name: 'Saint Lucia', code: 'LC' },
+  { name: 'Saint Vincent and the Grenadines', code: 'VC' },
+  { name: 'Samoa', code: 'WS' },
+  { name: 'San Marino', code: 'SM' },
+  { name: 'Sao Tome and Principe', code: 'ST' },
+  { name: 'Saudi Arabia', code: 'SA' },
+  { name: 'Senegal', code: 'SN' },
+  { name: 'Serbia', code: 'RS' },
+  { name: 'Seychelles', code: 'SC' },
+  { name: 'Sierra Leone', code: 'SL' },
+  { name: 'Singapore', code: 'SG' },
+  { name: 'Slovakia', code: 'SK', currency: 'EUR (€)' },
+  { name: 'Slovenia', code: 'SI', currency: 'EUR (€)' },
+  { name: 'Solomon Islands', code: 'SB' },
+  { name: 'Somalia', code: 'SO' },
+  { name: 'South Africa', code: 'ZA' },
+  { name: 'South Korea', code: 'KR' },
+  { name: 'South Sudan', code: 'SS' },
+  { name: 'Spain', code: 'ES', currency: 'EUR (€)' },
+  { name: 'Sri Lanka', code: 'LK' },
+  { name: 'Sudan', code: 'SD' },
+  { name: 'Suriname', code: 'SR' },
+  { name: 'Sweden', code: 'SE' },
+  { name: 'Switzerland', code: 'CH' },
+  { name: 'Syria', code: 'SY' },
+  { name: 'Taiwan', code: 'TW' },
+  { name: 'Tajikistan', code: 'TJ' },
+  { name: 'Tanzania', code: 'TZ' },
+  { name: 'Thailand', code: 'TH' },
+  { name: 'Timor-Leste', code: 'TL' },
+  { name: 'Togo', code: 'TG' },
+  { name: 'Tonga', code: 'TO' },
+  { name: 'Trinidad and Tobago', code: 'TT' },
+  { name: 'Tunisia', code: 'TN' },
+  { name: 'Turkey', code: 'TR' },
+  { name: 'Turkmenistan', code: 'TM' },
+  { name: 'Tuvalu', code: 'TV' },
+  { name: 'Uganda', code: 'UG' },
+  { name: 'Ukraine', code: 'UA' },
+  { name: 'United Arab Emirates', code: 'AE' },
+  { name: 'United Kingdom', code: 'GB', currency: 'GBP (£)' },
+  { name: 'United States', code: 'US', currency: 'USD ($)' },
+  { name: 'Uruguay', code: 'UY' },
+  { name: 'Uzbekistan', code: 'UZ' },
+  { name: 'Vanuatu', code: 'VU' },
+  { name: 'Vatican City', code: 'VA' },
+  { name: 'Venezuela', code: 'VE' },
+  { name: 'Vietnam', code: 'VN' },
+  { name: 'Yemen', code: 'YE' },
+  { name: 'Zambia', code: 'ZM' },
+  { name: 'Zimbabwe', code: 'ZW' },
+];
+
+const COUNTRY_CODE_MAP: Record<string, string> = Object.fromEntries(
+  COUNTRY_OPTIONS.map((c) => [c.name, c.code])
+);
 
 function mapBackendPricingToRule(row: any): PricingRule {
   const curCode = String(row.Currency || 'INR').split(' ')[0].toUpperCase();
@@ -294,8 +488,28 @@ export function ProductPricingScreen({
   const { data: historyRows = [], isFetching: isHistoryFetching, refetch: refetchHistory } =
     useGetProductPriceHistoryQuery(undefined, { refetchOnMountOrArgChange: true });
   const { data: productLookups = [] } = useGetProductMasterLookupsQuery();
-  const { data: editionLookups = [] } = useGetProductEditionsListQuery();
-  const { data: planLookups = [] } = useGetPlansListQuery();
+  const selectedFormProduct = useMemo(
+    () =>
+      productLookups.find(
+        (p: any) =>
+          p.Product_Name === formData.product || String(p.id) === String(formData.product)
+      ),
+    [productLookups, formData.product]
+  );
+  const { data: editionLookups = [] } = useGetProductEditionLookupsQuery(
+    selectedFormProduct?.id ? { Product_Id: selectedFormProduct.id } : undefined
+  );
+  const selectedFormEdition = useMemo(
+    () =>
+      editionLookups.find(
+        (e: any) =>
+          e.Edition_Name === formData.edition || String(e.id) === String(formData.edition)
+      ),
+    [editionLookups, formData.edition]
+  );
+  const { data: planLookups = [] } = useGetPlanLookupsQuery(
+    selectedFormEdition?.id ? { Edition_Id: selectedFormEdition.id } : undefined
+  );
 
   // Mutations
   const [createProductPricing, { isLoading: isCreatingPricing }] = useCreateProductPricingMutation();
@@ -826,11 +1040,11 @@ export function ProductPricingScreen({
                     className="w-full appearance-none bg-slate-50/70 border border-slate-200 rounded-lg pl-2.5 pr-7 py-2 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc] cursor-pointer"
                   >
                     <option value="All Countries">All Countries</option>
-                    <option value="India">India</option>
-                    <option value="United States">United States</option>
-                    <option value="United Kingdom">United Kingdom</option>
-                    <option value="Europe">Europe</option>
-                    <option value="Global">Global</option>
+                    {COUNTRY_OPTIONS.map((c) => (
+                      <option key={c.code} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
                   </select>
                   <ChevronDown className="h-3.5 w-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
@@ -1499,7 +1713,7 @@ export function ProductPricingScreen({
                         readOnly
                         disabled
                         className="h-8 text-xs font-mono font-semibold bg-slate-100 text-slate-500 cursor-not-allowed"
-                        placeholder="Auto-generated on save (PRC-XXXXXX)"
+                        placeholder="Auto generated"
                       />
                     </div>
 
@@ -1578,18 +1792,21 @@ export function ProductPricingScreen({
                         value={formData.country}
                         onChange={(e) => {
                           const c = e.target.value;
+                          const matched = COUNTRY_OPTIONS.find((item) => item.name === c);
                           setFormData({
                             ...formData,
                             country: c,
-                            countryCode: c === 'India' ? 'IN' : c === 'United States' ? 'US' : 'GL',
-                            currency: c === 'India' ? 'INR (₹)' : 'USD ($)',
+                            countryCode: matched?.code || 'GL',
+                            currency: matched?.currency || formData.currency || 'USD ($)',
                           });
                         }}
                         className="w-full h-8 px-2.5 rounded-lg border border-slate-200 text-xs bg-white font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6222cc]"
                       >
-                        <option value="India">🇮🇳 India</option>
-                        <option value="United States">🇺🇸 United States</option>
-                        <option value="Global">🌐 Global</option>
+                        {COUNTRY_OPTIONS.map((c) => (
+                          <option key={c.code} value={c.name}>
+                            {c.code === 'GL' ? `🌐 ${c.name}` : `${c.code} - ${c.name}`}
+                          </option>
+                        ))}
                       </select>
                     </div>
 

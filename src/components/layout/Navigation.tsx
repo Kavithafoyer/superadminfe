@@ -117,7 +117,6 @@ export const getMenuGroups = (): MenuSection[] => [
             path: '/products/editions',
           },
           {
-<<<<<<< HEAD
             label: 'Module Master',
             path: '/products/modules',
           },
@@ -145,15 +144,6 @@ export const getMenuGroups = (): MenuSection[] => [
           //   label: 'Feature Mapping',
           //   path: '/products/feature-mapping',
           // },
-=======
-            label: 'Modules & Features',
-            path: '/products/features-modules',
-          },
-          {
-            label: 'Feature Mapping',
-            path: '/products/feature-mapping',
-          },
->>>>>>> d6d520f393f0568ee78851c012b08d3e2bdebce2
           {
             label: 'Product Pricing',
             path: '/products/pricing',
@@ -161,18 +151,6 @@ export const getMenuGroups = (): MenuSection[] => [
           {
             label: 'Free & Paid Plans',
             path: '/products/free-paid-plans',
-          },
-          {
-            label: 'Free Core Configuration',
-            path: '/products/configuration',
-          },
-          {
-            label: 'Trial Configuration',
-            path: '/products/trial-configuration',
-          },
-          {
-            label: 'Product Releases',
-            path: '/products/releases',
           },
           {
             label: 'License & Entitlements',
@@ -273,18 +251,18 @@ export const getMenuGroups = (): MenuSection[] => [
             label: 'Customer Overview',
             path: '/customer/overview',
           },
-          {
-            label: 'Subscription Management',
-            path: '/customer/subscription-management',
-          },
-          {
-            label: 'Customer Usage',
-            path: '/customer/usage',
-          },
-          {
-            label: 'Renewals & Expiry',
-            path: '/customer/renewals-expiry',
-          },
+          // {
+          //   label: 'Subscription Management',
+          //   path: '/customer/subscription-management',
+          // },
+          // {
+          //   label: 'Customer Usage',
+          //   path: '/customer/usage',
+          // },
+          // {
+          //   label: 'Renewals & Expiry',
+          //   path: '/customer/renewals-expiry',
+          // },
         ],
       },
       {
